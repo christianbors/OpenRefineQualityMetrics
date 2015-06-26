@@ -37,61 +37,12 @@ public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
     protected Map<Integer, F> spuriousValues;
     protected float metric;
 
-    protected RowVisitor createRowVisitor(Project project, int cellIndex, List<E> values,
-            Map<Integer, F> spuriousValues, float metric) {
-        return new RowVisitor() {
-
-            int cellIndex;
-            List<E> values;
-            Map<Integer, F> spuriousValues;
-            float metric;
-
-            public RowVisitor init(int cellIndex, List<E> values, Map<Integer, F> spuriousValues, float metric) {
-                this.cellIndex = cellIndex;
-                this.values = values;
-                this.spuriousValues = spuriousValues;
-                this.metric = metric;
-                return this;
-            }
-
-            @Override
-            public void start(Project project) {
-                startVisit(project);
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public boolean visit(Project project, int rowIndex, Row row) {
-                try {
-                    E val = (E) row.getCellValue(this.cellIndex);
-                    if (!checkSpurious(val)) {
-                        values.add(val);
-                    } else {
-                        throw new MetricsException("Value spurious, " + val);
-                    }
-                    this.values.add(val);
-                } catch (Exception e) {
-                    spuriousValues.put(rowIndex, (F) row.getCellValue(this.cellIndex));
-                }
-
-                return false;
-            }
-
-            @Override
-            public void end(Project project) {
-                metric = ((float) values.size() / (float) (values.size() + spuriousValues.size()));
-                endVisit(project, values, spuriousValues, metric);
-            }
-        }.init(cellIndex, values, spuriousValues, metric);
-    }
-
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             spuriousValues = new HashMap<Integer, F>();
-            values = new ArrayList<E>();
-            metric = 0f;
+            this.values = new ArrayList<E>();
 
             ProjectManager.singleton.setBusy(true);
             Project project = getProject(request);
@@ -107,7 +58,47 @@ public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
             engine.initializeFromJSON(engineConfig);
 
             FilteredRows filteredRows = engine.getAllRows();
-            filteredRows.accept(project, createRowVisitor(project, cellIndex, values, spuriousValues, metric));
+            
+            RowVisitor rw = new RowVisitor() {
+
+                int cellIndex;
+                
+                public RowVisitor init(int cellIndex) {
+                    this.cellIndex = cellIndex;
+                    return this;
+                }
+
+                @Override
+                public void start(Project project) {
+                    startVisit(project);
+                }
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public boolean visit(Project project, int rowIndex, Row row) {
+                    try {
+                        E val = (E) row.getCellValue(this.cellIndex);
+                        if (!checkSpurious(val)) {
+                            values.add(val);
+                        } else {
+                            throw new MetricsException("Value spurious, " + val);
+                        }
+                        values.add(val);
+                    } catch (Exception e) {
+                        spuriousValues.put(rowIndex, (F) row.getCellValue(this.cellIndex));
+                    }
+
+                    return false;
+                }
+
+                @Override
+                public void end(Project project) {
+                    metric += ((float) values.size() / (float) (values.size() + spuriousValues.size()));
+                    endVisit(project, values, spuriousValues, metric);
+                }
+            }.init(cellIndex);
+            
+            filteredRows.accept(project, rw);
         } catch (Exception e) {
             respondException(response, e);
         } finally {

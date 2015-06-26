@@ -1,0 +1,20 @@
+<div class="metrics-panel-help" bind="helpDiv">
+  <h1 bind="or_proj_undo"></h1>
+  <p bind="or_proj_mistakes"></p>
+  <p><a href="https://github.com/OpenRefine/OpenRefine/wiki/metrics" target="_blank"><b><span bind="or_proj_learnMore"></span></b></a></p>
+</div>
+<div class="metrics-panel-controls" bind="controlsDiv">
+  <a class="button button-pill-left" href="javascript:{}" bind="extractLink"></a><a class="button button-pill-right" href="javascript:{}" bind="applyLink"></a>
+</div>
+<div class="metrics-panel-filter" bind="bodyControlsDiv">
+<span bind="or_proj_filter"> </span><input type="text"  size="30" bind="filterInput" />
+</div>
+<div class="metrics-panel-body" bind="bodyDiv">
+  <div class="metrics-past" bind="pastDiv">
+    <div class="metrics-highlight" bind="pastHighlightDiv"></div>
+  </div>
+  <div class="metrics-now" bind="nowDiv"></div>
+  <div class="metrics-future" bind="futureDiv">
+    <div class="metrics-highlight" bind="futureHighlightDiv"></div>
+  </div>
+</div>

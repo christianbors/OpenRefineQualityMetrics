@@ -37,50 +37,50 @@ var QualityMetricsExtension = {};
 
 DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
   var doStatsDialog = function(response) {
-      var dialog = $(DOM.loadHTML("quality-metrics", "scripts/completeness.html"));
+    var dialog = $(DOM.loadHTML("quality-metrics", "scripts/completeness.html"));
 
-      var elmts = DOM.bind(dialog);
-      elmts.dialogHeader.text("Statistics for column \"" + column.name + "\"");
+    var elmts = DOM.bind(dialog);
+    elmts.dialogHeader.text("Statistics for column \"" + column.name + "\"");
 
-      if (response["metric"]) { elmts.dialogCompleteness.text(response["metric"]) };
+    if (response["metric"]) { elmts.dialogCompleteness.text(response["metric"]) };
 
-      var level = DialogSystem.showDialog(dialog);
+    var level = DialogSystem.showDialog(dialog);
 
-      elmts.okButton.click(function() {
-          DialogSystem.dismissUntil(level - 1);
-      });
+    elmts.okButton.click(function() {
+      DialogSystem.dismissUntil(level - 1);
+    });
   };
 
   var prepStatsDialog = function() {
-      params = { "column_name": column.name };
-      body = {};
-      updateOptions = {};
-      callbacks = {
-          "onDone": function(response) {
-              doStatsDialog(response);
-          }
+    params = { "column_name": column.name };
+    body = {};
+    updateOptions = {};
+    callbacks = {
+      "onDone": function(response) {
+        doStatsDialog(response);
       }
+    }
 
-      Refine.postProcess(
-          "quality-metrics",
-          "completeness",
-          params,
-          body,
-          updateOptions,
-          callbacks
+    Refine.postProcess(
+      "quality-metrics",
+      "completeness",
+      params,
+      body,
+      updateOptions,
+      callbacks
       );
   }
 
   MenuSystem.insertAfter(
-      menu,
-      [ "core/transpose" ],
-      [
-      {},
-      {
-          id: "quality-metrics/completeness",
-          label: "Completeness",
-          click: prepStatsDialog
-      }
-      ]
-  );
+    menu,
+    [ "core/transpose" ],
+    [
+    {},
+    {
+      id: "quality-metrics/completeness",
+      label: "Completeness",
+      click: prepStatsDialog
+    }
+    ]
+    );
 });

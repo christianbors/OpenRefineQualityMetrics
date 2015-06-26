@@ -42,7 +42,7 @@ function process(path, request, response) {
     // here's how to pass things into the .vt templates
     context.someList = ["Superior","Michigan","Huron","Erie","Ontario"];
     context.someString = "foo";
-    context.someInt = Packages.com.google.refine.metricsExtension.SampleUtil.stringArrayLength(context.someList);
+    context.someInt = 3;
 
     send(request, response, "index.vt", context);
   }
