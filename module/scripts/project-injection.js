@@ -40,7 +40,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     var dialog = $(DOM.loadHTML("quality-metrics", "scripts/completeness.html"));
 
     var elmts = DOM.bind(dialog);
-    elmts.dialogHeader.text("Statistics for column \"" + column.name + "\"");
+    elmts.dialogHeader.text("Metrics for column \"" + column.name + "\"");
 
     if (response["metric"]) { elmts.dialogCompleteness.text(response["metric"]) };
 
@@ -51,7 +51,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     });
   };
 
-  var prepStatsDialog = function() {
+  var prepMetricsDialog = function() {
     params = { "column_name": column.name };
     body = {};
     updateOptions = {};
@@ -79,7 +79,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     {
       id: "quality-metrics/completeness",
       label: "Completeness",
-      click: prepStatsDialog
+      click: prepMetricsDialog
     }
     ]
     );

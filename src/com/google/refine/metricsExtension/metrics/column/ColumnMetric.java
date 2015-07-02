@@ -24,25 +24,23 @@ import com.google.refine.browsing.FilteredRows;
 import com.google.refine.browsing.RowVisitor;
 import com.google.refine.commands.Command;
 import com.google.refine.metricsExtension.MetricsException;
+import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.model.Column;
 import com.google.refine.model.ColumnModel;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
 import com.google.refine.util.ParsingUtilities;
 
-public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
+public abstract class ColumnMetric<E> extends Command {
 
     protected int cellIndex;
-    protected List<E> values;
-    protected Map<Integer, F> spuriousValues;
-    protected float metric;
+    protected Metric<E> metric;
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            spuriousValues = new HashMap<Integer, F>();
-            this.values = new ArrayList<E>();
+            metric = new Metric<E>();
 
             ProjectManager.singleton.setBusy(true);
             Project project = getProject(request);
@@ -58,11 +56,11 @@ public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
             engine.initializeFromJSON(engineConfig);
 
             FilteredRows filteredRows = engine.getAllRows();
-            
+
             RowVisitor rw = new RowVisitor() {
 
                 int cellIndex;
-                
+
                 public RowVisitor init(int cellIndex) {
                     this.cellIndex = cellIndex;
                     return this;
@@ -79,13 +77,12 @@ public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
                     try {
                         E val = (E) row.getCellValue(this.cellIndex);
                         if (!checkSpurious(val)) {
-                            values.add(val);
+                            metric.getValidItems().add(val);
                         } else {
                             throw new MetricsException("Value spurious, " + val);
                         }
-                        values.add(val);
                     } catch (Exception e) {
-                        spuriousValues.put(rowIndex, (F) row.getCellValue(this.cellIndex));
+                        metric.getSpuriousItemMap().put(rowIndex, (E) row.getCellValue(this.cellIndex));
                     }
 
                     return false;
@@ -93,18 +90,18 @@ public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
 
                 @Override
                 public void end(Project project) {
-                    metric += ((float) values.size() / (float) (values.size() + spuriousValues.size()));
-                    endVisit(project, values, spuriousValues, metric);
+                    metric.setMeasure(((float) metric.getValidItems().size() / (float) (metric.getValidItems().size() + metric.getSpuriousItemMap().size())));
+                    endVisit(project, metric);
                 }
             }.init(cellIndex);
-            
+
             filteredRows.accept(project, rw);
         } catch (Exception e) {
             respondException(response, e);
         } finally {
             ProjectManager.singleton.setBusy(false);
             try {
-                write(new JSONWriter(response.getWriter()), new Properties());
+                respondJSON(response, metric);
             } catch (JSONException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -112,33 +109,9 @@ public abstract class ColumnMetric<E, F> extends Command implements Jsonizable {
         }
     }
 
-    @Override
-    public void write(JSONWriter writer, Properties options)
-            throws JSONException {
-
-        writer.object();
-
-        writer.key("elementList");
-        writer.array();
-        for (Iterator<Map.Entry<Integer, F>> entries = spuriousValues.entrySet().iterator(); entries.hasNext();) {
-            Map.Entry<Integer, F> entry = entries.next();
-            writer.object();
-            writer.key(entry.getKey().toString());
-            writer.value(entries);
-            writer.endObject();
-        }
-        writer.endArray();
-
-        writer.key("metric").value(Float.toString(metric));
-
-        writeSpecificProperty(writer, options);
-
-        writer.endObject();
-    }
-
     protected abstract boolean checkSpurious(E val);
 
-    protected abstract void endVisit(Project project, List<E> values, Map<Integer, F> spuriousValues, float metric);
+    protected abstract void endVisit(Project project, Metric<E> metric);
 
     protected abstract void startVisit(Project project);
 
