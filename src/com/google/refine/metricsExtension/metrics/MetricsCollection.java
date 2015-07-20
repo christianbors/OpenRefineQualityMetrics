@@ -9,7 +9,7 @@ import com.google.refine.model.OverlayModel;
 import com.google.refine.model.Project;
 
 
-public class MetricsCollection implements OverlayModel{
+public class MetricsCollection implements OverlayModel {
 
     @Override
     public void write(JSONWriter writer, Properties options)

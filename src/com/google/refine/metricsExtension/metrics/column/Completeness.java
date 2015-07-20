@@ -15,12 +15,6 @@ import com.google.refine.model.Project;
 public class Completeness extends ColumnMetric<Object> {
 
     @Override
-    protected void writeSpecificProperty(JSONWriter writer, Properties options)
-            throws JSONException {
-        writer.key("test").value("value");
-    }
-
-    @Override
     protected boolean checkSpurious(Object val) {
         if (val instanceof Long 
                 || val instanceof Double
