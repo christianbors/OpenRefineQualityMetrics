@@ -9,9 +9,11 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
+import com.google.refine.model.Project;
 
 public class Metric<E> implements Jsonizable {
 
