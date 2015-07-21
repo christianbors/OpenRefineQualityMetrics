@@ -1,14 +1,6 @@
 
 package com.google.refine.metricsExtension.metrics.column;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import org.json.JSONException;
-import org.json.JSONWriter;
-
-import com.google.refine.grel.controls.IsNull;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.model.Project;
 
@@ -40,7 +32,7 @@ public class Completeness extends ColumnMetric<Object> {
     }
 
     @Override
-    protected String getName() {
+    public String getName() {
         return "completeness";
     }
 

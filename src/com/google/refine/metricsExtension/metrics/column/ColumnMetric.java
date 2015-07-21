@@ -115,5 +115,5 @@ public abstract class ColumnMetric<E> extends Command {
 
     protected abstract void startVisit(Project project);
 
-    protected abstract String getName();
+    public abstract String getName();
 }

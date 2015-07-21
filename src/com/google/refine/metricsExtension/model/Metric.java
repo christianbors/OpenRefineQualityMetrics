@@ -16,16 +16,18 @@ import com.google.refine.Jsonizable;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.model.Project;
 
-public class Metric<E> implements Jsonizable, Evaluable {
+public class Metric<E> implements Jsonizable {
 
     private float measure;
-    protected List<E> validItems;
-    protected Map<Integer, E> spuriousItemMap;
+    private List<E> validItems;
+    private String columnName; 
+    
+    //TODO: put constraints here
+    private String constraints;
 
     public Metric() {
         measure = 0f;
         validItems = new ArrayList<E>();
-        spuriousItemMap = new HashMap<Integer, E>();
     }
 
     @Override
@@ -34,18 +36,10 @@ public class Metric<E> implements Jsonizable, Evaluable {
         writer.object();
 
         writer.key("elementList");
-        writer.array();
-        for (Iterator<Map.Entry<Integer, E>> entries = spuriousItemMap.entrySet().iterator(); entries
-                .hasNext();) {
-            Map.Entry<Integer, E> entry = entries.next();
-            writer.object();
-            writer.key(entry.getKey().toString());
-            writer.value(entries);
-            writer.endObject();
-        }
-        writer.endArray();
 
         writer.key("metric").value(Float.toString(measure));
+        writer.key("columnName").value(columnName);
+        writer.key("constraints").value(constraints);
 
         writer.endObject();
     }
@@ -61,16 +55,4 @@ public class Metric<E> implements Jsonizable, Evaluable {
     public List<E> getValidItems() {
         return validItems;
     }
-
-    public Map<Integer, E> getSpuriousItemMap() {
-        return spuriousItemMap;
-    }
-
-    @Override
-    public Object evaluate(Properties bindings) {
-        bindings.get("rowIndex");
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 }

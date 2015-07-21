@@ -32,9 +32,10 @@ import com.google.refine.model.Project;
 
 public class MetricsFacet implements Facet {
 
-    protected String name = "completeness";
     protected String columnName;
-    protected Map<String, Metric<?>> metricsMap;
+    protected boolean invert;
+    
+    protected List<Metric<?>> metricsMap;
     protected boolean update = false;
     
     /*
@@ -46,20 +47,24 @@ public class MetricsFacet implements Facet {
        
     protected List<MetricFacetChoice> selection = new LinkedList<MetricFacetChoice>();
     protected List<MetricFacetChoice> choices = new LinkedList<MetricFacetChoice>();
+    
+    protected int spuriousCount;
 
 
     @Override
     public void write(JSONWriter writer, Properties options)
             throws JSONException {
         writer.object();
-        writer.key("name").value(name);
         writer.key("metrics").array();
-        for (Map.Entry<String, Metric<?>> entry : metricsMap.entrySet()) {
-            writer.key(entry.getKey()).value(entry.getValue());
+        for (Metric<?> entry : metricsMap) {
+            entry.write(writer, options);
         }
         writer.endArray();
 
         writer.key("updateOnChange").value(update);
+        writer.key("invert").value(invert);
+        
+        writer.endObject();
     }
 
     @Override
@@ -96,12 +101,12 @@ public class MetricsFacet implements Facet {
         return 
                 (selection.size() == 0) ? 
                     null :
-                    new MetricsRowFilter(
-                        eval, 
+                    new MetricsRowFilter<?>(
+                        eval,
                         columnName,
-                        cellIndex, 
-                        createMatches(), 
-                        true, 
+                        cellIndex,
+                        createMatches(),
+                        true,
                         true,
                         false);
     }
@@ -162,6 +167,8 @@ public class MetricsFacet implements Facet {
                 choices.add(choice);
             }
         }
+        
+        spuriousCount = grouper.spuriousCount;
     }
 /*    
     protected Object[] createMatches() {

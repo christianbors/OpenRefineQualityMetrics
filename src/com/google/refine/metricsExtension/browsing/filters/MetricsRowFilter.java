@@ -60,7 +60,6 @@ public class MetricsRowFilter<E> implements RowFilter {
                                                 // -1 if based on no column in particular,
                                                 // for expression such as "row.starred".
     
-    final protected Object[]        _matches;
     final protected boolean         _selectBlank;
     final protected boolean         _selectError;
     final protected boolean         _invert;
@@ -69,7 +68,6 @@ public class MetricsRowFilter<E> implements RowFilter {
         Metric<E>[] metrics,
         String columnName,
         int cellIndex, 
-        Object[] matches, 
         boolean selectBlank, 
         boolean selectError,
         boolean invert
@@ -77,7 +75,6 @@ public class MetricsRowFilter<E> implements RowFilter {
         _metrics = metrics;
         _columnName = columnName;
         _cellIndex = cellIndex;
-        _matches = matches;
         _selectBlank = selectBlank;
         _selectError = selectError;
         _invert = invert;
@@ -88,13 +85,22 @@ public class MetricsRowFilter<E> implements RowFilter {
         return internalFilterRow(project, rowIndex, row, _invert);
     }
     
+    /**
+     * This function also takes care of inverting
+     * @param project
+     * @param rowIndex
+     * @param row
+     * @param invert
+     * @return
+     */
     public boolean internalFilterRow(Project project, int rowIndex, Row row, boolean invert) {
         Cell cell = _cellIndex < 0 ? null : row.getCell(_cellIndex);
         
         Properties bindings = ExpressionUtils.createBindings(project);
         ExpressionUtils.bind(bindings, row, rowIndex, _columnName, cell);
         
-        Object value = _evaluable.evaluate(bindings);
+//        Object value = _evaluable.evaluate(bindings);
+        
         if (value != null) {
             if (value.getClass().isArray()) {
                 Object[] a = (Object[]) value;
