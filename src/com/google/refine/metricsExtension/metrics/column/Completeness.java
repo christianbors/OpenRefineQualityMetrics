@@ -39,4 +39,9 @@ public class Completeness extends ColumnMetric<Object> {
 
     }
 
+    @Override
+    protected String getName() {
+        return "completeness";
+    }
+
 }

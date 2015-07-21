@@ -13,9 +13,10 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
+import com.google.refine.expr.Evaluable;
 import com.google.refine.model.Project;
 
-public class Metric<E> implements Jsonizable {
+public class Metric<E> implements Jsonizable, Evaluable {
 
     private float measure;
     protected List<E> validItems;
@@ -63,6 +64,13 @@ public class Metric<E> implements Jsonizable {
 
     public Map<Integer, E> getSpuriousItemMap() {
         return spuriousItemMap;
+    }
+
+    @Override
+    public Object evaluate(Properties bindings) {
+        bindings.get("rowIndex");
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

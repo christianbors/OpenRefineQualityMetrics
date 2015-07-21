@@ -24,6 +24,8 @@ import com.google.refine.browsing.util.ExpressionNominalValueGrouper;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.metricsExtension.browsing.filters.MetricsRowFilter;
+import com.google.refine.metricsExtension.browsing.util.MetricFacetChoice;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
@@ -39,11 +41,11 @@ public class MetricsFacet implements Facet {
      * Derived configuration
      */
     protected int        cellIndex;
-//    protected Evaluable  eval;
-//    protected String     errorMessage;
+    protected Evaluable  eval;
+    protected String     errorMessage;
        
-    protected List<Metric> selection = new LinkedList<Metric>();
-    protected List<Metric> choices = new LinkedList<Metric>();
+    protected List<MetricFacetChoice> selection = new LinkedList<MetricFacetChoice>();
+    protected List<MetricFacetChoice> choices = new LinkedList<MetricFacetChoice>();
 
 
     @Override
@@ -94,7 +96,7 @@ public class MetricsFacet implements Facet {
         return 
                 (selection.size() == 0) ? 
                     null :
-                    new ExpressionEqualRowFilter(
+                    new MetricsRowFilter(
                         eval, 
                         columnName,
                         cellIndex, 
@@ -140,7 +142,7 @@ public class MetricsFacet implements Facet {
         choices.clear();
         choices.addAll(grouper.choices.values());
         
-        for (Metric metric : selection) {
+        for (MetricFacetChoice metric : selection) {
             String valueString = choice.decoratedValue.value.toString();
             
             if (grouper.choices.containsKey(valueString)) {
@@ -160,16 +162,13 @@ public class MetricsFacet implements Facet {
                 choices.add(choice);
             }
         }
-        
-        _blankCount = grouper.blankCount;
-        _errorCount = grouper.errorCount;
     }
-    
+/*    
     protected Object[] createMatches() {
         Object[] a = new Object[_selection.size()];
         for (int i = 0; i < a.length; i++) {
             a[i] = _selection.get(i).decoratedValue.value;
         }
         return a;
-    }
+    }*/
 }
