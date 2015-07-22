@@ -1,33 +1,27 @@
 
 package com.google.refine.metricsExtension.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
-import com.google.refine.expr.Evaluable;
-import com.google.refine.model.Project;
 
-public class Metric<E> implements Jsonizable {
+public abstract class Metric<E> implements Jsonizable {
 
-    private float measure;
-    private List<E> validItems;
+    protected String name;
+    protected String description;
+    protected float measure;
     private String columnName; 
     
     //TODO: put constraints here
     private String constraints;
 
-    public Metric() {
-        measure = 0f;
-        validItems = new ArrayList<E>();
+    public Metric(String name, String description) {
+        this.name = name;
+        this.description = description;
+        this.measure = 0f;
     }
 
     @Override
@@ -35,13 +29,19 @@ public class Metric<E> implements Jsonizable {
             throws JSONException {
         writer.object();
 
-        writer.key("elementList");
-
         writer.key("metric").value(Float.toString(measure));
         writer.key("columnName").value(columnName);
         writer.key("constraints").value(constraints);
 
         writer.endObject();
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getDescription() {
+        return description;
     }
 
     public float getMeasure() {
@@ -52,7 +52,6 @@ public class Metric<E> implements Jsonizable {
         this.measure = measure;
     }
 
-    public List<E> getValidItems() {
-        return validItems;
-    }
+    public abstract boolean evaluateValue(Object value);
+
 }

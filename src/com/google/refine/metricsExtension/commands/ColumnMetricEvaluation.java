@@ -1,5 +1,5 @@
 
-package com.google.refine.metricsExtension.metrics.column;
+package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,17 +31,24 @@ import com.google.refine.model.Project;
 import com.google.refine.model.Row;
 import com.google.refine.util.ParsingUtilities;
 
-public abstract class ColumnMetric<E> extends Command {
+public class ColumnMetricEvaluation extends Command {
 
-    protected int cellIndex;
-    protected Metric<E> metric;
+    private int cellIndex;
+    private Metric<?> metric;
+    
+    private int validCount;
+    private int spuriousCount;
 
+    public ColumnMetricEvaluation(Metric<?> metric) {
+        this.metric = metric;
+        this.validCount = 0;
+        this.spuriousCount = 0;
+    }
+    
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            metric = new Metric<E>();
-
             ProjectManager.singleton.setBusy(true);
             Project project = getProject(request);
 
@@ -68,21 +75,19 @@ public abstract class ColumnMetric<E> extends Command {
 
                 @Override
                 public void start(Project project) {
-                    startVisit(project);
                 }
 
                 @SuppressWarnings("unchecked")
                 @Override
                 public boolean visit(Project project, int rowIndex, Row row) {
                     try {
-                        E val = (E) row.getCellValue(this.cellIndex);
-                        if (!checkSpurious(val)) {
-                            metric.getValidItems().add(val);
+                        if (metric.evaluateValue(row.getCellValue(this.cellIndex))) {
+                            ++validCount;
                         } else {
-                            throw new MetricsException("Value spurious, " + val);
+                            throw new MetricsException("Value spurious, " + row.getCellValue(this.cellIndex));
                         }
                     } catch (Exception e) {
-                        metric.getSpuriousItemMap().put(rowIndex, (E) row.getCellValue(this.cellIndex));
+                        ++spuriousCount;
                     }
 
                     return false;
@@ -90,8 +95,7 @@ public abstract class ColumnMetric<E> extends Command {
 
                 @Override
                 public void end(Project project) {
-                    metric.setMeasure(((float) metric.getValidItems().size() / (float) (metric.getValidItems().size() + metric.getSpuriousItemMap().size())));
-                    endVisit(project, metric);
+                    metric.setMeasure(((float) validCount / (float) (validCount + spuriousCount)));
                 }
             }.init(cellIndex);
 
@@ -108,12 +112,4 @@ public abstract class ColumnMetric<E> extends Command {
             }
         }
     }
-
-    protected abstract boolean checkSpurious(E val);
-
-    protected abstract void endVisit(Project project, Metric<E> metric);
-
-    protected abstract void startVisit(Project project);
-
-    public abstract String getName();
 }
