@@ -1,6 +1,8 @@
 
 package com.google.refine.metricsExtension.model;
 
+import java.util.Properties;
+
 public class Completeness extends Metric<Object> {
 
     public Completeness() {
@@ -23,6 +25,11 @@ public class Completeness extends Metric<Object> {
         }
         //TODO: add function to check date
         return false;
+    }
+
+    @Override
+    public boolean evaluateValue(Properties bindings) {
+        return evaluateValue(bindings.get("value"));
     }
 
 }

@@ -14,7 +14,8 @@ function init() {
     "project/scripts",
     module,
     [
-      "scripts/project-injection.js"
+      "scripts/project-injection.js",
+      "scripts/facets/metrics-facet.js"
     ]
   );
 
@@ -28,7 +29,8 @@ function init() {
   );
 
   var RS = Packages.com.google.refine.RefineServlet;
-  RS.registerCommand(module, "completeness", new Packages.com.google.refine.metricsExtension.metrics.column.Completeness());
+  RS.registerCommand(module, "completeness", new Packages.com.google.refine.metricsExtension.commands.ColumnMetricEvaluation(
+    new Packages.com.google.refine.metricsExtension.model.Completeness()));
 }
 
 /*

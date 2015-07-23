@@ -83,4 +83,32 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     }
     ]
     );
+    MenuSystem.appendTo(
+      menu, 
+      [ "core/facet" ], 
+      [
+      {},
+      {
+        id: "quality-metrics/metrics-facet",
+        label: "Metrics Facet",
+        click: function() {
+          var elmt = ui.browsingEngine._createFacetContainer();
+          var config = {
+                "name": column.name,
+                "columnName": column.name,
+                "expression": "value",
+                "metrics": ['completeness']
+              };
+          var options = {};
+          facet = new MetricsFacet(elmt, config, options);
+
+          ui.browsingEngine._facets.push({ elmt: elmt, facet: facet });
+
+          ui.leftPanelTabs.tabs({ active: 0 });
+
+          Refine.update({ engineChanged: true });
+        }
+      }
+      ]);
 });
+

@@ -5,6 +5,10 @@ function MetricsFacet(div, config, options, selection) {
 
 	this._options = options || {};
 
+  this._selection = selection || [];
+  this._blankChoice = (config.selectBlank) ? { s : true, c : 0 } : null;
+  this._errorChoice = (config.selectError) ? { s : true, c : 0 } : null;
+
 	this._initializeUI();
 }
 
@@ -86,17 +90,17 @@ MetricsFacet.prototype.updateState = function(data) {
   this._update();
 };
 
-// MetricsFacet.prototype._reSortChoices = function() {
-//   this._data.choices.sort(this._options.sort == "name" ?
-//       function(a, b) {
-//     return a.v.l.toLowerCase().localeCompare(b.v.l.toLowerCase());
-//   } :
-//     function(a, b) {
-//     var c = b.c - a.c;
-//     return c !== 0 ? c : a.v.l.localeCompare(b.v.l);
-//   }
-//   );
-// };
+MetricsFacet.prototype._reSortChoices = function() {
+  this._data.choices.sort(this._options.sort == "name" ?
+      function(a, b) {
+    return a.v.l.toLowerCase().localeCompare(b.v.l.toLowerCase());
+  } :
+    function(a, b) {
+    var c = b.c - a.c;
+    return c !== 0 ? c : a.v.l.localeCompare(b.v.l);
+  }
+  );
+};
 
 MetricsFacet.prototype._initializeUI = function() {
   var self = this;
@@ -106,48 +110,26 @@ MetricsFacet.prototype._initializeUI = function() {
 
   this._div.empty().show().html(
       '<div class="facet-title">' +
-      '<div class="grid-layout layout-tightest layout-full"><table><tr>' +
-      '<td width="1%"><a href="javascript:{}" title="'+$.i18n._('core-facets')["remove-facet"]+'" class="facet-title-remove" bind="removeButton">&nbsp;</a></td>' +
-      '<td>' +
-      '<a href="javascript:{}" class="facet-choice-link" bind="resetButton">'+$.i18n._('core-facets')["reset"]+'</a>' +
-      '<span bind="titleSpan"></span>' +
-      '</td>' +
-      '</tr></table></div>' +
+        '<div class="grid-layout layout-tightest layout-full"><table><tr>' +
+          '<td width="1%"><a href="javascript:{}" title="'+$.i18n._('core-facets')["remove-facet"]+'" class="facet-title-remove" bind="removeButton">&nbsp;</a></td>' +
+          '<td>' +
+            '<a href="javascript:{}" class="facet-choice-link" bind="resetButton">'+$.i18n._('core-facets')["reset"]+'</a>' +
+            '<a href="javascript:{}" class="facet-choice-link" bind="invertButton">'+$.i18n._('core-facets')["invert"]+'</a>' +
+            '<a href="javascript:{}" class="facet-choice-link" bind="changeButton">'+$.i18n._('core-facets')["change"]+'</a>' +
+            '<span bind="titleSpan"></span>' +
+          '</td>' +
+        '</tr></table></div>' +
       '</div>' +
-      '<div class="facet-metrics-body" bind="bodyDiv">' +
-      '<div class="facet-metrics-message" bind="messageDiv">'+$.i18n._('core-facets')["loading"]+'</div>' +
-      '<table width="100%"><tr>' + 
-      '<div class="metric-constraints" bind="constraintsDiv" title="'+$.i18n._('core-facets')["click-to-edit"]+'"></div>' +
-      '</tr>' + 
-      // '<td>' +
-      // '<div class="facet-metrics-plot-container">' +
-      // '<div class="facet-metrics-plot" bind="plotDiv">' +
-      // '<img class="facet-metrics-image" bind="plotBaseImg" />' +
-      // '<img class="facet-metrics-image" bind="plotImg" />' +
-      // '</div>' +
-      // '</div>' +
-      // '</td>' +
-      '<td class="facet-metrics-selectors-container" width="100%">' +
-      '<div class="metrics-selectors" bind="selectors">' +
-      '<div class="buttonset metrics-dim-selector">' +
-      '<input type="radio" id="' + facet_id + '-dim-lin" name="' + facet_id + '-dim" value="lin"/><label class="dim-lin-label" for="' + facet_id + '-dim-lin" title="'+$.i18n._('core-facets')["linear-plot"]+'">'+$.i18n._('core-facets')["linear-plot-abbr"]+'</label>' +
-      '<input type="radio" id="' + facet_id + '-dim-log" name="' + facet_id + '-dim" value="log"/><label class="dim-log-label" for="' + facet_id + '-dim-log" title="'+$.i18n._('core-facets')["logar-plot"]+'">'+$.i18n._('core-facets')["logar-plot-abbr"]+'</label>' +
-      '</div>' + 
-      '<div class="buttonset scatterplot-rot-selector">' +
-      '<input type="radio" id="' + facet_id + '-rot-ccw"  name="' + facet_id + '-rot" value="ccw"/><label class="rot-ccw-label" for="' + facet_id + '-rot-ccw" title="'+$.i18n._('core-facets')["rotated-counter-clock"]+'">&nbsp;</label>' +
-      '<input type="radio" id="' + facet_id + '-rot-none" name="' + facet_id + '-rot" value="none"/><label class="rot-none-label" for="' + facet_id + '-rot-none" title="'+$.i18n._('core-facets')["no-rotation"]+'">&nbsp;</label>' +
-      '<input type="radio" id="' + facet_id + '-rot-cw"   name="' + facet_id + '-rot" value="cw"/><label class="rot-cw-label" for="' + facet_id + '-rot-cw" title="'+$.i18n._('core-facets')["rotated-clock"]+'">&nbsp;</label>' +
+      '<div class="facet-controls" bind="controlsDiv" style="display:none;">' +
+        '<a bind="choiceCountContainer" class="action" href="javascript:{}"></a> ' +
+        '<span class="facet-controls-sortControls" bind="sortGroup">'+$.i18n._('core-facets')["sort-by"]+': ' +
+          '<a href="javascript:{}" bind="sortByNameLink">'+$.i18n._('core-facets')["name"]+'</a>' +
+          '<a href="javascript:{}" bind="sortByCountLink">'+$.i18n._('core-facets')["count"]+'</a>' +
+        '</span>' +
+        '<button bind="clusterLink" class="facet-controls-button button">'+$.i18n._('core-facets')["cluster"]+'</button>' +
       '</div>' +
-      '<div class="buttonset scatterplot-dot-selector">' +
-      '<input type="radio" id="' + facet_id + '-dot-small"   name="' + facet_id + '-dot" value="small"/><label class="dot-small-label" for="' + facet_id + '-dot-small" title="'+$.i18n._('core-facets')["small-dot"]+'">&nbsp;</label>' +
-      '<input type="radio" id="' + facet_id + '-dot-regular" name="' + facet_id + '-dot" value="regular"/><label class="dot-regular-label" for="' + facet_id + '-dot-regular" title="'+$.i18n._('core-facets')["regular-dot"]+'">&nbsp;</label>' +
-      '<input type="radio" id="' + facet_id + '-dot-big"     name="' + facet_id + '-dot" value="big"/><label class="dot-big-label" for="' + facet_id + '-dot-big" title="'+$.i18n._('core-facets')["big-dot"]+'">&nbsp;</label>' +
-      '</div>' +
-      '<div class="scatterplot-export-plot"><a bind="exportPlotLink" class="action" target="_blank">'+$.i18n._('core-facets')["export-plot"]+'</a></div>' +
-      '</div>' +
-      '</td>' + 
-      '</tr></table>' +
-      '<div class="facet-scatterplot-status" bind="statusDiv"></div>' +
+      '<div class="facet-body" bind="bodyDiv">' +
+        '<div class="facet-body-inner" bind="bodyInnerDiv"></div>' +
       '</div>'
   );
   this._elmts = DOM.bind(this._div);
@@ -159,38 +141,37 @@ MetricsFacet.prototype._initializeUI = function() {
     self._updateRest();
   });
 
-  this._elmts.changeButton.attr("title","current-exp: " + this._config.expression).click(function() {
-    self._elmts.expressionDiv.slideToggle(100, function() {
-      if (self._elmts.expressionDiv.css("display") != "none") {
-        self._editExpression();
-      }
-    });
-  });
-  this._elmts.expressionDiv.text(this._config.expression).hide().click(function() { self._editExpression(); });
-  this._elmts.removeButton.click(function() { self._remove(); });
+  // this._elmts.changeButton.attr("title","current-exp: " + this._config.expression).click(function() {
+  //   self._elmts.expressionDiv.slideToggle(100, function() {
+  //     if (self._elmts.expressionDiv.css("display") != "none") {
+  //       self._editExpression();
+  //     }
+  //   });
+  // });
+  // this._elmts.expressionDiv.text(this._config.expression).hide().click(function() { self._editExpression(); });
   this._elmts.resetButton.click(function() { self._reset(); });
-  this._elmts.invertButton.click(function() { self._invert(); });
+  // this._elmts.invertButton.click(function() { self._invert(); });
 
-  this._elmts.choiceCountContainer.click(function() { self._copyChoices(); });
-  this._elmts.sortByCountLink.click(function() {
-    if (self._options.sort != "count") {
-      self._options.sort = "count";
-      self._reSortChoices();
-      self._update(true);
-    }
-  });
-  this._elmts.sortByNameLink.click(function() {
-    if (self._options.sort != "name") {
-      self._options.sort = "name";
-      self._reSortChoices();
-      self._update(true);
-    }
-  });
+  // this._elmts.choiceCountContainer.click(function() { self._copyChoices(); });
+  // this._elmts.sortByCountLink.click(function() {
+  //   if (self._options.sort != "count") {
+  //     self._options.sort = "count";
+  //     self._reSortChoices();
+  //     self._update(true);
+  //   }
+  // });
+  // this._elmts.sortByNameLink.click(function() {
+  //   if (self._options.sort != "name") {
+  //     self._options.sort = "name";
+  //     self._reSortChoices();
+  //     self._update(true);
+  //   }
+  // });
 
-  this._elmts.clusterLink.click(function() { self._doEdit(); });
-  if (this._config.expression != "value" && this._config.expression != "grel:value") {
-    this._elmts.clusterLink.hide();
-  }
+  // this._elmts.clusterLink.click(function() { self._doEdit(); });
+  // if (this._config.expression != "value" && this._config.expression != "grel:value") {
+  //   this._elmts.clusterLink.hide();
+  // }
 
   if (!("scroll" in this._options) || this._options.scroll) {
     this._elmts.bodyDiv.addClass("facet-body-scrollable");
@@ -582,7 +563,7 @@ MetricsFacet.prototype._editChoice = function(choice, choiceDiv) {
   });
 };
 
-ListFacet.prototype._select = function(choice, only) {
+MetricsFacet.prototype._select = function(choice, only) {
   if (only) {
     this._selection = [];
     if (this._blankChoice !== null) {
@@ -601,7 +582,7 @@ ListFacet.prototype._select = function(choice, only) {
   this._updateRest();
 };
 
-ListFacet.prototype._deselect = function(choice) {
+MetricsFacet.prototype._deselect = function(choice) {
   if (choice === this._errorChoice || choice === this._blankChoice) {
     choice.s = false;
   } else {
@@ -681,7 +662,7 @@ MetricsFacet.prototype._updateRest = function() {
 //   );
 // };
 
-ListFacet.prototype._setChoiceCountLimit = function(choiceCount) {
+MetricsFacet.prototype._setChoiceCountLimit = function(choiceCount) {
   var limit = Math.ceil(choiceCount / 1000) * 1000;
   var s = window.prompt($.i18n._('core-facets')["set-max-choices"], limit);
   if (s) {
