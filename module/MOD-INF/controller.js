@@ -31,6 +31,8 @@ function init() {
   var RS = Packages.com.google.refine.RefineServlet;
   RS.registerCommand(module, "completeness", new Packages.com.google.refine.metricsExtension.commands.ColumnMetricEvaluation(
     new Packages.com.google.refine.metricsExtension.model.Completeness()));
+  RS.registerCommand(module, "compute-custom-facets", new Packages.com.google.refine.metricsExtension.commands.browsing.CustomComputeFacetsCommand());
+
 }
 
 /*
