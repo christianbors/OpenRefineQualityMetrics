@@ -50,7 +50,7 @@ public class MetricsEvaluator implements RowVisitor, RecordVisitor {
     /*
      * intermediate variables
      */
-    Map<Metric<?>, MetricsCalculation> metricsCalculation;
+    Map<Metric<?>, MetricsCalculation> metricsCalculation = new HashMap<Metric<?>, MetricsEvaluator.MetricsCalculation>();
 
     public MetricsEvaluator(Metric<?>[] metrics, String columnName, int cellIndex) {
         this.metrics = metrics;

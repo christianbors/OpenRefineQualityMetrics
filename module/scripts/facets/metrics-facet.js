@@ -43,15 +43,15 @@ MetricsFacet.prototype.getJSON = function() {
       type: "metrics",
       metric: this._config.metric,
       detailView: this._config.detailView,
-      constraints: this._config.constraints
-      // columnName: this._config.columnName,
+      constraints: this._config.constraints,
+      columnName: this._config.columnName,
       // expression: this._config.expression,
       // omitBlank: "omitBlank" in this._config ? this._config.omitBlank : false,
       //     omitError: "omitError" in this._config ? this._config.omitError : false,
       //         selection: [],
       //         selectBlank: this._blankChoice !== null && this._blankChoice.s,
       //         selectError: this._errorChoice !== null && this._errorChoice.s,
-      //         invert: this._config.invert
+      invert: this._config.invert
   };
   for (var i = 0; i < this._selection.length; i++) {
     var choice = {

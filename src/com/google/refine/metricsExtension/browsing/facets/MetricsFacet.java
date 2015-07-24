@@ -88,6 +88,9 @@ public class MetricsFacet implements Facet {
         metrics = new Metric<?>[1];
         metrics[0] = new Completeness();
 
+        columnName = o.getString("columnName");
+        invert = o.has("invert") && o.getBoolean("invert");
+        
         if (columnName.length() > 0) {
             Column column = project.columnModel.getColumnByName(columnName);
             if (column != null) {
