@@ -9,7 +9,10 @@ function MetricsFacet(div, config, options, selection) {
   this._blankChoice = (config.selectBlank) ? { s : true, c : 0 } : null;
   this._errorChoice = (config.selectError) ? { s : true, c : 0 } : null;
 
+  this._data = null;
+
 	this._initializeUI();
+  this._update();
 }
 
 MetricsFacet.reconstruct = function(div, uiState) {
@@ -41,7 +44,7 @@ MetricsFacet.prototype.getUIState = function() {
 MetricsFacet.prototype.getJSON = function() {
   var o = {
       type: "metrics",
-      metric: this._config.metric,
+      metrics: this._config.metrics,
       detailView: this._config.detailView,
       constraints: this._config.constraints,
       columnName: this._config.columnName,
@@ -71,17 +74,17 @@ MetricsFacet.prototype.hasSelection = function() {
 MetricsFacet.prototype.updateState = function(data) {
   this._data = data;
 
-  if ("choices" in data) {
+  if ("metrics" in data) {
     var selection = [];
-    var choices = data.choices;
-    for (var i = 0; i < choices.length; i++) {
-      var choice = choices[i];
-      if (choice.s) {
-        selection.push(choice);
-      }
+    var metrics = data.metrics;
+    for (var i = 0; i < metrics.length; i++) {
+      var metric = metrics[i];
+      // if (metric.s) {
+      //   selection.push(metric);
+      // }
     }
     this._selection = selection;
-    this._reSortChoices();
+    this._reSortMetrics();
 
     this._blankChoice = data.blankChoice || null;
     this._errorChoice = data.errorChoice || null;
@@ -90,8 +93,8 @@ MetricsFacet.prototype.updateState = function(data) {
   this._update();
 };
 
-MetricsFacet.prototype._reSortChoices = function() {
-  this._data.choices.sort(this._options.sort == "name" ?
+MetricsFacet.prototype._reSortMetrics = function() {
+  this._data.metrics.sort(this._options.sort == "name" ?
       function(a, b) {
     return a.v.l.toLowerCase().localeCompare(b.v.l.toLowerCase());
   } :
@@ -285,12 +288,11 @@ MetricsFacet.prototype._update = function(resetScroll) {
   
   this._elmts.controlsDiv.show();
 
-  var choices = this._data.choices;
+  var metrics = this._data.metrics;
   var selectionCount = this._selection.length +
   (this._blankChoice !== null && this._blankChoice.s ? 1 : 0) +
   (this._errorChoice !== null && this._errorChoice.s ? 1 : 0);
 
-  this._elmts.choiceCountContainer.text(choices.length + " choices");
   if (selectionCount > 0) {
     this._elmts.resetButton.show();
     this._elmts.invertButton.show();
@@ -315,39 +317,39 @@ MetricsFacet.prototype._update = function(resetScroll) {
 
   var renderEdit = this._config.expression == "value";
   // render each cell in a specific way
-  var renderChoice = function(index, choice, customLabel) {
-    var label = customLabel || choice.v.l;
-    var count = choice.c;
+  var renderChoice = function(index, metric, customLabel) {
+    var label = customLabel || metric.name;
+    var measure = metric.measure;
 
-    html.push('<div class="facet-choice' + (choice.s ? ' facet-choice-selected' : '') + '" choiceIndex="' + index + '">');
+    html.push('<div class="facet-metric' + (metric.s ? ' facet-metric-selected' : '') + '" metricIndex="' + index + '">');
 
     // include/exclude link
     html.push(
-      '<a href="javascript:{}" class="facet-choice-link facet-choice-toggle" ' +
-        'style="visibility: ' + (choice.s ? 'visible' : 'hidden') + '">' + 
-        (invert != choice.s ? 'hide' : 'show') + 
+      '<a href="javascript:{}" class="facet-metric-link facet-metric-toggle" ' +
+        'style="visibility: ' + (metric.s ? 'visible' : 'hidden') + '">' + 
+        (invert != metric.s ? 'hide' : 'show') + 
       '</a>'
     );
 
     // edit link
-    if (renderEdit) {
-      html.push('<a href="javascript:{}" class="facet-choice-link facet-choice-edit" style="visibility: hidden">'+$.i18n._('core-facets')["edit"]+'</a>');
-    }
+    // if (renderEdit) {
+    //   html.push('<a href="javascript:{}" class="facet-metric-link facet-metric-edit" style="visibility: hidden">'+$.i18n._('core-facets')["edit"]+'</a>');
+    // }
 
-    html.push('<a href="javascript:{}" class="facet-choice-label">' + encodeHtml(label) + '</a>');
-    html.push('<span class="facet-choice-count">' + (invert ? "-" : "") + count + '</span>');
+    html.push('<a href="javascript:{}" class="facet-metric-label">' + encodeHtml(label) + '</a>');
+    html.push('<span class="facet-metric-measure">' + (invert ? "-" : "") + measure + '</span>');
 
     html.push('</div>');
   };
-  for (var i = 0; i < choices.length; i++) {
-    renderChoice(i, choices[i]);
+  for (var i = 0; i < metrics.length; i++) {
+    renderChoice(i, metrics[i]);
   }
-  if (this._blankChoice !== null) {
-    renderChoice(-1, this._blankChoice, "(blank)");
-  }
-  if (this._errorChoice !== null) {
-    renderChoice(-2, this._errorChoice, "(error)");
-  }
+  // if (this._blankChoice !== null) {
+  //   renderChoice(-1, this._blankChoice, "(blank)");
+  // }
+  // if (this._errorChoice !== null) {
+  //   renderChoice(-2, this._errorChoice, "(error)");
+  // }
 
   this._elmts.bodyInnerDiv.html(html.join(''));
   this._renderBodyControls();

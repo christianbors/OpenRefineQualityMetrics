@@ -97,6 +97,8 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
                 "name": column.name,
                 "columnName": column.name,
                 "expression": "value",
+                "detailView": true,
+                "constraints": "empty",
                 "metrics": ['completeness']
               };
           var options = {};

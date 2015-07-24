@@ -46,7 +46,8 @@ public abstract class Metric<E> implements Jsonizable {
             throws JSONException {
         writer.object();
 
-        writer.key("metric").value(Float.toString(measure));
+        writer.key("name").value(name);
+        writer.key("measure").value(Float.toString(measure));
         writer.key("columnName").value(columnName);
         writer.key("constraints").value(constraints);
 
