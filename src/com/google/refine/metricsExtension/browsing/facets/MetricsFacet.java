@@ -28,8 +28,8 @@ import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.browsing.filters.MetricRowFilter;
 import com.google.refine.metricsExtension.browsing.util.MetricFacetChoice;
 import com.google.refine.metricsExtension.browsing.util.MetricsEvaluator;
-import com.google.refine.metricsExtension.model.Completeness;
 import com.google.refine.metricsExtension.model.Metric;
+import com.google.refine.metricsExtension.model.metrics.column.Completeness;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 

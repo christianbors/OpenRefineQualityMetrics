@@ -42,7 +42,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     var elmts = DOM.bind(dialog);
     elmts.dialogHeader.text("Metrics for column \"" + column.name + "\"");
 
-    if (response["metric"]) { elmts.dialogCompleteness.text(response["metric"]) };
+    if (response["measure"]) { elmts.dialogCompleteness.text(response["measure"]) };
 
     var level = DialogSystem.showDialog(dialog);
 

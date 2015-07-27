@@ -1,7 +1,9 @@
 
-package com.google.refine.metricsExtension.model;
+package com.google.refine.metricsExtension.model.metrics.column;
 
 import java.util.Properties;
+
+import com.google.refine.metricsExtension.model.Metric;
 
 public class Completeness extends Metric<Object> {
 

@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.metrics;
+package com.google.refine.metricsExtension.model;
 
 import java.util.Properties;
 
