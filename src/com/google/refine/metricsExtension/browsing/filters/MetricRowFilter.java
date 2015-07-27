@@ -53,7 +53,7 @@ import com.google.refine.model.Row;
  * error state of every metric selected or only one, based on the mode property. 
  */
 public class MetricRowFilter implements RowFilter {
-    final protected Metric<?>[]        _metric; // the expression to evaluate
+    final protected Metric<?>[]        _metrics; // the expression to evaluate
     
     final protected String          _columnName;
     final protected int             _cellIndex; // the expression is based on this column;
@@ -65,14 +65,14 @@ public class MetricRowFilter implements RowFilter {
     final protected boolean         _invert;
     
     public MetricRowFilter(
-        Metric<?>[] metric,
+        Metric<?>[] metrics,
         String columnName,
         int cellIndex, 
         boolean selectBlank, 
         boolean selectError,
         boolean invert
     ) {
-        _metric = metric;
+        _metrics = metrics;
         _columnName = columnName;
         _cellIndex = cellIndex;
         _selectBlank = selectBlank;
@@ -100,54 +100,21 @@ public class MetricRowFilter implements RowFilter {
         ExpressionUtils.bind(bindings, row, rowIndex, _columnName, cell);
         
         boolean valid = false;
-        for(int i = 0; i < _metric.length; ++i) {
-            valid = _metric[0].evaluateValue(bindings);
+        for(int i = 0; i < _metrics.length; ++i) {
+            // this is an or concatenation
+            if (!valid) {
+                valid = _metrics[i].evaluateValue(bindings);
+            }
         }
-        
-        
-        if (value != null) {
-            if (value.getClass().isArray()) {
-                Object[] a = (Object[]) value;
-                for (Object v : a) {
-                    if (testValue(v)) {
-                        return (true & !invert);
-                    }
-                }
-                return (false & !invert);
-            } else if (value instanceof Collection<?>) {
-                for (Object v : ExpressionUtils.toObjectCollection(value)) {
-                    if (testValue(v)) {
-                        return (true & !invert);
-                    }
-                }
-                return (false & !invert);
-            } else if (value instanceof JSONArray) {
-                JSONArray a = (JSONArray) value;
-                int l = a.length();
-                
-                for (int i = 0; i < l; i++) {
-                    try {
-                        if (testValue(a.get(i))) {
-                            return (true & !invert);
-                        }
-                    } catch (JSONException e) {
-                        // ignore
-                    }
-                }
-                return (false & !invert);
-            } // else, fall through
-        }
-        return (testValue(value) & !invert);
-        
-        return false;
+        return (valid & !invert);
     }
 
     protected boolean testValue(Object v) {
         if (ExpressionUtils.isError(v)) {
             return _selectError;
         } else if (ExpressionUtils.isNonBlankData(v)) {
-            for (Object match : _matches) {
-                if (testValue(v, match)) {
+            for (Metric<?> metric : _metrics) {
+                if (testValue(v, metric)) {
                     return true;
                 }
             }
@@ -157,9 +124,7 @@ public class MetricRowFilter implements RowFilter {
         }
     }
     
-    protected boolean testValue(Object v, Object match) {
-        return (v instanceof Number && match instanceof Number) ?
-                ((Number) match).doubleValue() == ((Number) v).doubleValue() :
-                match.equals(v);
+    protected boolean testValue(Object v, Metric<?> match) {
+        return match.evaluateValue(v);
     }
 }
