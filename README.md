@@ -20,6 +20,15 @@ Granularity level of metrics is an issue that needs to be considered. Specifical
 
 We will provide customized Metrics in a separate configuration panel that features a small sample data table the metrics can be computed and tested on, utilizing bootstrap, d3, ... as additional libraries to facilitate development, based upon the OpenRefine Server architecture.
 
+## User Interface
+
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+
+Current status
+* Not yet functional UI
+* basic data loading works
+* OpenRefine classes can be integrated via loading js files considering the relative source path: Path to `core` directory is accomplished by `../../`. Subsequently a file located in `scripts` can be included with `../../scripts/xyz.js`.
+
 ## Uncertainty
 
 **TODO:** Determine which uncertainty mechanisms will be incorporated
