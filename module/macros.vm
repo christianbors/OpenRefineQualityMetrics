@@ -12,3 +12,13 @@
     #end
   </ul>
 #end
+
+#macro( makeButtonGroup $list $id )
+  <div multiple class="btn-group" data-toggle="buttons">
+    #foreach($item in $list)
+      <label class="btn btn-default">
+        <input type="checkbox"> $item
+      </label>
+    #end
+  </div>
+#end

@@ -37,7 +37,7 @@ var QualityMetricsExtension = {};
 
 DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
   var doStatsDialog = function(response) {
-    var dialog = $(DOM.loadHTML("quality-metrics", "scripts/completeness.html"));
+    var dialog = $(DOM.loadHTML("custom-quality-metrics", "scripts/completeness.html"));
 
     var elmts = DOM.bind(dialog);
     elmts.dialogHeader.text("Metrics for column \"" + column.name + "\"");
@@ -62,7 +62,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     }
 
     Refine.postProcess(
-      "quality-metrics",
+      "custom-quality-metrics",
       "completeness",
       params,
       body,
@@ -77,7 +77,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     [
     {},
     {
-      id: "quality-metrics/completeness",
+      id: "custom-quality-metrics/completeness",
       label: "Completeness",
       click: prepMetricsDialog
     }
@@ -89,7 +89,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
       [
       {},
       {
-        id: "quality-metrics/metrics-facet",
+        id: "custom-quality-metrics/metrics-facet",
         label: "Metrics Facet",
         click: function() {
           var elmt = ui.browsingEngine._createFacetContainer();
