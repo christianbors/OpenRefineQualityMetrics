@@ -22,7 +22,7 @@ We will provide customized Metrics in a separate configuration panel that featur
 
 ## User Interface
 
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+![Custom Metrics Extension](https://github.com/christianbors/OpenRefineQualityMetrics/blob/master/suppl/custom-metrics.png)
 
 Current status
 * Not yet functional UI
