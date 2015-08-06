@@ -17,7 +17,7 @@ $(document).ready(function() {
     placement: 'auto left',
     animation: 'false',
     content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger">remove</button><button type="button" class="btn btn-warning">edit</button></div>'
-    //content:'<a class="alert alert-danger" href="" title="test add link">link on content</a>'
+    // content:'<span class="label label-warning">Warning</span><span class="label label-danger">Danger</span>'
   }).on("mouseenter", function () {
         var _this = this;
         $(this).popover("show");
@@ -48,6 +48,15 @@ $(document).ready(function() {
           "columns": columns
         } );
       }
+    }
+
+    //load column names into the modal
+    for(var col = 0; col < columns.length; col++) {
+      var colName = columns[col];
+      $("<option />")
+     .attr("value", colName.title)
+     .attr("label", colName.title)
+     .appendTo("#columnFormMetricModal");
     }
   });
 
