@@ -5,8 +5,33 @@ $(document).ready(function() {
   var columns = [];
 
   var params = {
-            project: 2421247403318
-        };
+    project: 2421247403318
+  };
+
+  Sortable.create(simpleList, { /* options */ });
+  Sortable.create(completenessList, {});
+
+  $("[data-toggle=popover]").popover({
+    html: 'true',
+    trigger: 'manual',
+    placement: 'auto left',
+    animation: 'false',
+    content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger">remove</button><button type="button" class="btn btn-warning">edit</button></div>'
+    //content:'<a class="alert alert-danger" href="" title="test add link">link on content</a>'
+  }).on("mouseenter", function () {
+        var _this = this;
+        $(this).popover("show");
+        $(".popover").on("mouseleave", function () {
+            $(_this).popover('hide');
+        });
+    }).on("mouseleave", function () {
+        var _this = this;
+        setTimeout(function () {
+            if (!$(".popover:hover").length) {
+                $(_this).popover("hide");
+            }
+        }, 300);
+    });
 
   $.getJSON("../../command/core/get-columns-info?" + $.param(params),function(data) {
     for (var col = 0; col < data.length; col++) {
@@ -39,9 +64,6 @@ $(document).ready(function() {
         for (var c = 0; c < row.cells.length; c++) {
           var cell = row.cells[c];
           rowValues.push(cell.v);
-          // if ((cell) && ("r" in cell)) {
-          //   cell.r = data.pool.recons[cell.r];
-          // }
         }
         dataSet.push(rowValues);
       }
@@ -56,16 +78,16 @@ $(document).ready(function() {
           } );
         }
       }
-        //onDone();
-      // }
     },
     "jsonp"
   );
 
 } );
 
-function completeness() {
-  params = { "column_name": "ID" };
+function showMetric() {
+  params = { "column_name": "ID",
+    project: 2421247403318
+  };
   body = {};
   updateOptions = {};
   callbacks = {
@@ -75,17 +97,16 @@ function completeness() {
   }
 
   $.post("../../command/custom-quality-metrics/completeness", params, function(response) {
-    var dialog = $(DOM.loadHTML("quality-metrics", "scripts/completeness.html"));
+    var dialog = $(DOM.loadHTML("custom-quality-metrics", "../../scripts/completeness.html"));
 
     var elmts = DOM.bind(dialog);
-    elmts.dialogHeader.text("Metrics for column \"" + column.name + "\"");
+    elmts.dialogHeader.text("Metrics for column \"" + params.column_name + "\"");
 
     if (response["measure"]) { elmts.dialogCompleteness.text(response["measure"]) };
 
-    var level = DialogSystem.showDialog(dialog);
-
-    elmts.okButton.click(function() {
-      DialogSystem.dismissUntil(level - 1);
-    });
+    // var level = DialogSystem.showDialog(dialog);
+    // elmts.okButton.click(function() {
+    //   DialogSystem.dismissUntil(level - 1);
+    // });
   });
 }

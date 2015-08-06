@@ -90,15 +90,16 @@ table.dataTable thead .sorting_desc:after {
 	font-family: 'Glyphicons Halflings';
 	opacity: 0.5;
 }
+
 table.dataTable thead .sorting:after {
-	opacity: 0.2;
-	content: "\e150"; /* sort */
+	opacity: 0.9;
+	content: url("images/sort_both.png"); /* sort */
 }
 table.dataTable thead .sorting_asc:after {
-	content: "\e155"; /* sort-by-attributes */
+	content: url("images/sort_asc.png"); /* sort-by-attributes */
 }
 table.dataTable thead .sorting_desc:after {
-	content: "\e156"; /* sort-by-attributes-alt */
+	content: url("images/sort_desc.png"); /* sort-by-attributes-alt */
 }
 div.dataTables_scrollBody table.dataTable thead .sorting:after,
 div.dataTables_scrollBody table.dataTable thead .sorting_asc:after,

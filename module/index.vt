@@ -96,6 +96,8 @@
              <li><a href="#">Date and/or Time Values</a></li>
           </ul>
         </div>
+        <div class="panel-footer">
+        </div>
       </div>
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -105,13 +107,13 @@
           <ul class="nav nav-pills nav-stacked">
              <li><a href="#">Misplaced Values</a></li>
              <li class="active"><a href="#">Invalid Entries</a></li>
-             <li class="active" onclick="completeness()"><a href="#">Missing Values</a></li>
+             <li class="active" data-toggle="modal" data-target=".bs-example-modal-sm" onclick="showMetric()"><a href="#">Missing Values</a></li>
              <li><a href="#">Extreme Values</a></li>
           </ul>
         </div>
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-7">
       <!-- <div class="panel panel-default">
         <div class="panel-heading">
           Table Highlighting
@@ -128,7 +130,7 @@
       </div> -->
       <table class="table table-striped table-condensed table-hover" id="dataset">
       </table>
-      <div class="panel panel-default">
+      <div class="panel panel-default"  draggable="true">
         <div class="panel-heading">
           Base Metric
         </div>
@@ -155,7 +157,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="panel panel-default">
         <div class="panel-heading">
           <label for="name">Metric Customizations</label>
@@ -173,10 +175,94 @@
       </div>
       <div class="panel panel-default">
         <div class="panel-heading">
-          Customization
+          Completeness
         </div>
-        <div class="panel-body">
-          <form role="form">
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Completeness
+        </div>
+        <ul id="completenessList" class="list-group">
+          <li class="list-group-item" data-toggle="popover">
+            <label for="dataTypes">
+              Data Types allowed
+            </label>
+            <p>
+              <div class="btn-group" data-toggle="buttons" id="dataTypes">
+                <label class="btn btn-default active">
+                  <input type="checkbox" checked> String
+                </label>
+                <label class="btn btn-default">
+                  <input type="checkbox"> Numeric
+                </label>
+                <label class="btn btn-default">
+                  <input type="checkbox"> Categoric
+                </label>
+                <label class="btn btn-default">
+                  <input type="checkbox"> Date/Time
+                </label>
+              </div>
+            </p></li>
+        </ul>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Available Customization
+        </div>
+        <!-- <div class="panel-body"> -->
+          <ul id="simpleList" class="list-group">
+            <li class="list-group-item pop" data-toggle="popover"><label for="metricName">
+                Name
+              </label>
+              <input class="form-control" id="metricName" /></li>
+            <li class="list-group-item"><label for="dataTypes">
+                Data Types allowed
+              </label>
+              <p>
+                <div class="btn-group" data-toggle="buttons" id="dataTypes">
+                  <label class="btn btn-default active">
+                    <input type="checkbox" checked> String
+                  </label>
+                  <label class="btn btn-default">
+                    <input type="checkbox"> Numeric
+                  </label>
+                  <label class="btn btn-default">
+                    <input type="checkbox"> Categoric
+                  </label>
+                  <label class="btn btn-default">
+                    <input type="checkbox"> Date/Time
+                  </label>
+                </div>
+              </p></li>
+            <li class="list-group-item"><label for="name">Example of Default Checkbox and radio button </label>
+                <p>
+                  <div class="checkbox-inline">
+                    <label>
+                      <input type="radio" name="optionsRadios" id="optionsRadios1" 
+                         value="option1" checked> Option 1
+                    </label>
+                  </div>
+                  <div class="checkbox-inline">
+                    <label>
+                      <input type="radio" name="optionsRadios" id="optionsRadios2" 
+                         value="option2">
+                         Option 2
+                    </label>
+                  </div>
+                </p></li>
+            <li class="list-group-item"><label for="exampleInputFile">
+                File input
+              </label>
+              <input id="exampleInputFile" type="file" />
+              <p class="help-block">
+                Example block-level help text here.
+              </p></li>
+            <li class="list-group-item">// metrics
+              <label>
+                <input type="checkbox" /> Allow duplicates
+              </label></li>
+          </ul>
+          <!-- <form role="form">
             <div class="form-group">
                
               <label for="metricName">
@@ -242,12 +328,30 @@
             <button type="submit" class="btn btn-default">
               Submit
             </button>
-          </form>
-        </div>
+          </form> -->
+        <!-- </div> -->
       </div>
     </div>
   </div>
 </div>
+
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="popoverExampleTwoHiddenContent" style="display: none">
+     <div class="alert alert-danger"><b>Popover Example</b> 2 - Content</div>
+  </div>  
 
     #* libraries *#
     <script src="scripts/datatables/jquery.js"></script>
@@ -258,9 +362,11 @@
     <script src="scripts/datatables/jquery.dataTables.min.js"></script>
     <script src="scripts/datatables/dataTables.bootstrap.js"></script>
     <script src="scripts/datatables/dataTables.bootstrap.min.js"></script>
+    <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
 
     #* OpenRefine *#
-    <!-- <script type="text/javascript" src="../../webapp/modules/core/scripts/project/browsing-engine.js"></script> -->
+    <script src="../../scripts/util/dom.js"></script>
+    <script src="../../wirings.js"></script>
 
     #* custom *#
     <script type="text/javascript" charset="utf-8" src="scripts/metrics-tool.js"></script>
