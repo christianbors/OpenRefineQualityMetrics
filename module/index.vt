@@ -269,14 +269,14 @@
   </div>  
 
     #* libraries *#
-    <script src="scripts/datatables/jquery.js"></script>
-    <script src="scripts/bootstrap/jquery.min.js"></script>
-    <script src="scripts/bootstrap/bootstrap.min.js"></script>
-    <script src="scripts/bootstrap/scripts.js"></script>
-    <script src="scripts/datatables/jquery.dataTables.js"></script>
-    <script src="scripts/datatables/jquery.dataTables.min.js"></script>
-    <script src="scripts/datatables/dataTables.bootstrap.js"></script>
-    <script src="scripts/datatables/dataTables.bootstrap.min.js"></script>
+    <script src="externals/datatables/jquery.js"></script>
+    <script src="externals/bootstrap/jquery.min.js"></script>
+    <script src="externals/bootstrap/bootstrap.min.js"></script>
+    <script src="externals/bootstrap/scripts.js"></script>
+    <script src="externals/datatables/jquery.dataTables.js"></script>
+    <script src="externals/datatables/jquery.dataTables.min.js"></script>
+    <script src="externals/datatables/dataTables.bootstrap.js"></script>
+    <script src="externals/datatables/dataTables.bootstrap.min.js"></script>
     <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
 
     #* OpenRefine *#

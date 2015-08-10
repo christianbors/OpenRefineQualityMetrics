@@ -32,3 +32,12 @@ Current status
 ## Uncertainty
 
 **TODO:** Determine which uncertainty mechanisms will be incorporated
+
+## Setup
+
+Libraries utilized
+
+* DataTables [1.10.7](https://www.datatables.net/download/#DataTables) ([with Bootstrap Theme](https://github.com/DataTables/Plugins/tree/master/integration/bootstrap/3))
+* Bootstrap [3.3.5](http://getbootstrap.com/customize/)
+* jQuery [2.1.4](https://jquery.com/download/)
+* jQuery Sortable [0.9.13](http://johnny.github.com/jquery-sortable/)
