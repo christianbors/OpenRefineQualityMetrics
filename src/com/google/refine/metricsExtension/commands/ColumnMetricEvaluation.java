@@ -56,11 +56,7 @@ public class ColumnMetricEvaluation extends Command {
             Column column = columnModel.getColumnByName(request.getParameter("column_name"));
             int cellIndex = column.getCellIndex();
 
-            Engine engine = new Engine(project);
-            JSONObject engineConfig = null;
-
-            engineConfig = ParsingUtilities.evaluateJsonStringToObject(request.getParameter("engine"));
-            engine.initializeFromJSON(engineConfig);
+            Engine engine = getEngine(request, project);
 
             FilteredRows filteredRows = engine.getAllRows();
 

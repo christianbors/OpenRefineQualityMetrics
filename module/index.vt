@@ -1,5 +1,5 @@
 #*
- * Access this page at the URL /extension/quality-metrics/
+ * Access this page at the URL /extension/custom-quality-metrics/
  *#
 <!DOCTYPE html>
 <html lang="en">
@@ -122,18 +122,6 @@
     <div class="col-md-7">
       <table class="table table-striped table-condensed table-hover" id="dataset">
       </table>
-      <div class="panel panel-default"  draggable="true">
-        <div class="panel-heading">
-          Base Metric
-        </div>
-        <div class="panel-body">
-          #set( $metrics = ["Completeness", "Validity", "Consistency","Completeness", "Validity"])
-          #makeButtonGroup($metrics, "id")
-          <button type="button" class="btn btn-primary">Use</button>
-          <button type="button" class="btn btn-primary">Clear</button>
-          #* clear selections function *#
-        </div>
-      </div>
       <div class="panel panel-default">
         <div class="panel-heading">
           Weighting (only if multiple metrics are selected)
@@ -253,12 +241,33 @@
       </div>
       <div class="modal-body">
         <div class="panel panel-default">
-        <div class="panel-heading">
-          <label for="name">Source Column</label>
-          <select multiple class="form-control" id="columnFormMetricModal">
-          </select>
+          <div class="panel-heading">
+            <label for="name">Source Column</label>
+            <select multiple class="form-control" id="columnFormMetricModal">
+            </select>
+          </div>
         </div>
-      </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <label for="name">Permitted Data Types</label>
+            <select multiple class="form-control" id="allowedTypes">
+            </select>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Base Metric
+          </div>
+          <div class="panel-body"><!-- create metrics based on what is available-->
+            #set( $metrics = ["Completeness", "Validity", "Consistency","Completeness", "Validity"])
+            #makeButtonGroup($metrics, "id")
+          </div>
+        </div>
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <label for="name">Found Issues (Excerpt)</label>
+          </div>
+        </div>
       </div>
     </div>
   </div>
