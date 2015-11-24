@@ -1,6 +1,8 @@
 
 package com.google.refine.metricsExtension.model;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import org.json.JSONException;
@@ -8,14 +10,17 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
+import com.google.refine.metricsExtension.model.metricsComputation.Computation;
 import com.google.refine.model.Project;
+import com.google.refine.util.ParsingUtilities;
 
-public abstract class Metric<E> implements Jsonizable {
+public class Metric implements Jsonizable {
 
-    protected String name;
-    protected String description;
-    protected float measure;
+    private String name;
+    private String description;
+    private float measure;
     private String columnName;
+    private String dataType;
 
     // TODO: put constraints here
     private String constraints;
@@ -26,20 +31,8 @@ public abstract class Metric<E> implements Jsonizable {
         this.measure = 0f;
     }
 
-    public Metric<E> initializeFromJSON(Project project, JSONObject o) {
-        try {
-            name = o.getString("name");
-            description = o.getString("description");
-            measure = new Float(o.getString("measure"));
-            columnName = o.getString("columnName");
-            constraints = o.getString("constraints");
-            return this;
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
-    }
+    public Metric() {
+	}
 
     @Override
     public void write(JSONWriter writer, Properties options)
@@ -49,14 +42,29 @@ public abstract class Metric<E> implements Jsonizable {
         writer.key("name").value(name);
         writer.key("measure").value(Float.toString(measure));
         writer.key("columnName").value(columnName);
+        writer.key("datatype").value(dataType);
         writer.key("constraints").value(constraints);
 
         writer.endObject();
     }
 
-    public abstract boolean evaluateValue(Object value);
-
-    public abstract boolean evaluateValue(Properties bindings);
+	public static Metric load(JSONObject o) {
+        try {
+        	Metric m = new Metric();
+            m.setName(o.getString("name"));
+            m.setDescription(o.getString("description"));
+            m.setMeasure(new Float(o.getString("measure")));
+            m.setColumnName(o.getString("columnName"));
+            m.setDataType(o.getString("datatype"));
+            m.setConstraints(o.getString("constraints"));
+            // find a way how to determine the computation m.setComputation();
+            return m;
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public String getName() {
         return name;
@@ -97,5 +105,26 @@ public abstract class Metric<E> implements Jsonizable {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public List<Integer> compute(Computation comp) {
+    	List<Integer> dirtyValues = new LinkedList<Integer>();
+    	//TODO compute something
+    	return dirtyValues;
+    }
+//	public Computation getComputation() {
+//		return computation;
+//	}
+//
+//	public void setComputation(Computation computation) {
+//		this.computation = computation;
+//	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
 
 }

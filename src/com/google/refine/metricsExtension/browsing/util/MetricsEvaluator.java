@@ -10,6 +10,7 @@ import com.google.refine.browsing.RecordVisitor;
 import com.google.refine.browsing.RowVisitor;
 import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.metricsExtension.model.Metric;
+import com.google.refine.metricsExtension.model.metricsComputation.Computation;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 import com.google.refine.model.Record;
@@ -22,21 +23,11 @@ import com.google.refine.model.Row;
  *
  */
 public class MetricsEvaluator implements RowVisitor, RecordVisitor {
-
-    public class MetricsCalculation {
-        int valid;
-        int spurious;
-        
-        public MetricsCalculation() {
-            valid = 0;
-            spurious = 0;
-        }
-    }
     
     /*
      * Configuration e.g. which metrics should be considered
      */
-    private Metric<?>[] metrics;
+    private Metric[] metrics;
     private String colName;
     private int cellIndex;
 
@@ -50,9 +41,9 @@ public class MetricsEvaluator implements RowVisitor, RecordVisitor {
     /*
      * intermediate variables
      */
-    Map<Metric<?>, MetricsCalculation> metricsCalculation = new HashMap<Metric<?>, MetricsEvaluator.MetricsCalculation>();
+    Map<Metric, Computation> metricsCalculation = new HashMap<Metric, Computation>();
 
-    public MetricsEvaluator(Metric<?>[] metrics, String columnName, int cellIndex) {
+    public MetricsEvaluator(Metric[] metrics, String columnName, int cellIndex) {
         this.metrics = metrics;
         this.colName = columnName;
         this.cellIndex = cellIndex;
@@ -67,8 +58,8 @@ public class MetricsEvaluator implements RowVisitor, RecordVisitor {
     @Override
     public void end(Project project) {
         // TODO Auto-generated method stub
-        for (Metric<?> m : metrics) {
-            MetricsCalculation calc = metricsCalculation.get(m);
+        for (Metric m : metrics) {
+            Computation calc = metricsCalculation.get(m);
             float measure = ((float) calc.valid / (float) (calc.valid + calc.spurious));
             m.setMeasure(measure);
         }
@@ -91,9 +82,9 @@ public class MetricsEvaluator implements RowVisitor, RecordVisitor {
 
     private void processRow(Project project, int rowIndex, Row row, Properties bindings) {
         // TODO Auto-generated method stub
-        for (Metric<?> m : metrics) {
+        for (Metric m : metrics) {
             if(!metricsCalculation.containsKey(m)) {
-                metricsCalculation.put(m, new MetricsCalculation());
+                metricsCalculation.put(m, new MetricsComputation());
             }
             
             if(m.evaluateValue(bindings)) {

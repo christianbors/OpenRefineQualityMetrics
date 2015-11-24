@@ -29,7 +29,7 @@ import com.google.refine.metricsExtension.browsing.filters.MetricRowFilter;
 import com.google.refine.metricsExtension.browsing.util.MetricFacetChoice;
 import com.google.refine.metricsExtension.browsing.util.MetricsEvaluator;
 import com.google.refine.metricsExtension.model.Metric;
-import com.google.refine.metricsExtension.model.metrics.column.Completeness;
+import com.google.refine.metricsExtension.model.metricsComputation.column.Completeness;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 
@@ -38,7 +38,7 @@ public class MetricsFacet implements Facet {
     protected String columnName;
     protected boolean invert;
 
-    protected Metric<?>[] metrics;
+    protected Metric[] metrics;
     protected boolean update = false;
 
     /*
@@ -58,7 +58,7 @@ public class MetricsFacet implements Facet {
             throws JSONException {
         writer.object();
         writer.key("metrics").array();
-        for (Metric<?> entry : metrics) {
+        for (Metric entry : metrics) {
             entry.write(writer, options);
         }
         writer.endArray();
@@ -85,7 +85,7 @@ public class MetricsFacet implements Facet {
 //                throw new JSONException("Metric not recognized");
 //            }
 //        }
-        metrics = new Metric<?>[1];
+        metrics = new Metric[1];
         metrics[0] = new Completeness();
 
         columnName = o.getString("columnName");

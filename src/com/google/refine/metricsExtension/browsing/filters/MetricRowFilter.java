@@ -53,7 +53,7 @@ import com.google.refine.model.Row;
  * error state of every metric selected or only one, based on the mode property. 
  */
 public class MetricRowFilter implements RowFilter {
-    final protected Metric<?>[]        _metrics; // the expression to evaluate
+    final protected Metric[]        _metrics; // the expression to evaluate
     
     final protected String          _columnName;
     final protected int             _cellIndex; // the expression is based on this column;
@@ -65,7 +65,7 @@ public class MetricRowFilter implements RowFilter {
     final protected boolean         _invert;
     
     public MetricRowFilter(
-        Metric<?>[] metrics,
+        Metric[] metrics,
         String columnName,
         int cellIndex, 
         boolean selectBlank, 
@@ -103,7 +103,7 @@ public class MetricRowFilter implements RowFilter {
         for(int i = 0; i < _metrics.length; ++i) {
             // this is an or concatenation
             if (!valid) {
-                valid = _metrics[i].evaluateValue(bindings);
+                valid = _metrics[i].getComputation().evaluateValue(bindings);
             }
         }
         return (valid & !invert);
@@ -113,7 +113,7 @@ public class MetricRowFilter implements RowFilter {
         if (ExpressionUtils.isError(v)) {
             return _selectError;
         } else if (ExpressionUtils.isNonBlankData(v)) {
-            for (Metric<?> metric : _metrics) {
+            for (Metric metric : _metrics) {
                 if (testValue(v, metric)) {
                     return true;
                 }
@@ -124,7 +124,7 @@ public class MetricRowFilter implements RowFilter {
         }
     }
     
-    protected boolean testValue(Object v, Metric<?> match) {
-        return match.evaluateValue(v);
+    protected boolean testValue(Object v, Metric match) {
+        return match.getComputation().evaluateValue(v);
     }
 }

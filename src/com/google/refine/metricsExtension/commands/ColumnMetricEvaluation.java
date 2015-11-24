@@ -34,12 +34,12 @@ import com.google.refine.util.ParsingUtilities;
 public class ColumnMetricEvaluation extends Command {
 
     private int cellIndex;
-    private Metric<?> metric;
+    private Metric metric;
     
     private int validCount;
     private int spuriousCount;
 
-    public ColumnMetricEvaluation(Metric<?> metric) {
+    public ColumnMetricEvaluation(Metric metric) {
         this.metric = metric;
         this.validCount = 0;
         this.spuriousCount = 0;
