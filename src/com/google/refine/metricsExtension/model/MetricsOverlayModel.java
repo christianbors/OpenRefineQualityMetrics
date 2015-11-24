@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import com.google.refine.metricsExtension.model.metricsComputation.Computation;
 import com.google.refine.model.Column;
 import com.google.refine.model.OverlayModel;
 import com.google.refine.model.Project;

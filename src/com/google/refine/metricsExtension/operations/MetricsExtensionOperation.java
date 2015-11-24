@@ -12,25 +12,21 @@ import org.json.JSONWriter;
 import com.google.refine.history.Change;
 import com.google.refine.history.HistoryEntry;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
-import com.google.refine.metricsExtension.model.changes.MetricsExtensionChange;
 import com.google.refine.model.AbstractOperation;
 import com.google.refine.model.Project;
-import com.google.refine.process.Process;
-import com.google.refine.process.QuickHistoryEntryProcess;
 import com.google.refine.util.ParsingUtilities;
 import com.google.refine.util.Pool;
 
-public class MetricsProjectOperation extends AbstractOperation {
+public class MetricsExtensionOperation extends AbstractOperation {
 
 	final protected MetricsOverlayModel metricsOverlayModel;
 	
 	static public AbstractOperation reconstruct(Project project, JSONObject object) throws Exception {
-		return new MetricsProjectOperation(
-	            MetricsOverlayModel.reconstruct(object.getJSONObject("metricsOverlayModel"))
-	        );
+		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		return new MetricsExtensionOperation(overlayModel);
 	}
 
-	public MetricsProjectOperation(MetricsOverlayModel model) {
+	public MetricsExtensionOperation(MetricsOverlayModel model) {
 		metricsOverlayModel = model;
 	}
 	
@@ -43,15 +39,15 @@ public class MetricsProjectOperation extends AbstractOperation {
 	
 	@Override
 	protected String getBriefDescription(Project project) {
-		// TODO Auto-generated method stub
-		return super.getBriefDescription(project);
+		return "Add Metrics Overlay Model";
 	}
 
 	@Override
-	public Process createProcess(Project project, Properties options)
-			throws Exception {
-		// TODO Auto-generated method stub
-		return super.createProcess(project, options);
+	protected HistoryEntry createHistoryEntry(Project project,
+			long historyEntryID) throws Exception {
+		Change metricsProjectChange = new MetricsProjectChange(metricsOverlayModel);
+		
+		return new HistoryEntry(historyEntryID, project, getBriefDescription(project), MetricsExtensionOperation.this, metricsProjectChange);
 	}
 
 	static public class MetricsProjectChange implements Change {

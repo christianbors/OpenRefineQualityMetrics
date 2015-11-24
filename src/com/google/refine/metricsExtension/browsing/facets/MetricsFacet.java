@@ -29,7 +29,7 @@ import com.google.refine.metricsExtension.browsing.filters.MetricRowFilter;
 import com.google.refine.metricsExtension.browsing.util.MetricFacetChoice;
 import com.google.refine.metricsExtension.browsing.util.MetricsEvaluator;
 import com.google.refine.metricsExtension.model.Metric;
-import com.google.refine.metricsExtension.model.metricsComputation.column.Completeness;
+import com.google.refine.metricsExtension.operations.evaluate.Completeness;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 

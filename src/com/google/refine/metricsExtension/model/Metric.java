@@ -5,14 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
-import com.google.refine.metricsExtension.model.metricsComputation.Computation;
-import com.google.refine.model.Project;
-import com.google.refine.util.ParsingUtilities;
+import com.google.refine.metricsExtension.operations.evaluate.EvaluateCell;
 
 public class Metric implements Jsonizable {
 
@@ -22,8 +21,8 @@ public class Metric implements Jsonizable {
     private String columnName;
     private String dataType;
 
-    // TODO: put constraints here
-    private String constraints;
+    private List<EvaluateCell> evaluations;
+    private List<Integer> dirtyIndices;
 
     public Metric(String name, String description) {
         this.name = name;
@@ -43,7 +42,12 @@ public class Metric implements Jsonizable {
         writer.key("measure").value(Float.toString(measure));
         writer.key("columnName").value(columnName);
         writer.key("datatype").value(dataType);
-        writer.key("constraints").value(constraints);
+        writer.key("dirtyIndices");
+        writer.array();
+        for(Integer d : dirtyIndices) {
+        	writer.value(d);
+        }
+        writer.endArray();
 
         writer.endObject();
     }
@@ -56,7 +60,11 @@ public class Metric implements Jsonizable {
             m.setMeasure(new Float(o.getString("measure")));
             m.setColumnName(o.getString("columnName"));
             m.setDataType(o.getString("datatype"));
-            m.setConstraints(o.getString("constraints"));
+            JSONArray di = o.getJSONArray("dirtyIndices");
+            m.dirtyIndices = new LinkedList<Integer>();
+            for (int i = 0; i < di.length(); ++i) {
+            	m.dirtyIndices.add(di.getInt(i));
+            }
             // find a way how to determine the computation m.setComputation();
             return m;
         } catch (JSONException e) {
@@ -90,14 +98,6 @@ public class Metric implements Jsonizable {
         this.columnName = columnName;
     }
 
-    public String getConstraints() {
-        return constraints;
-    }
-
-    public void setConstraints(String constraints) {
-        this.constraints = constraints;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -106,18 +106,10 @@ public class Metric implements Jsonizable {
         this.description = description;
     }
 
-    public List<Integer> compute(Computation comp) {
-    	List<Integer> dirtyValues = new LinkedList<Integer>();
+    public List<Integer> compute() {
     	//TODO compute something
-    	return dirtyValues;
+    	return dirtyIndices;
     }
-//	public Computation getComputation() {
-//		return computation;
-//	}
-//
-//	public void setComputation(Computation computation) {
-//		this.computation = computation;
-//	}
 
 	public String getDataType() {
 		return dataType;
