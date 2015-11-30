@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.commands;
+package com.google.refine.metricsExtension.refactor.commands;
 
 import java.io.IOException;
 

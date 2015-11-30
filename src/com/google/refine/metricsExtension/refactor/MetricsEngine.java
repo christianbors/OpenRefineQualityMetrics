@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.browsing;
+package com.google.refine.metricsExtension.refactor;
 
 import org.json.JSONArray;
 import org.json.JSONException;

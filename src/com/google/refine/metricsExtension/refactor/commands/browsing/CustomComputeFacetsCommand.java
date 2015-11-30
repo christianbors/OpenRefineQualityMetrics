@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.commands.browsing;
+package com.google.refine.metricsExtension.refactor.commands.browsing;
 
 import java.io.IOException;
 
@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 import com.google.refine.browsing.Engine;
 import com.google.refine.commands.browsing.ComputeFacetsCommand;
-import com.google.refine.metricsExtension.browsing.MetricsEngine;
+import com.google.refine.metricsExtension.refactor.MetricsEngine;
 import com.google.refine.model.Project;
 
 

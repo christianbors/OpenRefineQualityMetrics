@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-package com.google.refine.metricsExtension.browsing.filters;
+package com.google.refine.metricsExtension.refactor.filters;
 
 import java.util.Collection;
 import java.util.Properties;
@@ -103,7 +103,7 @@ public class MetricRowFilter implements RowFilter {
         for(int i = 0; i < _metrics.length; ++i) {
             // this is an or concatenation
             if (!valid) {
-                valid = _metrics[i].getComputation().evaluateValue(bindings);
+                valid = _metrics[i].getEvaluables().evaluateValue(bindings);
             }
         }
         return (valid & !invert);

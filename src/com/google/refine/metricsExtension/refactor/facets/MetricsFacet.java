@@ -1,5 +1,5 @@
 
-package com.google.refine.metricsExtension.browsing.facets;
+package com.google.refine.metricsExtension.refactor.facets;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,11 +25,11 @@ import com.google.refine.browsing.util.RowEvaluable;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
-import com.google.refine.metricsExtension.browsing.filters.MetricRowFilter;
-import com.google.refine.metricsExtension.browsing.util.MetricFacetChoice;
-import com.google.refine.metricsExtension.browsing.util.MetricsEvaluator;
 import com.google.refine.metricsExtension.model.Metric;
-import com.google.refine.metricsExtension.operations.evaluate.Completeness;
+import com.google.refine.metricsExtension.operations.metricEvaluables.Completeness;
+import com.google.refine.metricsExtension.refactor.filters.MetricRowFilter;
+import com.google.refine.metricsExtension.refactor.util.MetricFacetChoice;
+import com.google.refine.metricsExtension.refactor.util.MetricsEvaluator;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 
@@ -86,7 +86,6 @@ public class MetricsFacet implements Facet {
 //            }
 //        }
         metrics = new Metric[1];
-        metrics[0] = new Completeness();
 
         columnName = o.getString("columnName");
         invert = o.has("invert") && o.getBoolean("invert");

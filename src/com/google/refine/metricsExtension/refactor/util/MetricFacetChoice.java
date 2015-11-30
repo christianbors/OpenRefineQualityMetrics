@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.browsing.util;
+package com.google.refine.metricsExtension.refactor.util;
 
 import java.util.Properties;
 
