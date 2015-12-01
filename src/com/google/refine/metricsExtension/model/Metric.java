@@ -16,26 +16,29 @@ import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
 import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 
 public class Metric implements Jsonizable {
 
     private String name;
     private String description;
     private float measure;
-    private String columnName;
     private String dataType;
 
     private List<Evaluable> evaluables;
     private Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.measure = 0f;
+        this(name, description, 0f, "unknown");
     }
-
-    public Metric() {
-	}
+    
+    public Metric(String name, String description, float measure, String dataType) {
+    	this.name = name;
+        this.description = description;
+        this.measure = measure;
+        this.dataType = dataType;
+    }
 
     @Override
     public void write(JSONWriter writer, Properties options)
@@ -44,7 +47,6 @@ public class Metric implements Jsonizable {
 
         writer.key("name").value(name);
         writer.key("measure").value(Float.toString(measure));
-        writer.key("columnName").value(columnName);
         writer.key("datatype").value(dataType);
         writer.key("dirtyIndices");
         writer.array();
@@ -57,18 +59,18 @@ public class Metric implements Jsonizable {
         	writer.endArray().endObject();
         }
         writer.endArray();
+        writer.key("evaluables").array();
+        for (Evaluable e : evaluables) {
+        	writer.value(e.toString());
+        }
+        writer.endArray();
 
         writer.endObject();
     }
 
 	public static Metric load(JSONObject o) {
         try {
-        	Metric m = new Metric();
-            m.setName(o.getString("name"));
-            m.setDescription(o.getString("description"));
-            m.setMeasure(new Float(o.getString("measure")));
-            m.setColumnName(o.getString("columnName"));
-            m.setDataType(o.getString("datatype"));
+        	Metric m = new Metric(o.getString("name"), o.getString("description"), new Float(o.getString("measure")), o.getString("datatype"));
             JSONArray di = o.getJSONArray("dirtyIndices");
             m.dirtyIndices = new HashMap<Integer, List<Boolean>>();
             for (int i = 0; i < di.length(); ++i) {
@@ -81,7 +83,10 @@ public class Metric implements Jsonizable {
             	}
             	m.dirtyIndices.put(entry.getInt("index"), dirtyBools);
             }
-            // find a way how to determine the computation m.setComputation();
+            JSONArray evals = o.getJSONArray("evaluables");
+            for (int i = 0; i < evals.length(); ++i) {
+            	m.addEvaluable(evals.getString(i));
+            }
             return m;
         } catch (JSONException e) {
             // TODO Auto-generated catch block
@@ -90,15 +95,24 @@ public class Metric implements Jsonizable {
         return null;
     }
 	
-	public void addEvaluable(Evaluable evaluable) {
-		this.evaluables.add(evaluable);
+	public void addEvaluable(String toBeParsed) {
+		try {
+			this.evaluables.add(MetaParser.parse(toBeParsed));
+		} catch (ParsingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
     
     public void addDirtyIndex(int index, List<Boolean> dirty) {
     	dirtyIndices.put(index, dirty);
     }
 
-    public String getName() {
+    public Map<Integer, List<Boolean>> getDirtyIndices() {
+		return dirtyIndices;
+	}
+
+	public String getName() {
         return name;
     }
 
@@ -112,14 +126,6 @@ public class Metric implements Jsonizable {
 
     public void setMeasure(float measure) {
         this.measure = measure;
-    }
-
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
     }
 
     public void setName(String name) {

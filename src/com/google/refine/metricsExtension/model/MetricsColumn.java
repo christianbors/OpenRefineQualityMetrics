@@ -72,8 +72,8 @@ public class MetricsColumn {
 		return column;
 	}
 
-	public Set<Metric> getMetrics() {
-		return evalValues.keySet();
+	public List<Metric> getMetrics() {
+		return new ArrayList<Metric>(evalValues.keySet());
 	}
 
 //	public void setMetrics(List<Metric> metrics) {

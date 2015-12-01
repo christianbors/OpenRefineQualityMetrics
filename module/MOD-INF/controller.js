@@ -34,6 +34,8 @@ function init() {
   RS.registerCommand(module, "compute-custom-facets", new Packages.com.google.refine.metricsExtension.commands.browsing.CustomComputeFacetsCommand());
   RS.registerCommand(module, "get-base-metrics", new Packages.com.google.refine.metricsExtension.commands.GetBaseMetricsCommand());
 
+  var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;
+  FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.Completeness());
 }
 
 /*
