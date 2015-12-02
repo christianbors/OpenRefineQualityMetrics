@@ -37,7 +37,7 @@ var QualityMetricsExtension = {};
 
 DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
   var doStatsDialog = function(response) {
-    var dialog = $(DOM.loadHTML("custom-quality-metrics", "scripts/completeness.html"));
+    var dialog = $(DOM.loadHTML("metric-doc", "scripts/completeness.html"));
 
     var elmts = DOM.bind(dialog);
     elmts.dialogHeader.text("Metrics for column \"" + column.name + "\"");
@@ -61,10 +61,25 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
       }
     }
 
+/*        Refine.postProcess(
+            "freebase",
+            "extend-data", 
+            {
+              baseColumnName: column.name,
+              columnInsertIndex: columnIndex + 1
+            },
+            {
+              extension: JSON.stringify(extension)
+            },
+            { rowsChanged: true, modelsChanged: true }
+        );*/
     Refine.postProcess(
-      "custom-quality-metrics",
-      "completeness",
-      params,
+      "metric-doc",
+      "metricsOverlayModel",
+      {
+        baseColumnName: column.name,
+        metrics
+      },
       body,
       updateOptions,
       callbacks
@@ -77,40 +92,11 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     [
     {},
     {
-      id: "custom-quality-metrics/completeness",
-      label: "Completeness",
+      id: "metric-doc/metricsOverlayModel",
+      label: "Add Metrics Functionality",
       click: prepMetricsDialog
     }
     ]
     );
-    MenuSystem.appendTo(
-      menu, 
-      [ "core/facet" ], 
-      [
-      {},
-      {
-        id: "custom-quality-metrics/metrics-facet",
-        label: "Metrics Facet",
-        click: function() {
-          var elmt = ui.browsingEngine._createFacetContainer();
-          var config = {
-                "name": column.name,
-                "columnName": column.name,
-                "expression": "value",
-                "detailView": true,
-                "constraints": "empty",
-                "metrics": ['completeness']
-              };
-          var options = {};
-          facet = new MetricsFacet(elmt, config, options);
-
-          ui.browsingEngine._facets.push({ elmt: elmt, facet: facet });
-
-          ui.leftPanelTabs.tabs({ active: 0 });
-
-          Refine.update({ engineChanged: true });
-        }
-      }
-      ]);
 });
 

@@ -105,8 +105,8 @@ function showMetric() {
     }
   }
 
-  $.post("../../command/custom-quality-metrics/completeness", params, function(response) {
-    var dialog = $(DOM.loadHTML("custom-quality-metrics", "../../scripts/completeness.html"));
+  $.post("../../command/metric-doc/completeness", params, function(response) {
+    var dialog = $(DOM.loadHTML("metric-doc", "../../scripts/completeness.html"));
 
     var elmts = DOM.bind(dialog);
     elmts.dialogHeader.text("Metrics for column \"" + params.column_name + "\"");

@@ -1,7 +1,3 @@
-#*
- * Access this page at the URL /extension/custom-quality-metrics/
- *#
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -14,8 +10,29 @@
     <link href="styles/datatables/dataTables.bootstrap.css" rel="stylesheet">
     <link href="styles/style.css" rel="stylesheet">
 
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="scripts/angular/controllers.js"></script>
+
+    <script type="text/javascript">
+        URL.getParameters = function () {
+            var r = {};
+
+            var params = window.location.search;
+            if (params.length > 1) {
+                params = params.substr(1).split("&");
+                $.each(params, function () {
+                    pair = this.split("=");
+                    r[pair[0]] = unescape(pair[1]);
+                });
+            }
+
+            return r;
+        };
+        var theProject = {id: URL.getParameters().project};
+    </script>
+
   </head>
-  <body>
+  <body ng-controller="metricDocCtrl">
 
   <div class="container-fluid">
     <div class="row">
@@ -258,9 +275,9 @@
           <div class="panel-heading">
             Base Metric
           </div>
-          <div class="panel-body"><!-- create metrics based on what is available-->
-            #set( $metrics = ["Completeness", "Validity", "Consistency","Completeness", "Validity"])
-            #makeButtonGroup($metrics, "id")
+          <div class="panel-body"><!-- TODO: angular - create metrics based on what is available-->
+            <!-- #set( $metrics = ["Completeness", "Validity", "Consistency","Completeness", "Validity"])
+            #makeButtonGroup($metrics, "id") -->
           </div>
         </div>
         <div class="panel panel-primary">

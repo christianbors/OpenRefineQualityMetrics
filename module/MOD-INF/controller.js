@@ -29,13 +29,21 @@ function init() {
   );
 
   var RS = Packages.com.google.refine.RefineServlet;
-  RS.registerCommand(module, "completeness", new Packages.com.google.refine.metricsExtension.commands.ColumnMetricEvaluation(
-    new Packages.com.google.refine.metricsExtension.model.metrics.column.Completeness()));
-  RS.registerCommand(module, "compute-custom-facets", new Packages.com.google.refine.metricsExtension.commands.browsing.CustomComputeFacetsCommand());
-  RS.registerCommand(module, "get-base-metrics", new Packages.com.google.refine.metricsExtension.commands.GetBaseMetricsCommand());
+  RS.registerClassMapping(
+    "com.google.refine.operations.MetricsExtensionOperation$MetricsProjectChange",
+    "com.google.refine.metricsExtension.operations.MetricsExtensionOperation$MetricsProjectChange");
+  RS.cacheClass(Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation$MetricsProjectChange);
+
+  RS.registerCommand(module, "metricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
+
+  var OR = Packages.com.google.refine.operations.OperationRegistry;
+  OR.registerOperation(module, "metricsExtension", Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation);
 
   var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;
   FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.Completeness());
+
+  Packages.com.google.refine.model.Project.
+    registerOverlayModel("metricsOverlayModel", Packages.com.google.refine.metricsExtension.model.MetricsOverlayModel);
 }
 
 /*
@@ -51,7 +59,7 @@ function process(path, request, response) {
     context.someString = "foo";
     context.someInt = 3;
 
-    send(request, response, "index.vt", context);
+    send(request, response, "index.html", context);
   }
 }
 

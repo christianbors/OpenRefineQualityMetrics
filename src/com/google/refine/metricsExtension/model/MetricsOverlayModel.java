@@ -20,26 +20,23 @@ import com.google.refine.model.Project;
 
 public class MetricsOverlayModel implements OverlayModel {
 
-	private List<MetricsColumn> metricsColumnList;
+	private Map<Integer, List<Metric>> metricsMap;
 	
 	public static MetricsOverlayModel reconstruct(JSONObject jsonObject) throws Exception {
-		MetricsOverlayModel overlayModel = new MetricsOverlayModel();
 		
 		JSONArray metricsColumns = jsonObject.getJSONArray("metricsColumns");
+		Map<Integer, List<Metric>> reconstructMap = new HashMap<Integer, List<Metric>>();
 		for (int i = 0; i < metricsColumns.length(); ++i) {
 			JSONObject obj = metricsColumns.getJSONObject(i);
-			overlayModel.getMetricsColumnList().add(reconstructColumn(obj));
+			reconstructMap.put(obj.getInt("colIndex"), reconstructMetrics(obj.getJSONArray("metrics")));
 		}
+		MetricsOverlayModel overlayModel = new MetricsOverlayModel(reconstructMap);
 		
 		return overlayModel;
 	}
 	
-    public MetricsOverlayModel(List<MetricsColumn> metricsColumn) {
-    	this.metricsColumnList = metricsColumn;
-	}
-
-	public MetricsOverlayModel() {
-		this.metricsColumnList = new LinkedList<MetricsColumn>();
+    public MetricsOverlayModel(Map<Integer, List<Metric>> metricsMap) {
+    	this.metricsMap = metricsMap;
 	}
 
 	@Override
@@ -61,32 +58,15 @@ public class MetricsOverlayModel implements OverlayModel {
     public void dispose(Project project) {        
     }
     
-    public List<MetricsColumn> getMetricsColumnList() {
-    	return metricsColumnList;
+    public List<Metric> getMetrics(int columnIndex) {
+    	return metricsMap.get(columnIndex);
     }
-    
-    public Map<Integer, List<String>> getMetricColumns() {
-    	Map<Integer, List<String>> eligibleColumns = new HashMap<Integer, List<String>>();
-    	
-    	return eligibleColumns;
-    }
-    
-    protected static MetricsColumn reconstructColumn(JSONObject colObject) throws Exception {
-		// TODO iterate through all possible metrics
-    	// we also need to determine which computations are to be added to each metric
-    	//String originalName, List<Metric> metrics
-    	JSONArray metricsJson = colObject.getJSONArray("metrics");
-    	List<Metric> metrics = new LinkedList<Metric>();
-		if (metricsJson != null) {
-			metrics.addAll(reconstructMetrics(colObject.getJSONArray("metrics")));
-		}
-		MetricsColumn metricsCol = new MetricsColumn(Column.load(colObject.getString("column")), metrics);
-		
-		return metricsCol;
-	}
 
     private static Metric reconstructMetric(JSONObject o) throws JSONException {
-    	Metric m = new Metric(o.getString("name"), o.getString("description"), o.getDouble("measure"));
+    	Metric m = new Metric(o.getString("name"), 
+    			o.getString("description"), 
+    			new Float(o.getString("measure")), 
+    			o.getString("type"));
     	JSONArray funJSON = o.getJSONArray("functions");
 		for (int i = 0; i < funJSON.length(); i++) {
 			m.addEvaluable(funJSON.getString(i));

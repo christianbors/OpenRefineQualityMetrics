@@ -103,7 +103,7 @@ public class EvaluateMetricsOperation extends EngineDependentMassCellOperation {
 		Evaluable eval = MetaParser.parse("Test");
 		//TODO: metric bindings / getting certain infos into the bindings to perform a better evaluation
 //		Properties bindings = MetricUtils.createBindings(project);
-		MetricsColumn col = model.getMetricsColumnList().get(column.getCellIndex());
+		List<Metric> metrics = model.getMetrics(column.getCellIndex());
 
 		return new RowVisitor() {
 			private int cellIndex;
@@ -159,7 +159,7 @@ public class EvaluateMetricsOperation extends EngineDependentMassCellOperation {
 				project.history.addEntry(new HistoryEntry(historyEntryID, project, getBriefDescription(project),
 						EvaluateMetricsOperation.this, new MetricChange()));
 			}
-		}.init(column.getCellIndex(), bindings, historyEntryID, col.getMetrics());
+		}.init(column.getCellIndex(), bindings, historyEntryID, metrics);
 	}
 
 	@Override
