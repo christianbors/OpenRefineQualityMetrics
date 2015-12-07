@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,30 +21,44 @@ import com.google.refine.model.Project;
 
 public class MetricsOverlayModel implements OverlayModel {
 
-	private Map<Integer, List<Metric>> metricsMap;
+	private Map<String, List<Metric>> metricsMap;
 	
-	public static MetricsOverlayModel reconstruct(JSONObject jsonObject) throws Exception {
+	public static MetricsOverlayModel reconstruct(JSONObject metricsOverlayModel) throws Exception {
 		
-		JSONArray metricsColumns = jsonObject.getJSONArray("metricsColumns");
-		Map<Integer, List<Metric>> reconstructMap = new HashMap<Integer, List<Metric>>();
-		for (int i = 0; i < metricsColumns.length(); ++i) {
-			JSONObject obj = metricsColumns.getJSONObject(i);
-			reconstructMap.put(obj.getInt("colIndex"), reconstructMetrics(obj.getJSONArray("metrics")));
+		Map<String, List<Metric>> reconstructMap = new HashMap<String, List<Metric>>();
+		if (metricsOverlayModel != null) {
+			JSONArray metricColumns = metricsOverlayModel.getJSONArray("metricColumns");
+			for (int i = 0; i < metricColumns.length(); ++i) {
+				JSONObject obj = metricColumns.getJSONObject(i);
+				reconstructMap.put(obj.getString("columnName"), reconstructMetrics(obj.getJSONArray("metrics")));
+			}
 		}
 		MetricsOverlayModel overlayModel = new MetricsOverlayModel(reconstructMap);
 		
 		return overlayModel;
 	}
 	
-    public MetricsOverlayModel(Map<Integer, List<Metric>> metricsMap) {
+    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap) {
     	this.metricsMap = metricsMap;
 	}
 
 	@Override
     public void write(JSONWriter writer, Properties options)
             throws JSONException {
-        // TODO Auto-generated method stub
-        
+        writer.object();
+        writer.key("metricColumns");
+        writer.array();
+        for (Entry<String, List<Metric>> e : metricsMap.entrySet()) {
+        	writer.object().key("columnName").value(e.getKey());
+        	writer.key("metrics").array();
+        	for (Metric m : e.getValue()) {
+        		m.write(writer, options);
+        	}
+        	writer.endArray();
+        	writer.endObject();
+        }
+        writer.endArray();
+        writer.endObject();
     }
 
     @Override
@@ -61,24 +76,16 @@ public class MetricsOverlayModel implements OverlayModel {
     public List<Metric> getMetrics(int columnIndex) {
     	return metricsMap.get(columnIndex);
     }
-
-    private static Metric reconstructMetric(JSONObject o) throws JSONException {
-    	Metric m = new Metric(o.getString("name"), 
-    			o.getString("description"), 
-    			new Float(o.getString("measure")), 
-    			o.getString("type"));
-    	JSONArray funJSON = o.getJSONArray("functions");
-		for (int i = 0; i < funJSON.length(); i++) {
-			m.addEvaluable(funJSON.getString(i));
-		}
-    	return m;
+    
+    public void addMetrics(String columnName, List<Metric> metrics) {
+    	this.metricsMap.put(columnName, metrics);
     }
 
 	private static List<Metric> reconstructMetrics(JSONArray jsonArray) throws JSONException {
 		List<Metric> metricsList = new ArrayList<Metric>();
 		for (int i = 0; i < jsonArray.length(); ++i) {
 			JSONObject o = jsonArray.getJSONObject(i);
-			metricsList.add(reconstructMetric(o));
+			metricsList.add(Metric.load(o));
 		}
 		return metricsList;
 	}

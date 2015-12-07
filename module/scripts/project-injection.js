@@ -61,6 +61,9 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
       }
     }
 
+    var metricName = ["completeness", "variety"];
+    var overlayModel = JSON.stringify(theProject.overlayModels.metricsOverlayModel);
+
 /*        Refine.postProcess(
             "freebase",
             "extend-data", 
@@ -78,7 +81,8 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
       "metricsOverlayModel",
       {
         baseColumnName: column.name,
-        metrics
+        metricName: metricName,
+        metricsOverlayModel: overlayModel || {}
       },
       body,
       updateOptions,

@@ -38,6 +38,8 @@ public class Metric implements Jsonizable {
         this.description = description;
         this.measure = measure;
         this.dataType = dataType;
+        this.dirtyIndices = new HashMap<Integer, List<Boolean>>();
+        this.evaluables = new ArrayList<Evaluable>();
     }
 
     @Override
@@ -48,17 +50,20 @@ public class Metric implements Jsonizable {
         writer.key("name").value(name);
         writer.key("measure").value(Float.toString(measure));
         writer.key("datatype").value(dataType);
-        writer.key("dirtyIndices");
-        writer.array();
-        for(Entry<Integer, List<Boolean>> d : dirtyIndices.entrySet()) {
-        	writer.object().key("index").value(d.getKey());
-        	writer.key("dirty").array();
-        	for (Boolean dirtyBool : d.getValue()) {
-        		writer.value(dirtyBool);
-        	}
-        	writer.endArray().endObject();
-        }
-        writer.endArray();
+        writer.key("description").value(description);
+		if (!dirtyIndices.isEmpty()) {
+			writer.key("dirtyIndices");
+			writer.array();
+			for (Entry<Integer, List<Boolean>> d : dirtyIndices.entrySet()) {
+				writer.object().key("index").value(d.getKey());
+				writer.key("dirty").array();
+				for (Boolean dirtyBool : d.getValue()) {
+					writer.value(dirtyBool);
+				}
+				writer.endArray().endObject();
+			}
+			writer.endArray();
+		}
         writer.key("evaluables").array();
         for (Evaluable e : evaluables) {
         	writer.value(e.toString());
@@ -71,22 +76,26 @@ public class Metric implements Jsonizable {
 	public static Metric load(JSONObject o) {
         try {
         	Metric m = new Metric(o.getString("name"), o.getString("description"), new Float(o.getString("measure")), o.getString("datatype"));
-            JSONArray di = o.getJSONArray("dirtyIndices");
-            m.dirtyIndices = new HashMap<Integer, List<Boolean>>();
-            for (int i = 0; i < di.length(); ++i) {
-            	JSONObject entry = di.getJSONObject(i);
+			if (o.has("dirtyIndices")) {
+				JSONArray di = o.getJSONArray("dirtyIndices");
+				m.dirtyIndices = new HashMap<Integer, List<Boolean>>();
+				for (int i = 0; i < di.length(); ++i) {
+					JSONObject entry = di.getJSONObject(i);
 
-            	List<Boolean> dirtyBools = new ArrayList<Boolean>();
-            	JSONArray dirty = entry.getJSONArray("dirty");
-            	for (int dirtyIndex = 0; dirtyIndex < dirty.length(); ++dirtyIndex) {
-            		dirtyBools.add(dirty.getBoolean(dirtyIndex));
-            	}
-            	m.dirtyIndices.put(entry.getInt("index"), dirtyBools);
-            }
-            JSONArray evals = o.getJSONArray("evaluables");
-            for (int i = 0; i < evals.length(); ++i) {
-            	m.addEvaluable(evals.getString(i));
-            }
+					List<Boolean> dirtyBools = new ArrayList<Boolean>();
+					JSONArray dirty = entry.getJSONArray("dirty");
+					for (int dirtyIndex = 0; dirtyIndex < dirty.length(); ++dirtyIndex) {
+						dirtyBools.add(dirty.getBoolean(dirtyIndex));
+					}
+					m.dirtyIndices.put(entry.getInt("index"), dirtyBools);
+				}
+			}
+			if (o.has("evaluables")) {
+				JSONArray evals = o.getJSONArray("evaluables");
+				for (int i = 0; i < evals.length(); ++i) {
+					m.addEvaluable(evals.getString(i));
+				}
+			}
             return m;
         } catch (JSONException e) {
             // TODO Auto-generated catch block
