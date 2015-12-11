@@ -10,29 +10,11 @@
     <link href="styles/datatables/dataTables.bootstrap.css" rel="stylesheet">
     <link href="styles/style.css" rel="stylesheet">
 
-    <script src="bower_components/angular/angular.js"></script>
-    <script src="scripts/angular/controllers.js"></script>
-
-    <script type="text/javascript">
-        URL.getParameters = function () {
-            var r = {};
-
-            var params = window.location.search;
-            if (params.length > 1) {
-                params = params.substr(1).split("&");
-                $.each(params, function () {
-                    pair = this.split("=");
-                    r[pair[0]] = unescape(pair[1]);
-                });
-            }
-
-            return r;
-        };
-        var theProject = {id: URL.getParameters().project};
-    </script>
-
+    <!--<script src="bower_components/angular/angular.js"></script>-->
+    <!--<script src="scripts/angular/controllers.js"></script>-->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
   </head>
-  <body ng-controller="metricDocCtrl">
+  <body>
 
   <div class="container-fluid">
     <div class="row">
@@ -42,7 +24,7 @@
              
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-            </button> <a class="navbar-brand" href="#">CQM</a>
+            </button> <a class="navbar-brand" href="#">MetricDoc</a>
           </div>
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
@@ -294,7 +276,7 @@
      <div class="alert alert-danger"><b>Popover Example</b> 2 - Content</div>
   </div>  
 
-    #* libraries *#
+    <!-- libraries -->
     <script src="externals/datatables/jquery.js"></script>
     <script src="externals/bootstrap/jquery.min.js"></script>
     <script src="externals/bootstrap/bootstrap.min.js"></script>
@@ -305,11 +287,11 @@
     <script src="externals/datatables/dataTables.bootstrap.min.js"></script>
     <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
 
-    #* OpenRefine *#
+    <!-- OpenRefine -->
     <script src="../../scripts/util/dom.js"></script>
     <script src="../../wirings.js"></script>
 
-    #* custom *#
+    <!-- custom -->
     <script type="text/javascript" charset="utf-8" src="scripts/metrics-tool.js"></script>
   </body>
 </html>
