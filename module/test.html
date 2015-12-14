@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple tables in D3</title>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://rawgit.com/gka/d3-jetpack/master/d3-jetpack.js"></script>
+    <style type="text/css">
+    body { font-family: 'Helvetica Neue', Helvetica; font-weight: 300; padding: 20px;}
+    th { text-align: left; }
+    th, td { padding: 0 1em 0.5ex 0;}
+    th.center, td.center { text-align: center; }
+    th.num, td.num { text-align: right; }
+    table {float:left; display: inline-block;}
+    svg { float:left; }
+    </style>
+</head>
+<body>
+    <script>
+
+    // the table rows, typically loaded from data file using d3.csv
+    var movies = [
+        { title: "The Godfather", year: 1972, length: 175, budget: 6000000, rating: 9.1 },
+        { title: "The Shawshank Redemption", year: 1994, length: 142, budget: 25000000, rating: 9.1 },
+        { title: "The Lord of the Rings: The Return of the King", year: 2003, length: 251, budget: 94000000, rating: 9 },
+        { title: "The Godfather: Part II", year: 1974, length: 200, budget: 13000000, rating: 8.9 },
+        { title: "Shichinin no samurai", year: 1954, length: 206, budget: 500000, rating: 8.9 },
+        { title: "Buono, il brutto, il cattivo, Il", year: 1966, length: 180, budget: 1200000, rating: 8.8 },
+        { title: "Casablanca", year: 1942, length: 102, budget: 950000, rating: 8.8 },
+        { title: "The Lord of the Rings: The Fellowship of the Ring", year: 2001, length: 208, budget: 93000000, rating: 8.8 },
+        { title: "The Lord of the Rings: The Two Towers", year: 2002, length: 223, budget: 94000000, rating: 8.8 },
+        { title: "Pulp Fiction", year: 1994, length: 168, budget: 8000000, rating: 8.8 }
+    ];
+
+    // column definitions
+    var columns = [
+        { head: 'Movie title', cl: 'title', html: ƒ('title') }
+    ];
+
+    var c1 = [
+        { head: 'Year', cl: 'center', html: ƒ('year') }
+    ];
+
+    var c2 = [
+        { head: 'Length', cl: 'center', html: ƒ('length', length()) }
+    ];
+
+    var c3 = [
+        { head: 'Budget', cl: 'num', html: ƒ('budget', d3.format('$,')) }
+    ];
+
+    var c4 = [
+        { head: 'Rating', cl: 'num', html: ƒ('rating', d3.format('.1f')) }
+    ];
+
+    // create table
+    var table0 = d3.select('body')
+        .append('table');
+
+    var margin = {top: 20, right: 0, bottom: 0, left: 0},
+    width = 50 - margin.left - margin.right,
+    height = 260 - margin.top - margin.bottom;
+
+    var parseDate = d3.time.format("%Y-%m-%d").parse,
+        formatDate = d3.time.format("%b %d");
+
+    var x = d3.time.scale().range([0, width]),
+        y = d3.scale.linear().range([height, 0]),
+        z = d3.scale.linear().range(["white", "steelblue"]);
+
+    // The size of the buckets in the CSV data file.
+    // This could be inferred from the data if it weren't sparse.
+    var xStep = 864e5,
+        yStep = 100;
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    d3.csv("data.csv", function(error, buckets) {
+      if (error) throw error;
+
+      // Coerce the CSV data to the appropriate types.
+      buckets.forEach(function(d) {
+        d.date = parseDate(d.date);
+        d.bucket = +d.bucket;
+        d.count = +d.count;
+      });
+
+      // Compute the scale domains.
+      x.domain(d3.extent(buckets, function(d) { return d.date; }));
+      y.domain(d3.extent(buckets, function(d) { return d.bucket; }));
+      z.domain([0, d3.max(buckets, function(d) { return d.count; })]);
+
+      // Extend the x- and y-domain to fit the last bucket.
+      // For example, the y-bucket 3200 corresponds to values [3200, 3300].
+      x.domain([x.domain()[0], +x.domain()[1] + xStep]);
+      y.domain([y.domain()[0], y.domain()[1] + yStep]);
+
+      // Display the tiles for each non-zero bucket.
+      // See http://bl.ocks.org/3074470 for an alternative implementation.
+      svg.selectAll(".tile")
+          .data(buckets)
+        .enter().append("rect")
+          .attr("class", "tile")
+          .attr("x", function(d) { return x(d.date); })
+          .attr("y", function(d) { return y(d.bucket + yStep); })
+          .attr("width", x(xStep) - x(0))
+          .attr("height",  y(0) - y(yStep))
+          .style("fill", function(d) { return z(d.count); });
+
+      // Add a legend for the color values.
+      var legend = svg.selectAll(".legend")
+          .data(z.ticks(6).slice(1).reverse())
+        .enter().append("g")
+          .attr("class", "legend")
+          .attr("transform", function(d, i) { return "translate(" + (width + 20) + "," + (20 + i * 20) + ")"; });
+
+      legend.append("rect")
+          .attr("width", 20)
+          .attr("height", 20)
+          .style("fill", z);
+
+      legend.append("text")
+          .attr("x", 26)
+          .attr("y", 10)
+          .attr("dy", ".35em")
+          .text(String);
+
+      svg.append("text")
+          .attr("class", "label")
+          .attr("x", width + 20)
+          .attr("y", 10)
+          .attr("dy", ".35em")
+          .text("Count");
+    });
+
+    var table1 = d3.select('body')
+        .append('table');
+
+    var table2 = d3.select('body')
+        .append('table');
+
+    var table3 = d3.select('body')
+        .append('table');
+
+    var table3 = d3.select('body')
+        .append('table');
+
+    var table4 = d3.select('body')
+        .append('table');
+
+    // create table header
+    table0.append('thead').append('tr')
+        .selectAll('th')
+        .data(columns).enter()
+        .append('th')
+        .attr('class', ƒ('cl'))
+        .text(ƒ('head'));
+
+    // create table body
+    table0.append('tbody')
+        .selectAll('tr')
+        .data(movies).enter()
+        .append('tr')
+        .selectAll('td')
+        .data(function(row, i) {
+            return columns.map(function(c) {
+                // compute cell values for this specific row
+                var cell = {};
+                d3.keys(c).forEach(function(k) {
+                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
+                });
+                return cell;
+            });
+        }).enter()
+        .append('td')
+        .html(ƒ('html'))
+        .attr('class', ƒ('cl'));
+
+    table1.append('thead').append('tr')
+        .selectAll('th')
+        .data(c1).enter()
+        .append('th')
+        .attr('class', ƒ('cl'))
+        .text(ƒ('head'));
+
+    // create table body
+    table1.append('tbody')
+        .selectAll('tr')
+        .data(movies).enter()
+        .append('tr')
+        .selectAll('td')
+        .data(function(row, i) {
+            return c1.map(function(c) {
+                // compute cell values for this specific row
+                var cell = {};
+                d3.keys(c).forEach(function(k) {
+                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
+                });
+                return cell;
+            });
+        }).enter()
+        .append('td')
+        .html(ƒ('html'))
+        .attr('class', ƒ('cl'));
+
+    table2.append('thead').append('tr')
+        .selectAll('th')
+        .data(c2).enter()
+        .append('th')
+        .attr('class', ƒ('cl'))
+        .text(ƒ('head'));
+
+    // create table body
+    table2.append('tbody')
+        .selectAll('tr')
+        .data(movies).enter()
+        .append('tr')
+        .selectAll('td')
+        .data(function(row, i) {
+            return c2.map(function(c) {
+                // compute cell values for this specific row
+                var cell = {};
+                d3.keys(c).forEach(function(k) {
+                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
+                });
+                return cell;
+            });
+        }).enter()
+        .append('td')
+        .html(ƒ('html'))
+        .attr('class', ƒ('cl'));
+
+    table3.append('thead').append('tr')
+        .selectAll('th')
+        .data(c3).enter()
+        .append('th')
+        .attr('class', ƒ('cl'))
+        .text(ƒ('head'));
+
+    // create table body
+    table3.append('tbody')
+        .selectAll('tr')
+        .data(movies).enter()
+        .append('tr')
+        .selectAll('td')
+        .data(function(row, i) {
+            return c3.map(function(c) {
+                // compute cell values for this specific row
+                var cell = {};
+                d3.keys(c).forEach(function(k) {
+                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
+                });
+                return cell;
+            });
+        }).enter()
+        .append('td')
+        .html(ƒ('html'))
+        .attr('class', ƒ('cl'));
+
+    table4.append('thead').append('tr')
+        .selectAll('th')
+        .data(c4).enter()
+        .append('th')
+        .attr('class', ƒ('cl'))
+        .text(ƒ('head'));
+
+    // create table body
+    table4.append('tbody')
+        .selectAll('tr')
+        .data(movies).enter()
+        .append('tr')
+        .selectAll('td')
+        .data(function(row, i) {
+            return c4.map(function(c) {
+                // compute cell values for this specific row
+                var cell = {};
+                d3.keys(c).forEach(function(k) {
+                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
+                });
+                return cell;
+            });
+        }).enter()
+        .append('td')
+        .html(ƒ('html'))
+        .attr('class', ƒ('cl'));
+
+    function length() {
+        var fmt = d3.format('02d');
+        return function(l) { return Math.floor(l / 60) + ':' + fmt(l % 60) + ''; };
+    }
+
+    </script>
+</body>
+</html>
