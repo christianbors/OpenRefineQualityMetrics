@@ -6,6 +6,12 @@ body {
     padding: 70px 0px;
 }
 
+#heatmap {
+  width: 100%;
+  height: 400px;
+  position: absolute;
+}
+
 .range {
     display: table;
     position: relative;

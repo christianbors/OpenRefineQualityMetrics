@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Simple tables in D3</title>
+<html ng-app="metricDocExtension">
+<head ng-controller="metricDocExtensionCtrl">
+    <title>Metric Doc</title>
     <meta charset="utf-8">
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="https://rawgit.com/gka/d3-jetpack/master/d3-jetpack.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/crossfilter/crossfilter.js"></script>
+    <script src="bower_components/dc.js/dc.js"></script>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/datatables/media/js/jquery.dataTables.js"></script>
+    <script src="bower_components/datatables/media/js/dataTables.bootstrap.js"></script>
+    <script type="text/javascript" src="scripts/angular/controllers.js"></script>
+
     <style type="text/css">
     body { font-family: 'Helvetica Neue', Helvetica; font-weight: 300; padding: 20px;}
     th { text-align: left; }
@@ -16,6 +25,7 @@
     </style>
 </head>
 <body>
+    <table id="movieTable" class="display" width="100%"></table>
     <script>
 
     // the table rows, typically loaded from data file using d3.csv
@@ -32,26 +42,32 @@
         { title: "Pulp Fiction", year: 1994, length: 168, budget: 8000000, rating: 8.8 }
     ];
 
+    var movieArray = $.map(movies, function(value, index) { 
+        return [$.map(value, function(v, i) {
+            return [v];
+        })];
+    });
     // column definitions
     var columns = [
-        { head: 'Movie title', cl: 'title', html: ƒ('title') }
-    ];
-
-    var c1 = [
-        { head: 'Year', cl: 'center', html: ƒ('year') }
-    ];
-
-    var c2 = [
-        { head: 'Length', cl: 'center', html: ƒ('length', length()) }
-    ];
-
-    var c3 = [
-        { head: 'Budget', cl: 'num', html: ƒ('budget', d3.format('$,')) }
-    ];
-
-    var c4 = [
+        { head: 'Movie title', cl: 'title', html: ƒ('title') },
+        { head: 'Year', cl: 'center', html: ƒ('year') },
+        { head: 'Length', cl: 'center', html: ƒ('length', length()) },
+        { head: 'Budget', cl: 'num', html: ƒ('budget', d3.format('$,')) },
         { head: 'Rating', cl: 'num', html: ƒ('rating', d3.format('.1f')) }
     ];
+
+    var colheaders = [
+        {title: 'Movie title'},
+        {title: 'Year'},
+        {title: 'Length'},
+        {title: 'Budget'},
+        {title: 'Rating'}
+    ];
+
+    $('#movieTable').dataTable( {
+        data: movieArray,
+        columns: colheaders
+    });
 
     // create table
     var table0 = d3.select('body')
@@ -137,21 +153,6 @@
           .text("Count");
     });
 
-    var table1 = d3.select('body')
-        .append('table');
-
-    var table2 = d3.select('body')
-        .append('table');
-
-    var table3 = d3.select('body')
-        .append('table');
-
-    var table3 = d3.select('body')
-        .append('table');
-
-    var table4 = d3.select('body')
-        .append('table');
-
     // create table header
     table0.append('thead').append('tr')
         .selectAll('th')
@@ -168,114 +169,6 @@
         .selectAll('td')
         .data(function(row, i) {
             return columns.map(function(c) {
-                // compute cell values for this specific row
-                var cell = {};
-                d3.keys(c).forEach(function(k) {
-                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
-                });
-                return cell;
-            });
-        }).enter()
-        .append('td')
-        .html(ƒ('html'))
-        .attr('class', ƒ('cl'));
-
-    table1.append('thead').append('tr')
-        .selectAll('th')
-        .data(c1).enter()
-        .append('th')
-        .attr('class', ƒ('cl'))
-        .text(ƒ('head'));
-
-    // create table body
-    table1.append('tbody')
-        .selectAll('tr')
-        .data(movies).enter()
-        .append('tr')
-        .selectAll('td')
-        .data(function(row, i) {
-            return c1.map(function(c) {
-                // compute cell values for this specific row
-                var cell = {};
-                d3.keys(c).forEach(function(k) {
-                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
-                });
-                return cell;
-            });
-        }).enter()
-        .append('td')
-        .html(ƒ('html'))
-        .attr('class', ƒ('cl'));
-
-    table2.append('thead').append('tr')
-        .selectAll('th')
-        .data(c2).enter()
-        .append('th')
-        .attr('class', ƒ('cl'))
-        .text(ƒ('head'));
-
-    // create table body
-    table2.append('tbody')
-        .selectAll('tr')
-        .data(movies).enter()
-        .append('tr')
-        .selectAll('td')
-        .data(function(row, i) {
-            return c2.map(function(c) {
-                // compute cell values for this specific row
-                var cell = {};
-                d3.keys(c).forEach(function(k) {
-                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
-                });
-                return cell;
-            });
-        }).enter()
-        .append('td')
-        .html(ƒ('html'))
-        .attr('class', ƒ('cl'));
-
-    table3.append('thead').append('tr')
-        .selectAll('th')
-        .data(c3).enter()
-        .append('th')
-        .attr('class', ƒ('cl'))
-        .text(ƒ('head'));
-
-    // create table body
-    table3.append('tbody')
-        .selectAll('tr')
-        .data(movies).enter()
-        .append('tr')
-        .selectAll('td')
-        .data(function(row, i) {
-            return c3.map(function(c) {
-                // compute cell values for this specific row
-                var cell = {};
-                d3.keys(c).forEach(function(k) {
-                    cell[k] = typeof c[k] == 'function' ? c[k](row,i) : c[k];
-                });
-                return cell;
-            });
-        }).enter()
-        .append('td')
-        .html(ƒ('html'))
-        .attr('class', ƒ('cl'));
-
-    table4.append('thead').append('tr')
-        .selectAll('th')
-        .data(c4).enter()
-        .append('th')
-        .attr('class', ƒ('cl'))
-        .text(ƒ('head'));
-
-    // create table body
-    table4.append('tbody')
-        .selectAll('tr')
-        .data(movies).enter()
-        .append('tr')
-        .selectAll('td')
-        .data(function(row, i) {
-            return c4.map(function(c) {
                 // compute cell values for this specific row
                 var cell = {};
                 d3.keys(c).forEach(function(k) {

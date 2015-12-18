@@ -8,14 +8,18 @@
 
     <link href="styles/bootstrap/bootstrap.min.css" rel="stylesheet">
     <link href="styles/datatables/dataTables.bootstrap.css" rel="stylesheet">
-    <link href="styles/style.css" rel="stylesheet">
+    <link href="styles/style.css" rel="stylesheet" type="text/css">
 
-    <!--<script src="bower_components/angular/angular.js"></script>-->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+
+    <script src="bower_components/d3/d3.js"></script>
     <!--<script src="scripts/angular/controllers.js"></script>-->
     <script src="bower_components/jquery/dist/jquery.js"></script>
   </head>
   <body>
 
+  <!-- HEADER -->
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-12">
@@ -70,116 +74,23 @@
         </nav>
       </div>
     </div>
-  <div class="row">
-    <div class="col-md-2">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Task
-        </div>
-        <div class="list-group">
-          <a href="#" class="list-group-item">Data Wrangling</a>
-          <a href="#" class="list-group-item">Data Cleansing</a>
-          <a href="#" class="list-group-item">Quality Control</a>
-        </div>
+    <!-- Metrics Overview and Parameter details -->
+    <div class="row">
+      <div class="col-md-6">
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Data Types
-        </div>
-        <div class="list-group">
-             <a href="#" class="list-group-item">Numeric Values</a>
-             <a href="#" class="list-group-item">Text</a>
-             <a href="#" class="list-group-item">Categorical Values</a>
-             <a href="#" class="list-group-item">Date and/or Time Values</a>
-        </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Error Types
-        </div>
-        <div class="list-group">
-             <a href="#" class="list-group-item">Misplaced Values</a>
-             <a href="#" class="list-group-item">Invalid Entries</a>
-             <a href="#" class="list-group-item">Missing Values</a>
-             <a href="#" class="list-group-item active" data-toggle="modal" data-target=".bs-example-modal" onclick="showMetric()">Extreme Values</a>
-        </div>
-      </div>
-      <div class="panel panel-info">
-        <div class="panel-heading">
-          Usage
-        </div>
-        <div class="panel-body">
-          <p><ul>
-          <li>Choose the type of quality task you aim at performing.</li>
-          <li>Then choose the type of data prevalent in yout data set.</li>
-          <li>Choose the kind of data inconsistencies occuring frequently or the issues that you want to prevent in your data.</li>
-          <li>TODO: Enter directive here</li>
-          </ul></p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-7">
-      <table class="table table-striped table-condensed table-hover" id="dataset">
-      </table>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Weighting (only if multiple metrics are selected)
-        </div>
-        <div class="list-group">
-          <li class="list-group-item">
-          <div class="range">
-            <a>Completeness</a>
-            <input type="range" name="range" min="0" max="20" value="10" onchange="range.value=value/10">
-            <output id="range">0.5</output>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Completeness
           </div>
-          </li>
         </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Completeness
-        </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Completeness
-        </div>
-        <ul id="completenessList" class="list-group">
-          <li class="list-group-item" data-toggle="popover">
-            <label for="dataTypes">
-              Data Types allowed
-            </label>
-            <p>
-              <div class="btn-group" data-toggle="buttons" id="dataTypes">
-                <label class="btn btn-default active">
-                  <input type="checkbox" checked> String
-                </label>
-                <label class="btn btn-default">
-                  <input type="checkbox"> Numeric
-                </label>
-                <label class="btn btn-default">
-                  <input type="checkbox"> Categoric
-                </label>
-                <label class="btn btn-default">
-                  <input type="checkbox"> Date/Time
-                </label>
-              </div>
-            </p></li>
-        </ul>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          Available Customization
-        </div>
-        <!-- <div class="panel-body"> -->
-          <ul id="simpleList" class="list-group">
-            <li class="list-group-item pop" data-toggle="popover"><label for="metricName">
-                Name
-              </label>
-              <input class="form-control" id="metricName" /></li>
-            <li class="list-group-item"><label for="dataTypes">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Completeness
+          </div>
+          <ul id="completenessList" class="list-group">
+            <li class="list-group-item" data-toggle="popover">
+              <label for="dataTypes">
                 Data Types allowed
               </label>
               <p>
@@ -198,40 +109,84 @@
                   </label>
                 </div>
               </p></li>
-            <li class="list-group-item"><label for="name">Example of Default Checkbox and radio button </label>
+          </ul>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Available Customization
+          </div>
+          <!-- <div class="panel-body"> -->
+            <ul id="simpleList" class="list-group">
+              <li class="list-group-item pop" data-toggle="popover"><label for="metricName">
+                  Name
+                </label>
+                <input class="form-control" id="metricName" /></li>
+              <li class="list-group-item"><label for="dataTypes">
+                  Data Types allowed
+                </label>
                 <p>
-                  <div class="checkbox-inline">
-                    <label>
-                      <input type="radio" name="optionsRadios" id="optionsRadios1" 
-                         value="option1" checked> Option 1
+                  <div class="btn-group" data-toggle="buttons" id="dataTypes">
+                    <label class="btn btn-default active">
+                      <input type="checkbox" checked> String
                     </label>
-                  </div>
-                  <div class="checkbox-inline">
-                    <label>
-                      <input type="radio" name="optionsRadios" id="optionsRadios2" 
-                         value="option2">
-                         Option 2
+                    <label class="btn btn-default">
+                      <input type="checkbox"> Numeric
+                    </label>
+                    <label class="btn btn-default">
+                      <input type="checkbox"> Categoric
+                    </label>
+                    <label class="btn btn-default">
+                      <input type="checkbox"> Date/Time
                     </label>
                   </div>
                 </p></li>
-            <li class="list-group-item"><label for="exampleInputFile">
-                File input
-              </label>
-              <input id="exampleInputFile" type="file" />
-              <p class="help-block">
-                Example block-level help text here.
-              </p></li>
-            <li class="list-group-item">// metrics
-              <label>
-                <input type="checkbox" /> Allow duplicates
-              </label></li>
-          </ul>
+              <li class="list-group-item"><label for="name">Example of Default Checkbox and radio button </label>
+                  <p>
+                    <div class="checkbox-inline">
+                      <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios1" 
+                           value="option1" checked> Option 1
+                      </label>
+                    </div>
+                    <div class="checkbox-inline">
+                      <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios2" 
+                           value="option2">
+                           Option 2
+                      </label>
+                    </div>
+                  </p></li>
+              <li class="list-group-item"><label for="exampleInputFile">
+                  File input
+                </label>
+                <input id="exampleInputFile" type="file" />
+                <p class="help-block">
+                  Example block-level help text here.
+                </p></li>
+              <li class="list-group-item">// metrics
+                <label>
+                  <input type="checkbox" /> Allow duplicates
+                </label></li>
+            </ul>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+    <!-- Table and Heatmap view -->
+    <div class="row">
+      <div class="col-md-6">
+        <table class="table table-striped table-condensed table-hover" id="dataset">
+        </table>
+      </div>
+      <div class="col-md-6">
+        <svg id="heatmap"></svg>
+      </div>
+    </div>
+    <div class="row">
 
-<div class="modal fade bs-example-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+    </div>
+  </div>
+
+  <div class="modal fade bs-example-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
