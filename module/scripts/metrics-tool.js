@@ -116,7 +116,6 @@ $(document).ready(function() {
   );
 
   Sortable.create(simpleList, { /* options */ });
-  Sortable.create(completenessList, {});
 
   $("[data-toggle=popover]").popover({
     html: 'true',
@@ -1267,36 +1266,35 @@ $(document).ready(function() {
         }
       ];
 
-      var glucose = svg.selectAll(".glucose")
-          .data(pancreas)
+    var glucose = svg.selectAll(".glucose")
+        .data(pancreas)
         .enter( ).append("g")
-          .attr("class", "glucose")
-          ;
-      var bins = glucose.selectAll(".bin")
-          .data(function (d) { return d.values; })
-        .enter( ).append("rect")
-          .attr("class", "bin");
-      bins.attr("x", function (d, i) { return x(i); })
-          .attr("width", function (d, i) { return  x(i+1) - x(i); })
-          .style("fill", function(d) { return z(d); });
-      glucose.each(function (d) {
+        .attr("class", "glucose");
+        var bins = glucose.selectAll(".bin")
+            .data(function (d) { return d.values; })
+            .enter( ).append("rect")
+            .attr("class", "bin");
+        bins.attr("x", function (d, i) { return x(i); })
+            .attr("width", function (d, i) { return  x(i+1) - x(i); })
+            .style("fill", function(d) { return z(d); });
+        glucose.each(function (d) {
         d3.select(this).selectAll(".bin")
             .attr("y", y(d.key) )
             .attr("height", 11 );
-      });
+        });
 
-      svg.append("g")
-          .attr("class", "x axis")
-          .attr("transform", "translate(0," + height + ")")
-          .call(xAxis);
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
 
-      svg.append("g")
-          .attr("class", "y axis")
-          .call(yAxis);
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
 
-      function resize() {
+    function resize() {
         var width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
-        height = parseInt(d3.select("#heatmap").style("height")) - margin*2;
+            height = parseInt(d3.select("#heatmap").style("height")) - margin*2;
 
         /* Update the range of the scale with new width/height */
         xScale.range([0, width]).nice(d3.time.year);
@@ -1304,18 +1302,18 @@ $(document).ready(function() {
 
         /* Update the axis with the new scale */
         svg.select('.x.axis')
-          .attr("transform", "translate(0," + height + ")")
-          .call(xAxis);
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
 
         svg.select('.y.axis')
-          .call(yAxis);
+            .call(yAxis);
 
         /* Force D3 to recalculate and update the line */
         svg.selectAll(".bin")
-          .attr("d", bins);
-      }
+            .attr("d", bins);
+    }
 
-      d3.select(window).on('resize', resize);
+    d3.select(window).on('resize', resize);
 
 /*
   $.getJSON("../../command/core/get-columns-info?" + $.param({ project: theProject.id }),function(data) {
@@ -1344,6 +1342,130 @@ $(document).ready(function() {
      .appendTo("#columnFormMetricModal");
     }
   }); */
+    
+      var states = [
+      {
+        "State": "AL",
+        "Total": 4661900,
+        "Under 5 Years": 310504,
+        "5 to 13 Years": 552339,
+        "14 to 17 Years": 259034,
+        "18 to 24 Years": 450818,
+        "16 Years and Over": 3671200,
+        "18 Years and Over": 3540023,
+        "15 to 44 Years": 1878306,
+        "45 to 64 Years": 1215966,
+        "65 Years and Over": 641667,
+        "85 Years and Over": 85079
+      },
+      {
+        "State": "AK",
+        "Total": 686293,
+        "Under 5 Years": 52083,
+        "5 to 13 Years": 85640,
+        "14 to 17 Years": 42153,
+        "18 to 24 Years": 74257,
+        "16 Years and Over": 528405,
+        "18 Years and Over": 506417,
+        "15 to 44 Years": 305207,
+        "45 to 64 Years": 183159,
+        "65 Years and Over": 50277,
+        "85 Years and Over": 4844
+      },
+      {
+        "State": "AZ",
+        "Total": 6500180,
+        "Under 5 Years": 515910,
+        "5 to 13 Years": 828669,
+        "14 to 17 Years": 362642,
+        "18 to 24 Years": 601943,
+        "16 Years and Over": 4975709,
+        "18 Years and Over": 4792959,
+        "15 to 44 Years": 2680368,
+        "45 to 64 Years": 1523681,
+        "65 Years and Over": 862573,
+        "85 Years and Over": 122985
+      },
+      {
+        "State": "AR",
+        "Total": 2855390,
+        "Under 5 Years": 202070,
+        "5 to 13 Years": 343207,
+        "14 to 17 Years": 157204,
+        "18 to 24 Years": 264160,
+        "16 Years and Over": 2233398,
+        "18 Years and Over": 2152909,
+        "15 to 44 Years": 1137988,
+        "45 to 64 Years": 727124,
+        "65 Years and Over": 407205,
+        "85 Years and Over": 58675
+      },
+      {
+        "State": "CA",
+        "Total": 36756666,
+        "Under 5 Years": 2704659,
+        "5 to 13 Years": 4499890,
+        "14 to 17 Years": 2159981,
+        "18 to 24 Years": 3853788,
+        "16 Years and Over": 28492781,
+        "18 Years and Over": 27392136,
+        "15 to 44 Years": 16091480,
+        "45 to 64 Years": 8819342,
+        "65 Years and Over": 4114496,
+        "85 Years and Over": 612463
+      },
+      {
+        "State": "CO",
+        "Total": 4939456,
+        "Under 5 Years": 358280,
+        "5 to 13 Years": 587154,
+        "14 to 17 Years": 261701,
+        "18 to 24 Years": 466194,
+        "16 Years and Over": 3865113,
+        "18 Years and Over": 3732321,
+        "15 to 44 Years": 2129158,
+        "45 to 64 Years": 1290094,
+        "65 Years and Over": 511094,
+        "85 Years and Over": 67286
+      },
+      {
+        "State": "CT",
+        "Total": 3501252,
+        "Under 5 Years": 211637,
+        "5 to 13 Years": 403658,
+        "14 to 17 Years": 196918,
+        "18 to 24 Years": 325110,
+        "16 Years and Over": 2788471,
+        "18 Years and Over": 2689039,
+        "15 to 44 Years": 1390702,
+        "45 to 64 Years": 968967,
+        "65 Years and Over": 478007,
+        "85 Years and Over": 79111
+      }
+    ];
+  var ages = d3.keys(states[0]).filter(function(key) {
+    return key != "State" && key != "Total";
+  });
+
+  d3.select("#overviewTable").data(ages).on("click", function(k) {
+    tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
+  });
+
+  var tr = d3.select("tbody").selectAll("tr")
+      .data(states)
+    .enter().append("tr");
+
+  tr.append("th")
+      .text(function(d) { return d.State; });
+
+  tr.selectAll("td")
+      .data(function(d) { return ages.map(function(k) { return d[k] / d.Total; }); })
+    .enter().append("td").append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+    .append("rect")
+      .attr("height", 12)
+      .attr("width", function(d) { return d * 71; });
 
 } );
 

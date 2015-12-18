@@ -76,41 +76,31 @@
     </div>
     <!-- Metrics Overview and Parameter details -->
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-7">
+        <table class="table table-striped table-condensed table-hover" id="dataset">
+        </table>
+        
+        <table id="overviewTable">
+          <thead>
+            <tr>
+              <th>State</th>
+              <td><5</td>
+              <td>5-13</td>
+              <td>14-17</td>
+              <td>18-24</td>
+              <td>≥16</td>
+              <td>≥18</td>
+              <td>15-44</td>
+              <td>45-64</td>
+              <td>≥65</td>
+              <td>≥85</td>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
       </div>
-      <div class="col-md-6">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            Completeness
-          </div>
-        </div>
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            Completeness
-          </div>
-          <ul id="completenessList" class="list-group">
-            <li class="list-group-item" data-toggle="popover">
-              <label for="dataTypes">
-                Data Types allowed
-              </label>
-              <p>
-                <div class="btn-group" data-toggle="buttons" id="dataTypes">
-                  <label class="btn btn-default active">
-                    <input type="checkbox" checked> String
-                  </label>
-                  <label class="btn btn-default">
-                    <input type="checkbox"> Numeric
-                  </label>
-                  <label class="btn btn-default">
-                    <input type="checkbox"> Categoric
-                  </label>
-                  <label class="btn btn-default">
-                    <input type="checkbox"> Date/Time
-                  </label>
-                </div>
-              </p></li>
-          </ul>
-        </div>
+      <div class="col-md-5">
         <div class="panel panel-default">
           <div class="panel-heading">
             Available Customization
@@ -169,16 +159,15 @@
                 </label></li>
             </ul>
         </div>
+        <svg id="heatmap"></svg>
       </div>
     </div>
     <!-- Table and Heatmap view -->
     <div class="row">
-      <div class="col-md-6">
-        <table class="table table-striped table-condensed table-hover" id="dataset">
-        </table>
+      <div class="col-md-7">
+
       </div>
-      <div class="col-md-6">
-        <svg id="heatmap"></svg>
+      <div class="col-md-5">
       </div>
     </div>
     <div class="row">
