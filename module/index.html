@@ -75,30 +75,26 @@
       </div>
     </div>
     <!-- Metrics Overview and Parameter details -->
-    <div class="row">
+    <div class="row myrow">
       <div class="col-md-7">
-        <table class="table table-striped table-condensed table-hover" id="dataset">
-        </table>
-        
-        <table id="overviewTable">
-          <thead>
-            <tr>
-              <th>State</th>
-              <td><5</td>
-              <td>5-13</td>
-              <td>14-17</td>
-              <td>18-24</td>
-              <td>≥16</td>
-              <td>≥18</td>
-              <td>15-44</td>
-              <td>45-64</td>
-              <td>≥65</td>
-              <td>≥85</td>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
+        <div class="panel panel-default" style="height:150px;">
+          <table id="overviewTable">
+            <thead>
+              <tr>
+                <th>State</th>
+                <td><5</td>
+                <td>5-13</td>
+                <td>14-17</td>
+                <td>18-24</td>
+                <td>≥16</td>
+                <td>≥18</td>
+                <td>15-44</td>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="col-md-5">
         <div class="panel panel-default">
@@ -159,19 +155,17 @@
                 </label></li>
             </ul>
         </div>
-        <svg id="heatmap"></svg>
       </div>
     </div>
     <!-- Table and Heatmap view -->
     <div class="row">
       <div class="col-md-7">
-
+        <table class="table table-condensed table-hover" id="dataset">
+        </table>
       </div>
       <div class="col-md-5">
+        <svg id="heatmap"></svg>
       </div>
-    </div>
-    <div class="row">
-
     </div>
   </div>
 

@@ -12,6 +12,17 @@ body {
   position: absolute;
 }
 
+.myrow {
+    font-size: 0;
+}
+
+.myrow > * {
+    float: none;
+    display: inline-block;
+    font-size: 14px; /* if using LESS it's quicker to just use @font-size-base */
+    vertical-align: bottom;
+}
+
 th {
   font-weight: normal;
   text-align: right;
@@ -45,7 +56,7 @@ td { font-size: 12px;}
 
 #overviewTable {
   width: 100%;
-  height: 200px;
+  height: 150px;
   position: absolute;   
 }
 
