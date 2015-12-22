@@ -39,12 +39,21 @@ $(document).ready(function() {
                 theProject[n] = data[n];
               }
             }
-                    
+            
             var columns = theProject.columnModel.columns;
             for (var col = 0; col < columns.length; col++) {
               var column = columns[col];
               columnStore[column.cellIndex] = {"title": column.name};
             }
+
+            var overviewTable = d3.select("#overviewTable");
+            overviewTable.insert('thead','tbody')
+                .append('tr')
+                .selectAll('th')
+                .data(columnStore).enter()
+                .append('th')
+                .text(function(col) { return col.title; });
+            overviewTable.append('tbody');
 
             var dataCols = dataSet[0];
 
@@ -100,7 +109,10 @@ $(document).ready(function() {
                   if(dataCols.length == columnStore.length) {
                     $('#dataset').dataTable( {
                       "data": dataSet,
-                      "columns": columnStore
+                      "columns": columnStore,
+                      "scrollY": "400px",
+                      "scrollCollapse": true,
+                      "paging": false
                     } );
                   }
                 }
