@@ -77,8 +77,15 @@
     <!-- Metrics Overview and Parameter details -->
     <div class="row myrow">
       <div class="col-md-7">
-        <div class="panel panel-default" style="height:150px;">
-          <table id="overviewTable" align="left">
+        <div class="panel panel-default" id="overviewPanel" style="height:150px;">
+          <table class="floated-table" id="metricNames">
+            <tr><td><br/></td></tr>
+            <tr>
+              <td>Cell content</td>
+            </tr>
+              <td>Cell content</td>
+          </table>
+          <table border="1" class="floated-table" id="overviewTable" style="margin-left=100px">
             <tbody>
             </tbody>
           </table>
@@ -148,8 +155,10 @@
     <!-- Table and Heatmap view -->
     <div class="row">
       <div class="col-md-7">
-        <table class="table table-condensed table-hover" id="dataset">
-        </table>
+        <div id="raw-data-container">
+          <table class="table table-condensed table-hover" id="dataset">
+          </table>
+        </div>
       </div>
       <div class="col-md-5">
         <svg id="heatmap"></svg>

@@ -112,10 +112,44 @@ $(document).ready(function() {
                       "columns": columnStore,
                       "scrollY": "400px",
                       "scrollCollapse": true,
-                      "paging": false
+                      "paging": false,
+                      "dom": 'rt<"bottom"iflp><"clear">'
                     } );
                   }
                 }
+
+                $("#raw-data-container").css({marginLeft: $("#metricNames").width()});
+                $("#overviewTable").css({width: $("#overviewPanel").width() - $("#metricNames").width()});
+
+                var ages = d3.keys(states[0]).filter(function(key) {
+                return key != "State" && key != "Total";
+                });
+
+                var ovTable = d3.select("#overviewTable").data(ages).on("click", function(k) {
+                tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
+                });
+
+                var tr = d3.select("#overviewTable").select("tbody").selectAll("tr")
+                  .data(states)
+                .enter().append("tr");
+
+                // tr.append("th")
+                //     .text(function(d) { return d.State; });
+
+                if(columnStore.length>0) {
+                    var colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
+                } else {
+                    var colWidth = 50;
+                }
+
+                var finishedTable = tr.selectAll("td")
+                  .data(function(d) { return ages.map(function(k) { return d[k] / d.Total; }); })
+                .enter().append("td").append("svg")
+                  .attr("width", colWidth)
+                  .attr("height", 12)
+                .append("rect")
+                  .attr("height", 12)
+                  .attr("width", function(d) { return d * colWidth; });
               },
               "jsonp"
             );
@@ -1362,31 +1396,20 @@ $(document).ready(function() {
         "Under 5 Years": 310504,
         "5 to 13 Years": 552339,
         "14 to 17 Years": 259034,
-        "18 to 24 Years": 450818,
-        "16 Years and Over": 3671200,
         "18 Years and Over": 3540023,
-        "15 to 44 Years": 1878306
+        "15 to 44 Years": 1878306,
+        "45 to 64 Years": 968967,
+        "65 Years and Over": 4661900,
+        "99+": 4661900
       },
       {
         "State": "AK",
         "Total": 686293,
-        "Under 5 Years": 52083,
-        "5 to 13 Years": 85640,
-        "14 to 17 Years": 42153,
-        "18 to 24 Years": 74257,
-        "16 Years and Over": 528405,
-        "18 Years and Over": 506417,
         "15 to 44 Years": 305207
       },
       {
         "State": "AZ",
         "Total": 6500180,
-        "Under 5 Years": 515910,
-        "5 to 13 Years": 828669,
-        "14 to 17 Years": 362642,
-        "18 to 24 Years": 601943,
-        "16 Years and Over": 4975709,
-        "18 Years and Over": 4792959,
         "15 to 44 Years": 2680368
       },
       {
@@ -1395,69 +1418,32 @@ $(document).ready(function() {
         "Under 5 Years": 202070,
         "5 to 13 Years": 343207,
         "14 to 17 Years": 157204,
-        "18 to 24 Years": 264160,
-        "16 Years and Over": 2233398,
-        "18 Years and Over": 2152909,
         "15 to 44 Years": 1137988
       },
       {
         "State": "CA",
         "Total": 36756666,
-        "Under 5 Years": 2704659,
-        "5 to 13 Years": 4499890,
-        "14 to 17 Years": 2159981,
-        "18 to 24 Years": 3853788,
-        "16 Years and Over": 28492781,
-        "18 Years and Over": 27392136,
-        "15 to 44 Years": 16091480
+        "15 to 44 Years": 16091480,
+        "65 Years and Over": 4661900
       },
       {
         "State": "CO",
         "Total": 4939456,
         "Under 5 Years": 358280,
         "5 to 13 Years": 587154,
-        "14 to 17 Years": 261701,
-        "18 to 24 Years": 466194,
         "16 Years and Over": 3865113,
         "18 Years and Over": 3732321,
-        "15 to 44 Years": 2129158
+        "15 to 44 Years": 2129158,
+        "45 to 64 Years": 968967,
+        "65 Years and Over": 4661900,
+        "99+": 4661900
       },
       {
         "State": "CT",
         "Total": 3501252,
         "Under 5 Years": 211637,
-        "5 to 13 Years": 403658,
-        "14 to 17 Years": 196918,
-        "18 to 24 Years": 325110,
-        "16 Years and Over": 2788471,
-        "18 Years and Over": 2689039,
-        "15 to 44 Years": 1390702
       }
     ];
-  var ages = d3.keys(states[0]).filter(function(key) {
-    return key != "State" && key != "Total";
-  });
-
-  var ovTable = d3.select("#overviewTable").data(ages).on("click", function(k) {
-    tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
-  });
-
-  var tr = d3.select("tbody").selectAll("tr")
-      .data(states)
-    .enter().append("tr");
-
-  tr.append("th")
-      .text(function(d) { return d.State; });
-
-  var finishedTable = tr.selectAll("td")
-      .data(function(d) { return ages.map(function(k) { return d[k] / d.Total; }); })
-    .enter().append("td").append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-    .append("rect")
-      .attr("height", 12)
-      .attr("width", function(d) { return d * 71; });
-
 } );
 
 function showMetric() {
