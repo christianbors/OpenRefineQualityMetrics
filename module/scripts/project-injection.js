@@ -55,33 +55,19 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     params = { "column_name": column.name };
     body = {};
     updateOptions = {};
-    callbacks = {
-      "onDone": function(response) {
-        doStatsDialog(response);
-      }
-    }
+    callbacks = {}
 
     var metricName = ["completeness", "variety"];
+    var metricFunction = ["completeness(value)", "toDate(value)"];
     var overlayModel = JSON.stringify(theProject.overlayModels.metricsOverlayModel);
 
-/*        Refine.postProcess(
-            "freebase",
-            "extend-data", 
-            {
-              baseColumnName: column.name,
-              columnInsertIndex: columnIndex + 1
-            },
-            {
-              extension: JSON.stringify(extension)
-            },
-            { rowsChanged: true, modelsChanged: true }
-        );*/
     Refine.postProcess(
       "metric-doc",
       "metricsOverlayModel",
       {
         baseColumnName: column.name,
         metricName: metricName,
+        metricFunction: metricFunction,
         metricsOverlayModel: overlayModel || {}
       },
       body,

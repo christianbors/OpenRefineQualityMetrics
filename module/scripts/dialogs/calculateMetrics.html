@@ -1,0 +1,30 @@
+<div class="dialog-frame extraction about">
+    <div class="dialog-body">
+        <fieldset>
+            <p>
+                You can reformat dates by select a column
+                according to the pattern you choose:
+            </p>
+
+            <div class="dialog-body" bind="dialogBody">
+                <p><label for="reformatDateSelect">input column</label><select id="reformatDateSelect"></select></p>
+                <p><label for="outputDateFormat">output format</label><input id="outputDateFormat"></p>
+                <p><label for="inputDateFormat">input format</label><input id="inputDateFormat"></p>
+
+                <p><button id="addInputDateFormat" bind="addInputFormat" class="button default">add input format</button></p>
+                <ul id="inputDateFormatList">
+
+                </ul>
+            </div>
+            <div class="dialog-footer" bind="dialogFooter">
+                <div class="options">
+
+                    <button bind="reformatDates" class="button default">reformat date</button>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="dialog-footer">
+        <button class="button" bind="close">Close</button>
+    </div>
+</div>

@@ -123,11 +123,10 @@ public class EvaluateMetricsOperation extends EngineDependentMassCellOperation {
 			@Override
 			public boolean visit(Project project, int rowIndex, Row row) {
 				Cell cell = row.getCell(cellIndex);
+				ExpressionUtils.bind(bindings, row, rowIndex, _columnName,
+						cell);
 
 				for (Metric m : metrics) {
-					ExpressionUtils.bind(bindings, row, rowIndex, _columnName,
-							cell);
-
 					List<Boolean> evalResults = new ArrayList<Boolean>();
 					boolean entryDirty = false;
 

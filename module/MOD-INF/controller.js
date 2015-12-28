@@ -14,8 +14,10 @@ function init() {
     "project/scripts",
     module,
     [
+      "scripts/dialogs/calculateMetricsDialog.js",
       "scripts/project-injection.js",
-      "scripts/facets/metrics-facet.js"
+      "scripts/facets/metrics-facet.js",
+      "scripts/menus.js"
     ]
   );
 
@@ -35,9 +37,11 @@ function init() {
   RS.cacheClass(Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation$MetricsProjectChange);
 
   RS.registerCommand(module, "metricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
+  RS.registerCommand(module, "evaluateMetrics", new Packages.com.google.refine.metricsExtension.commands.EvaluateMetricsCommand);
 
   var OR = Packages.com.google.refine.operations.OperationRegistry;
   OR.registerOperation(module, "metricsExtension", Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation);
+  OR.registerOperation(module, "evaluateMetrics", Packages.com.google.refine.metricsExtension.operations.EvaluateMetricsOperation);
 
   var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;
   FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.Completeness());
