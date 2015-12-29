@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import com.google.refine.Jsonizable;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.model.Column;
 import com.google.refine.model.OverlayModel;
@@ -72,13 +73,19 @@ public class MetricsOverlayModel implements OverlayModel {
     @Override
     public void dispose(Project project) {        
     }
-    
-    public List<Metric> getMetrics(int columnIndex) {
-    	return metricsMap.get(columnIndex);
+
+    public List<Metric> getMetrics(String columnName) {
+    	return metricsMap.get(columnName);
     }
     
     public void addMetrics(String columnName, List<Metric> metrics) {
     	this.metricsMap.put(columnName, metrics);
+    }
+    
+    public List<String> getMetricsColumns() {
+    	List<String> columnList = new LinkedList<String>();
+    	columnList.addAll(metricsMap.keySet());
+    	return columnList;
     }
 
 	private static List<Metric> reconstructMetrics(JSONArray jsonArray) throws JSONException {

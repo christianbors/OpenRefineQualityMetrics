@@ -40,8 +40,10 @@ public class MetricsExtensionOperation extends AbstractOperation {
 		writer.key("op").value(
 				OperationRegistry.s_opClassToName.get(this.getClass()));
 		writer.key("description").value(getBriefDescription(null));
-		writer.key("model");
-		metricsOverlayModel.write(writer, options);
+		if (metricsOverlayModel != null) {
+			writer.key("model");
+			metricsOverlayModel.write(writer, options);
+		}
 		writer.endObject();
 	}
 

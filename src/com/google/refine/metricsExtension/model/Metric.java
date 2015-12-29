@@ -26,7 +26,7 @@ public class Metric implements Jsonizable {
     private float measure;
     private String dataType;
 
-    private List<Evaluable> evaluables;
+    private List<String> evaluables;
     private Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
@@ -39,7 +39,7 @@ public class Metric implements Jsonizable {
         this.measure = measure;
         this.dataType = dataType;
         this.dirtyIndices = new HashMap<Integer, List<Boolean>>();
-        this.evaluables = new ArrayList<Evaluable>();
+        this.evaluables = new ArrayList<String>();
     }
 
     @Override
@@ -65,7 +65,7 @@ public class Metric implements Jsonizable {
 			writer.endArray();
 		}
         writer.key("evaluables").array();
-        for (Evaluable e : evaluables) {
+        for (String e : evaluables) {
         	writer.value(e.toString());
         }
         writer.endArray();
@@ -105,12 +105,7 @@ public class Metric implements Jsonizable {
     }
 	
 	public void addEvaluable(String toBeParsed) {
-		try {
-			this.evaluables.add(MetaParser.parse(toBeParsed));
-		} catch (ParsingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.evaluables.add(toBeParsed);
 	}
     
     public void addDirtyIndex(int index, List<Boolean> dirty) {
@@ -145,7 +140,7 @@ public class Metric implements Jsonizable {
         this.description = description;
     }
 
-    public List<Evaluable> getEvaluables() {
+    public List<String> getEvaluables() {
     	return evaluables;
     }
 

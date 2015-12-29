@@ -19,6 +19,7 @@ import com.google.refine.browsing.RowVisitor;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 import com.google.refine.history.HistoryEntry;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsColumn;
@@ -36,35 +37,21 @@ import com.google.refine.operations.EngineDependentOperation;
 import com.google.refine.process.LongRunningProcess;
 import com.google.refine.process.Process;
 
-public class EvaluateMetricsOperation extends EngineDependentMassCellOperation {
+public class EvaluateMetricsOperation extends EngineDependentOperation {
 
 	private MetricsOverlayModel model;
-	private String columnName;
 
 	public EvaluateMetricsOperation(JSONObject engineConfig,
-			MetricsOverlayModel model, String columnName) {
-		super(engineConfig, columnName, true);
+			MetricsOverlayModel model) {
+		super(engineConfig);
 		this.model = model;
-		this.columnName = columnName;
-	}
-
-	static public AbstractOperation reconstruct(Project project, JSONObject obj)
-			throws Exception {
-		JSONObject engineConfig = obj.has("engineConfig")
-				&& !obj.isNull("engineConfig") ? obj
-				.getJSONObject("engineConfig") : null;
-
-		return new EvaluateMetricsOperation(engineConfig,
-				(MetricsOverlayModel) obj.get("metricsOverlayModel"),
-				obj.getString("columnName"));
 	}
 
 	@Override
 	public void write(JSONWriter writer, Properties options)
 			throws JSONException {
 		writer.object();
-		writer.key("columnName").value(columnName);
-
+		//TODO: write results of evaluation
 		writer.key("metricsOverlayModel");
 		model.write(writer, options);
 
@@ -74,7 +61,6 @@ public class EvaluateMetricsOperation extends EngineDependentMassCellOperation {
 	@Override
 	protected HistoryEntry createHistoryEntry(Project project,
 			long historyEntryID) throws Exception {
-		// TODO Auto-generated method stub
 		return super.createHistoryEntry(project, historyEntryID);
 	}
 
@@ -94,77 +80,98 @@ public class EvaluateMetricsOperation extends EngineDependentMassCellOperation {
 	}
 
 	@Override
-	protected RowVisitor createRowVisitor(Project project,
-			List<CellChange> cellChanges, long historyEntryID) throws Exception {
-		Column column = project.columnModel.getColumnByName(_columnName);
+	public Process createProcess(Project project, Properties options)
+			throws Exception {
+		return new EvaluateMetricsProcess(project, model, getBriefDescription(project));
+	}
 
-		Properties bindings = ExpressionUtils.createBindings(project);
+	private class EvaluateMetricsProcess extends LongRunningProcess implements Runnable {
+		
+		private Project project;
+		private MetricsOverlayModel model;
+		
+		protected EvaluateMetricsProcess(Project project, MetricsOverlayModel model, String description) {
+			super(description);
+			this.project = project;
+			this.model = model;
+		}
+		
+		@Override
+		public void run() {
+			Properties bindings = ExpressionUtils.createBindings(project);
+			Engine engine = new Engine(project);
 
-		Evaluable eval = MetaParser.parse("Test");
-		//TODO: metric bindings / getting certain infos into the bindings to perform a better evaluation
-//		Properties bindings = MetricUtils.createBindings(project);
-		List<Metric> metrics = model.getMetrics(column.getCellIndex());
+			//TODO: metric bindings / getting certain infos into the bindings to perform a better evaluation
+//			Properties bindings = MetricUtils.createBindings(project);
+				
+			FilteredRows filteredRows = engine.getAllFilteredRows();
+            filteredRows.accept(project, new RowVisitor() {
+				private Properties bindings;
+				private MetricsOverlayModel model;
 
-		return new RowVisitor() {
-			private int cellIndex;
-			private long historyEntryID;
-			private Properties bindings;
-			private List<Metric> metrics;
+				public RowVisitor init(Properties bindings, MetricsOverlayModel model) {
+					this.bindings = bindings;
+					this.model = model;
+					return this;
+				}
 
-			public RowVisitor init(int cellIndex, Properties bindings,
-					long historyEntryID, List<Metric> metrics) {
-				this.cellIndex = cellIndex;
-				this.bindings = bindings;
-				this.historyEntryID = historyEntryID;
-				this.metrics = metrics;
-				return this;
-			}
-
-			@Override
-			public boolean visit(Project project, int rowIndex, Row row) {
-				Cell cell = row.getCell(cellIndex);
-				ExpressionUtils.bind(bindings, row, rowIndex, _columnName,
-						cell);
-
-				for (Metric m : metrics) {
-					List<Boolean> evalResults = new ArrayList<Boolean>();
-					boolean entryDirty = false;
-
-					for (Evaluable eval : m.getEvaluables()) {
-						boolean evalResult = (Boolean) eval.evaluate(bindings);
-						if (!evalResult) {
-							entryDirty = true;
+				@Override
+				public boolean visit(Project project, int rowIndex, Row row) {
+					for (String columnName : model.getMetricsColumns()) {
+						int colIndex = project.columnModel.getColumnIndexByName(columnName);
+						Cell c = row.cells.get(colIndex);
+						List<Metric> metrics = model.getMetrics(columnName);
+						
+						ExpressionUtils.bind(bindings, row, rowIndex, columnName, c);
+	
+						for (Metric m : metrics) {
+							List<Boolean> evalResults = new ArrayList<Boolean>();
+							boolean entryDirty = false;
+	
+							for (String eval : m.getEvaluables()) {
+								boolean evalResult;
+								try {
+									evalResult = (Boolean) MetaParser.parse(eval).evaluate(bindings);
+									if (!evalResult) {
+										entryDirty = true;
+									}
+									evalResults.add(evalResult);
+								} catch (ParsingException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+	
+							if (entryDirty) {
+								m.addDirtyIndex(rowIndex, evalResults);
+							}
 						}
-						evalResults.add(evalResult);
 					}
+					return false;
+				}
 
-					if (entryDirty) {
-						m.addDirtyIndex(rowIndex, evalResults);
+				@Override
+				public void start(Project project) {
+				}
+
+				@Override
+				public void end(Project project) {
+					for (String columnName : model.getMetricsColumns()) {
+						for (Metric m : model.getMetrics(columnName)) {
+							m.setMeasure(MetricUtils.determineQuality(bindings, m));
+						}
+						
 					}
 				}
-				return false;
-			}
+			}.init(bindings, model));
+            project.processManager.onDoneProcess(this);
+		}
 
-			@Override
-			public void start(Project project) {
-			}
+		@Override
+		protected Runnable getRunnable() {
+			return this;
+		}
 
-			@Override
-			public void end(Project project) {
-				// TODO: update OverlayModel with new metric
-				for (Metric m : metrics) {
-					m.setMeasure(MetricUtils.determineQuality(bindings, m));
-				}
-				project.history.addEntry(new HistoryEntry(historyEntryID, project, getBriefDescription(project),
-						EvaluateMetricsOperation.this, new MetricChange()));
-			}
-		}.init(column.getCellIndex(), bindings, historyEntryID, metrics);
 	}
-
-	@Override
-	protected String createDescription(Column column,
-			List<CellChange> cellChanges) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 }

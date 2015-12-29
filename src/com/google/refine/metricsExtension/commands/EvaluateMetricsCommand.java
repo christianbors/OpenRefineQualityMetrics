@@ -17,10 +17,9 @@ public class EvaluateMetricsCommand extends EngineDependentCommand {
 			HttpServletRequest request, JSONObject engineConfig)
 			throws Exception {
 		
-		String columnName = request.getParameter("columnName");
 		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-		
-		return new EvaluateMetricsOperation(engineConfig, overlayModel, columnName);
+
+		return new EvaluateMetricsOperation(engineConfig, overlayModel);
 	}
 
 }
