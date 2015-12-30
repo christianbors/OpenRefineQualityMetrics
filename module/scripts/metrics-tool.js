@@ -120,36 +120,6 @@ $(document).ready(function() {
 
                 $("#raw-data-container").css({marginLeft: $("#metricNames").width()});
                 $("#overviewTable").css({width: $("#overviewPanel").width() - $("#metricNames").width()});
-
-                var ages = d3.keys(states[0]).filter(function(key) {
-                return key != "State" && key != "Total";
-                });
-
-                var ovTable = d3.select("#overviewTable").data(ages).on("click", function(k) {
-                tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
-                });
-
-                var tr = d3.select("#overviewTable").select("tbody").selectAll("tr")
-                  .data(states)
-                .enter().append("tr");
-
-                // tr.append("th")
-                //     .text(function(d) { return d.State; });
-
-                if(columnStore.length>0) {
-                    var colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
-                } else {
-                    var colWidth = 50;
-                }
-
-                var finishedTable = tr.selectAll("td")
-                  .data(function(d) { return ages.map(function(k) { return d[k] / d.Total; }); })
-                .enter().append("td").append("svg")
-                  .attr("width", colWidth)
-                  .attr("height", 12)
-                .append("rect")
-                  .attr("height", 12)
-                  .attr("width", function(d) { return d * colWidth; });
               },
               "jsonp"
             );
@@ -165,6 +135,33 @@ $(document).ready(function() {
     "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
     function(data) {
       var overlayModel = data;
+
+      $.each(data.availableMetrics, function(index, value) {
+        $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
+      });
+
+      if(columnStore.length>0) {
+          var colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
+      } else {
+          var colWidth = 50;
+      }
+
+      // d3.keys(overlayModel.metricsColumns);
+      var tr = d3.select("#overviewTable").select("tbody").data(overlayModel.availableMetrics).append("tr");
+      var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
+
+      td.append("svg")
+        .attr("width", colWidth)
+        .attr("height", 12)
+      .append("rect")
+        .attr("height", 12)
+        .attr("width", function(d) {
+          var metricName = this.parentNode.parentNode.parentNode.__data__;
+          var metricCurrent = d.metrics.filter(function(m) {
+            return m.name == metricName;
+          });
+          return metricCurrent[0].measure * colWidth;
+        });
     }, 
     'json'
   );
@@ -1396,62 +1393,6 @@ $(document).ready(function() {
      .appendTo("#columnFormMetricModal");
     }
   }); */
-    
-  var states = [
-      {
-        "State": "AL",
-        "Total": 4661900,
-        "Under 5 Years": 310504,
-        "5 to 13 Years": 552339,
-        "14 to 17 Years": 259034,
-        "18 Years and Over": 3540023,
-        "15 to 44 Years": 1878306,
-        "45 to 64 Years": 968967,
-        "65 Years and Over": 4661900,
-        "99+": 4661900
-      },
-      {
-        "State": "AK",
-        "Total": 686293,
-        "15 to 44 Years": 305207
-      },
-      {
-        "State": "AZ",
-        "Total": 6500180,
-        "15 to 44 Years": 2680368
-      },
-      {
-        "State": "AR",
-        "Total": 2855390,
-        "Under 5 Years": 202070,
-        "5 to 13 Years": 343207,
-        "14 to 17 Years": 157204,
-        "15 to 44 Years": 1137988
-      },
-      {
-        "State": "CA",
-        "Total": 36756666,
-        "15 to 44 Years": 16091480,
-        "65 Years and Over": 4661900
-      },
-      {
-        "State": "CO",
-        "Total": 4939456,
-        "Under 5 Years": 358280,
-        "5 to 13 Years": 587154,
-        "16 Years and Over": 3865113,
-        "18 Years and Over": 3732321,
-        "15 to 44 Years": 2129158,
-        "45 to 64 Years": 968967,
-        "65 Years and Over": 4661900,
-        "99+": 4661900
-      },
-      {
-        "State": "CT",
-        "Total": 3501252,
-        "Under 5 Years": 211637,
-      }
-    ];
 } );
 
 function showMetric() {
