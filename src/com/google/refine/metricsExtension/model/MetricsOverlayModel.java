@@ -13,9 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import com.google.refine.Jsonizable;
-import com.google.refine.expr.Evaluable;
-import com.google.refine.model.Column;
 import com.google.refine.model.OverlayModel;
 import com.google.refine.model.Project;
 
@@ -23,6 +20,7 @@ import com.google.refine.model.Project;
 public class MetricsOverlayModel implements OverlayModel {
 
 	private Map<String, List<Metric>> metricsMap;
+	private List<String> availableMetrics;
 	
 	public static MetricsOverlayModel reconstruct(JSONObject metricsOverlayModel) throws Exception {
 		
@@ -41,6 +39,13 @@ public class MetricsOverlayModel implements OverlayModel {
 	
     public MetricsOverlayModel(Map<String, List<Metric>> metricsMap) {
     	this.metricsMap = metricsMap;
+    	availableMetrics = new LinkedList<String>();
+    	for (Entry<String, List<Metric>> entry : metricsMap.entrySet()) {
+    		for (Metric m : entry.getValue())
+				if (!availableMetrics.contains(m.getName())) {
+					availableMetrics.add(m.getName());
+				}
+    	}
 	}
 
 	@Override
@@ -59,6 +64,14 @@ public class MetricsOverlayModel implements OverlayModel {
         	writer.endObject();
         }
         writer.endArray();
+        
+        writer.key("availableMetrics");
+        writer.array();
+        for (String m : availableMetrics) {
+        	writer.value(m);
+        }
+        writer.endArray();
+        
         writer.endObject();
     }
 
@@ -80,12 +93,21 @@ public class MetricsOverlayModel implements OverlayModel {
     
     public void addMetrics(String columnName, List<Metric> metrics) {
     	this.metricsMap.put(columnName, metrics);
+    	for (Metric m : metrics) {
+    		if(!availableMetrics.contains(m.getName())) {
+    			availableMetrics.add(m.getName());
+    		}
+    	}
     }
     
     public List<String> getMetricsColumns() {
     	List<String> columnList = new LinkedList<String>();
     	columnList.addAll(metricsMap.keySet());
     	return columnList;
+    }
+    
+    public List<String> getAvailableMetrics() {
+    	return availableMetrics;
     }
 
 	private static List<Metric> reconstructMetrics(JSONArray jsonArray) throws JSONException {
