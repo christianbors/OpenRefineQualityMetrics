@@ -57,8 +57,8 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     updateOptions = {};
     callbacks = {}
 
-    var metricName = ["completeness", "variety"];
-    var metricFunction = ["completeness(value)", "toDate(value)"];
+    var metricName = ["completeness"];
+    var metricFunction = ["completeness(value)"];
     var overlayModel = JSON.stringify(theProject.overlayModels.metricsOverlayModel);
 
     Refine.postProcess(

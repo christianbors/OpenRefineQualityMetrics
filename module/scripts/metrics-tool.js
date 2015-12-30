@@ -161,6 +161,14 @@ $(document).ready(function() {
     'json'
   );
 
+  $.getJSON(
+    "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
+    function(data) {
+      var overlayModel = data;
+    }, 
+    'json'
+  );
+
   Sortable.create(simpleList, { /* options */ });
 
   $("[data-toggle=popover]").popover({
