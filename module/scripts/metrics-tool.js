@@ -3,6 +3,7 @@ $(document).ready(function() {
 
   var dataSet = [];
   var columnStore = [];
+  var colWidth = 50;
 
   URL.getParameters = function () {
     var r = {};
@@ -82,6 +83,45 @@ $(document).ready(function() {
               }
             }*/
 
+            $.getJSON(
+              "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
+              function(data) {
+                var overlayModel = data;
+
+                $.each(data.availableMetrics, function(index, value) {
+                  $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
+                });
+
+                colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
+
+                //this reorders the metrics to be in line with the actual displayed columns
+                var sortedMetrics = new Array();
+                for(var idx = 0; idx < overlayModel.metricColumns.length; idx++) {
+                  sortedMetrics[idx] = overlayModel.metricColumns.filter(function(col) {
+                    return col.columnName == columnStore[idx].title;
+                  })[0];
+                }
+                overlayModel.metricColumns = sortedMetrics;
+
+                var tr = d3.select("#overviewTable").select("tbody").data(overlayModel.availableMetrics).append("tr");
+                var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
+
+                td.append("svg")
+                  .attr("width", colWidth)
+                  .attr("height", 12)
+                .append("rect")
+                  .attr("height", 12)
+                  .attr("width", function(d) {
+                    var metricName = this.parentNode.parentNode.parentNode.__data__;
+                    var metricCurrent = d.metrics.filter(function(m) {
+                      return m.name == metricName;
+                    });
+                    return metricCurrent[0].measure * colWidth;
+                  });
+              }, 
+              'json'
+            );
+
             $.post(
               "../../command/core/get-rows?" + $.param({ project: theProject.id, start: 0, limit: 100 }) + "&callback=?",
               [],
@@ -128,41 +168,6 @@ $(document).ready(function() {
         );
       }
     },
-    'json'
-  );
-
-  $.getJSON(
-    "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
-    function(data) {
-      var overlayModel = data;
-
-      $.each(data.availableMetrics, function(index, value) {
-        $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
-      });
-
-      if(columnStore.length>0) {
-          var colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
-      } else {
-          var colWidth = 50;
-      }
-
-      // d3.keys(overlayModel.metricsColumns);
-      var tr = d3.select("#overviewTable").select("tbody").data(overlayModel.availableMetrics).append("tr");
-      var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
-
-      td.append("svg")
-        .attr("width", colWidth)
-        .attr("height", 12)
-      .append("rect")
-        .attr("height", 12)
-        .attr("width", function(d) {
-          var metricName = this.parentNode.parentNode.parentNode.__data__;
-          var metricCurrent = d.metrics.filter(function(m) {
-            return m.name == metricName;
-          });
-          return metricCurrent[0].measure * colWidth;
-        });
-    }, 
     'json'
   );
 

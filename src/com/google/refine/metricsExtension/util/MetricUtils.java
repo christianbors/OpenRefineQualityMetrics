@@ -21,7 +21,8 @@ public class MetricUtils {
 		s_binders.add(binder);
 	}
 
-	static public void bind(Properties bindings, Row row, int rowIndex, String columnName, Cell cell, List<Metric> metrics) {
+	static public void bind(Properties bindings, Row row, int rowIndex,
+			String columnName, Cell cell, List<Metric> metrics) {
 		Project project = (Project) bindings.get("project");
 
 		bindings.put("rowIndex", rowIndex);
@@ -39,11 +40,17 @@ public class MetricUtils {
 
 	static public float determineQuality(Properties bindings, Metric metric) {
 		Project project = (Project) bindings.get("project");
-		long rowSize = project.rows.size();
+		float rowSize = project.rows.size();
 		if (!metric.getDirtyIndices().isEmpty()) {
-			return rowSize <= 0 ? 0 : rowSize / metric.getDirtyIndices().size();
+			float measure;
+			if (rowSize <= 0) {
+				measure = 0f;
+			} else {
+				measure = (rowSize - metric.getDirtyIndices().size()) / rowSize;
+			}
+			return measure;
 		} else {
-			return 1;
+			return 1f;
 		}
 	}
 }
