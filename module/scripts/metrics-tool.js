@@ -83,45 +83,6 @@ $(document).ready(function() {
               }
             }*/
 
-            $.getJSON(
-              "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
-              function(data) {
-                var overlayModel = data;
-
-                $.each(data.availableMetrics, function(index, value) {
-                  $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
-                });
-
-                colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
-
-                //this reorders the metrics to be in line with the actual displayed columns
-                var sortedMetrics = new Array();
-                for(var idx = 0; idx < overlayModel.metricColumns.length; idx++) {
-                  sortedMetrics[idx] = overlayModel.metricColumns.filter(function(col) {
-                    return col.columnName == columnStore[idx].title;
-                  })[0];
-                }
-                overlayModel.metricColumns = sortedMetrics;
-
-                var tr = d3.select("#overviewTable").select("tbody").data(overlayModel.availableMetrics).append("tr");
-                var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
-
-                td.append("svg")
-                  .attr("width", colWidth)
-                  .attr("height", 12)
-                .append("rect")
-                  .attr("height", 12)
-                  .attr("width", function(d) {
-                    var metricName = this.parentNode.parentNode.parentNode.__data__;
-                    var metricCurrent = d.metrics.filter(function(m) {
-                      return m.name == metricName;
-                    });
-                    return metricCurrent[0].measure * colWidth;
-                  });
-              }, 
-              'json'
-            );
-
             $.post(
               "../../command/core/get-rows?" + $.param({ project: theProject.id, start: 0, limit: 100 }) + "&callback=?",
               [],
@@ -160,6 +121,138 @@ $(document).ready(function() {
 
                 $("#raw-data-container").css({marginLeft: $("#metricNames").width()});
                 $("#overviewTable").css({width: $("#overviewPanel").width() - $("#metricNames").width()});
+
+                $.getJSON(
+                  "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
+                  function(data) {
+                    var overlayModel = data;
+
+                    $.each(data.availableMetrics, function(index, value) {
+                      $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
+                    });
+
+                    colWidth = ($("#overviewPanel").width() - $("#metricNames").width())/columnStore.length;
+
+                    //this reorders the metrics to be in line with the actual displayed columns
+                    var sortedMetrics = new Array();
+                    for(var idx = 0; idx < overlayModel.metricColumns.length; idx++) {
+                      sortedMetrics[idx] = overlayModel.metricColumns.filter(function(col) {
+                        return col.columnName == columnStore[idx].title;
+                      })[0];
+                    }
+                    overlayModel.metricColumns = sortedMetrics;
+
+                    var tr = d3.select("#overviewTable").select("tbody").data(overlayModel.availableMetrics).append("tr");
+                    var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
+
+                    td.append("svg")
+                      .attr("width", colWidth)
+                      .attr("height", 12)
+                    .append("rect")
+                      .attr("height", 12)
+                      .attr("width", function(d) {
+                        var metricName = this.parentNode.parentNode.parentNode.__data__;
+                        var metricCurrent = d.metrics.filter(function(m) {
+                          return m.name == metricName;
+                        });
+                        return metricCurrent[0].measure * colWidth;
+                      });
+
+
+                    var margin = 20
+                        width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
+                        height = parseInt(d3.select("#heatmap").style("height")) - margin*2;
+                    
+                    var xScale = d3.time.scale()
+                      .range([0, width])
+                      .nice(d3.time.year);
+
+                    var yScale = d3.scale.linear()
+                      .range([height, 0])
+                      .nice();
+
+                    //var x = d3.time.scale()
+                    var x = d3.scale.linear( )
+                      .domain([0, 24])
+                      .rangeRound([0, width]);
+
+                    var y = d3.scale.linear()
+                      .domain([0, rowModel.filtered])
+                      .rangeRound([height, 0]);
+
+                    var z = d3.scale.linear()
+                      .domain([0, 1])
+                      .range(["white", "green"])
+                      .interpolate(d3.interpolateHcl);
+
+                    var formatTime = d3.time.format("%I %p"),
+                      formatHour = function (d) {
+                        if (d == 12) return "noon";
+                        if (d == 24 || d == 0) return "midnight";
+                        return formatTime(new Date(2013, 2, 9, d, 00));
+                      };
+
+                    var xAxis = d3.svg.axis()
+                      .scale(x)
+                      .orient("bottom")
+                      .tickFormat(formatHour);
+
+                    var yAxis = d3.svg.axis()
+                      .scale(y)
+                      .orient("left")
+                      .tickFormat(d3.format("d"));
+
+                    var metricData = data.metricColumns.filter(function(d) {
+                      return d.columnName == "Altitude";
+                    })[0].metrics[0];
+
+                    var svg = d3.select("#heatmap").append("svg")
+                      .attr("width", width)
+                      .attr("height", height)
+                      .append("g"); //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                    
+                    var metricDetail = svg.selectAll(".metric-detail-row")
+                      .data(metricData.dirtyIndices)
+                      .enter( ).append("g")
+                      .attr("class", "metric-detail-row");
+
+                    var bins = metricDetail.selectAll(".bin")
+                        .data(function (d) { return d.dirty; })
+                        .enter( ).append("rect")
+                        .attr("class", "bin");
+
+                    bins.attr("x", function (d, i) { 
+                        return x(i); 
+                      })
+                      .attr("width", function (d, i) { 
+                        return  x(i+1) - x(i); 
+                      })
+                      .style("fill", function(d) {
+                        if (d == true) {
+                          return z(0);
+                        } else {
+                          return z(1);
+                        }
+                        
+                      });
+
+                    metricDetail.each(function (d) {
+                      var ys = d3.select(this).selectAll(".bin")
+                        .attr("y", y(d.index) )
+                        .attr("height", 6 );
+                    });
+
+                    svg.append("g")
+                      .attr("class", "x axis")
+                      .attr("transform", "translate(0," + height + ")")
+                      .call(xAxis);
+
+                    svg.append("g")
+                      .attr("class", "y axis")
+                      .call(yAxis);
+                  }, 
+                  'json'
+                );
               },
               "jsonp"
             );
@@ -196,54 +289,6 @@ $(document).ready(function() {
   });
 
   // var margin = {top: 20, right: 20, bottom: 30, left: 40},
-  var margin = 20
-      width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
-      height = parseInt(d3.select("#heatmap").style("height")) - margin*2;
-  
-  var xScale = d3.time.scale()
-    .range([0, width])
-    .nice(d3.time.year);
-
-  var yScale = d3.scale.linear()
-    .range([height, 0])
-    .nice();
-
-  //var x = d3.time.scale()
-  var x = d3.scale.linear( )
-    .domain([0, 24])
-    .rangeRound([0, width]);
-
-  var y = d3.scale.linear()
-    .domain([0, 420])
-    .rangeRound([height, 0]);
-
-  var z = d3.scale.linear()
-    .domain([0, 160])
-    .range(["white", "green"])
-    .interpolate(d3.interpolateHcl);
-
-  var formatTime = d3.time.format("%I %p"),
-    formatHour = function (d) {
-      if (d == 12) return "noon";
-      if (d == 24 || d == 0) return "midnight";
-      return formatTime(new Date(2013, 2, 9, d, 00));
-    };
-
-  var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom")
-    .tickFormat(formatHour);
-
-  var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left")
-    .tickFormat(d3.format("d"));
-
-  var svg = d3.select("#heatmap").append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .append("g"); //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-  
   var pancreas = [
     {
       "values": [
@@ -477,93 +522,93 @@ $(document).ready(function() {
       ], 
       "key": 120
     }, 
-    {
-      "values": [
-        64, 
-        72, 
-        52, 
-        49, 
-        66, 
-        34, 
-        30, 
-        44, 
-        36, 
-        40, 
-        32, 
-        66, 
-        68, 
-        99, 
-        104, 
-        92, 
-        100, 
-        60, 
-        53, 
-        40, 
-        50, 
-        47, 
-        55, 
-        43
-      ], 
-      "key": 130
-    }, 
-    {
-      "values": [
-        49, 
-        55, 
-        19, 
-        40, 
-        32, 
-        18, 
-        26, 
-        20, 
-        35, 
-        32, 
-        49, 
-        56, 
-        49, 
-        77, 
-        56, 
-        67, 
-        72, 
-        69, 
-        53, 
-        55, 
-        47, 
-        37, 
-        35, 
-        40
-      ], 
-      "key": 140
-    }, 
-    {
-      "values": [
-        36, 
-        41, 
-        68, 
-        20, 
-        26, 
-        31, 
-        27, 
-        15, 
-        10, 
-        13, 
-        29, 
-        57, 
-        80, 
-        41, 
-        51, 
-        54, 
-        44, 
-        41, 
-        30, 
-        45, 
-        44, 
-        33, 
-        14, 
-        34
-      ], 
-      "key": 150
-    }, 
+    // {
+    //   "values": [
+    //     64, 
+    //     72, 
+    //     52, 
+    //     49, 
+    //     66, 
+    //     34, 
+    //     30, 
+    //     44, 
+    //     36, 
+    //     40, 
+    //     32, 
+    //     66, 
+    //     68, 
+    //     99, 
+    //     104, 
+    //     92, 
+    //     100, 
+    //     60, 
+    //     53, 
+    //     40, 
+    //     50, 
+    //     47, 
+    //     55, 
+    //     43
+    //   ], 
+    //   "key": 130
+    // }, 
+    // {
+    //   "values": [
+    //     49, 
+    //     55, 
+    //     19, 
+    //     40, 
+    //     32, 
+    //     18, 
+    //     26, 
+    //     20, 
+    //     35, 
+    //     32, 
+    //     49, 
+    //     56, 
+    //     49, 
+    //     77, 
+    //     56, 
+    //     67, 
+    //     72, 
+    //     69, 
+    //     53, 
+    //     55, 
+    //     47, 
+    //     37, 
+    //     35, 
+    //     40
+    //   ], 
+    //   "key": 140
+    // }, 
+    // {
+    //   "values": [
+    //     36, 
+    //     41, 
+    //     68, 
+    //     20, 
+    //     26, 
+    //     31, 
+    //     27, 
+    //     15, 
+    //     10, 
+    //     13, 
+    //     29, 
+    //     57, 
+    //     80, 
+    //     41, 
+    //     51, 
+    //     54, 
+    //     44, 
+    //     41, 
+    //     30, 
+    //     45, 
+    //     44, 
+    //     33, 
+    //     14, 
+    //     34
+    //   ], 
+    //   "key": 150
+    // }, 
     {
       "values": [
         21, 
@@ -1319,35 +1364,6 @@ $(document).ready(function() {
       "key": 410
     }
   ];
-
-  var glucose = svg.selectAll(".metric-detail-row")
-    .data(pancreas)
-    .enter( ).append("g")
-    .attr("class", "metric-detail-row");
-
-  var bins = glucose.selectAll(".bin")
-      .data(function (d) { return d.values; })
-      .enter( ).append("rect")
-      .attr("class", "bin");
-
-  bins.attr("x", function (d, i) { return x(i); })
-      .attr("width", function (d, i) { return  x(i+1) - x(i); })
-      .style("fill", function(d) { return z(d); });
-
-  glucose.each(function (d) {
-    d3.select(this).selectAll(".bin")
-      .attr("y", y(d.key) )
-      .attr("height", 11 );
-  });
-
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
-    .call(xAxis);
-
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
 
   function resize() {
     var width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
