@@ -7,9 +7,10 @@ body {
 }
 
 #heatmap {
-  width: 95%;
-  height: 400px;
-  position: absolute;
+    width: 95%;
+    height: 400px;
+    position: absolute;
+    background-color: #f2f2f2;
 }
 
 .myrow {
@@ -29,7 +30,7 @@ body {
 }
 
 .fixed-panel {
-    width: 100%1;
+    width: 100%;
     min-height: 150px;
     max-height: 250px;
     overflow-y: scroll;
@@ -63,9 +64,9 @@ tbody rect {
   fill: steelblue;
 }
 
-tbody tr:hover rect {
+/*tbody tr:hover rect {
   fill: brown;
-}
+}*/
 
 td { font-size: 12px;}
 .dataTables_wrapper { font-size: 12px }
