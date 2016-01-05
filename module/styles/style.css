@@ -64,9 +64,9 @@ tbody rect {
   fill: steelblue;
 }
 
-/*tbody tr:hover rect {
+svg .g:hover rect {
   fill: brown;
-}*/
+}
 
 td { font-size: 12px;}
 .dataTables_wrapper { font-size: 12px }

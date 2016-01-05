@@ -58,7 +58,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     callbacks = {}
 
     var metricName = ["completeness"];
-    var metricFunction = ["completeness(value)"];
+    var metricFunction = [["completeness(value)", "if(value > 0, true, false)"]];
     var overlayModel = JSON.stringify(theProject.overlayModels.metricsOverlayModel);
 
     Refine.postProcess(

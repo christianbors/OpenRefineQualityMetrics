@@ -34,7 +34,10 @@ public class MetricsExtensionCommand extends Command {
 			Project project = getProject(request);
 			
 			String[] metricNameString = request.getParameterValues("metricName[]");
-			String[] metricFunctionString = request.getParameterValues("metricFunction[]");
+			String[][] metricFunctionString = new String[metricNameString.length][];
+			for (int i = 0; i < metricNameString.length; ++i) {
+				metricFunctionString[i] = request.getParameterValues("metricFunction[" + i + "][]");
+			}
 			String baseColumnString = request.getParameter("baseColumnName");
 			MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 //			JSONObject column = ParsingUtilities.evaluateJsonStringToObject(baseColumnString);
@@ -44,8 +47,10 @@ public class MetricsExtensionCommand extends Command {
 				metrics.add(new Metric(metricNameString[i], ""));
 //				Metric.load(metricsString[i]);
 			}
-			for (int i = 0; i < metricFunctionString.length; ++i) {
-				metrics.get(i).addEvaluable(metricFunctionString[i]);
+			for (int i = 0; i < metricNameString.length; ++i) {
+				for (int j = 0; j < metricFunctionString[i].length; ++j) {
+					metrics.get(i).addEvaluable(metricFunctionString[i][j]);
+				}
 			}
 			
 //			String colName = column.getString("baseColumnName");

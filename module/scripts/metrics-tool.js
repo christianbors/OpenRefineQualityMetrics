@@ -84,7 +84,7 @@ $(document).ready(function() {
             }*/
 
             $.post(
-              "../../command/core/get-rows?" + $.param({ project: theProject.id, start: 0, limit: 100 }) + "&callback=?",
+              "../../command/core/get-rows?" + $.param({ project: theProject.id, start: 0, limit: 500 }) + "&callback=?",
               [],
               function(data) {
                 var rowModel = data;
@@ -139,10 +139,15 @@ $(document).ready(function() {
 
                     //this reorders the metrics to be in line with the actual displayed columns
                     var sortedMetrics = new Array();
-                    for(var idx = 0; idx < overlayModel.metricColumns.length; idx++) {
-                      sortedMetrics[idx] = overlayModel.metricColumns.filter(function(col) {
+                    for(var idx = 0; idx < theProject.columnModel.columns.length; idx++) {
+                      var foundColumn = overlayModel.metricColumns.filter(function(col) {
                         return col.columnName == columnStore[idx].title;
                       })[0];
+                      if (foundColumn != null) {
+                        sortedMetrics[idx] = foundColumn;
+                      } else {
+                        sortedMetrics[idx] = null;
+                      }
                     }
                     overlayModel.metricColumns = sortedMetrics;
 
@@ -155,14 +160,22 @@ $(document).ready(function() {
                     .append("rect")
                       .attr("height", 12)
                       .attr("width", function(d) {
-                        var metricName = this.parentNode.parentNode.parentNode.__data__;
-                        var metricCurrent = d.metrics.filter(function(m) {
-                          return m.name == metricName;
-                        });
-                        return metricCurrent[0].measure * colWidth;
+                        if (d != null) {
+                          var metricName = this.parentNode.parentNode.parentNode.__data__;
+                          var metricCurrent = d.metrics.filter(function(m) {
+                            return m.name == metricName;
+                          });
+                          return metricCurrent[0].measure * colWidth;
+                        }
                       });
 
-                    $("#overviewPanel").css({height: $("#overviewTable").height()});
+                    $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
+
+                    var metricData = data.metricColumns.filter(function(d) {
+                      if (d != null) {
+                        return d.columnName == "km/h";
+                      }
+                    })[0].metrics[0];
 
                     // heatmap drawing
                     var width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
@@ -178,7 +191,7 @@ $(document).ready(function() {
 
                     //var x = d3.time.scale()
                     var x = d3.scale.linear( )
-                      .domain([0, 24])
+                      .domain([0, metricData.evaluables.length])
                       .rangeRound([0, width]);
 
                     var y = d3.scale.linear()
@@ -206,10 +219,6 @@ $(document).ready(function() {
                       .scale(y)
                       .orient("left")
                       .tickFormat(d3.format("d"));
-
-                    var metricData = data.metricColumns.filter(function(d) {
-                      return d.columnName == "km/h";
-                    })[0].metrics[0];
 
                     var svg = d3.select("#heatmap").append("svg")
                       .attr("width", width)
@@ -256,14 +265,33 @@ $(document).ready(function() {
                       .attr("class", "y axis")
                       .call(yAxis);
 
-                    function resize() {
-                      var margin = 20
-                          width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
-                          height = rawDataHeight - margin*2;
+                    metricDetail.on("click", function(d) {
+                      console.log(d.index);
+                    })
+
+                    bins.on("mouseover", function(d) {
+                      d3.select(this).style("fill", "red");
+                      d3.select(this.parentNode).style("fill", "black");
+                    })                  
+                    bins.on("mouseout", function(d) {
+                      d3.select(this).style("fill", function(d) {
+                        if (d == true) {
+                          return z(0);
+                        } else {
+                          return z(1);
+                        }
+                        
+                      });
+                      d3.select(this.parentNode).style("fill", "transparent");
+                    });
+                    // function resize() {
+                    //   var margin = 20
+                    //       width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
+                    //       height = rawDataHeight - margin*2;
 
                       /* Update the range of the scale with new width/height */
-                      xScale.range([0, width]).nice(d3.time.year);
-                      yScale.range([height, 0]).nice();
+                      // xScale.range([0, width]).nice(d3.time.year);
+                      // yScale.range([height, 0]).nice();
 
                       /* Update the axis with the new scale */
                       // svg.select('.x.axis')
@@ -274,11 +302,11 @@ $(document).ready(function() {
                       //     .call(yAxis);
 
                       /* Force D3 to recalculate and update the line */
-                      svg.selectAll(".bin")
-                          .attr("d", bins);
-                    }
+                    //   svg.selectAll(".bin")
+                    //       .attr("d", bins);
+                    // }
 
-                    d3.select(window).on('resize', resize);
+                    // d3.select(window).on('resize', resize);
 
                     $('#dataset').dataTable().fnDraw();
                   }, 
