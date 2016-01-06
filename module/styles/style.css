@@ -6,11 +6,15 @@ body {
     padding: 70px 0px;
 }
 
-#heatmap {
-    width: 95%;
-    height: 400px;
-    position: absolute;
-    background-color: #f2f2f2;
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
 }
 
 .myrow {

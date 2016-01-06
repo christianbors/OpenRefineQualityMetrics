@@ -133,7 +133,7 @@ $(document).ready(function() {
                     var rawDataHeight = $('#raw-data-container').height();
                     $("#raw-data-container").css({marginLeft: $("#metricNames").width()});
                     $("#overviewTable").css({width: $("#overviewPanel").width() - $("#metricNames").width() - margin});
-                    $("#heatmap").css({marginTop: datatablesHeader});
+                    // $("#heatmap").css({marginTop: datatablesHeader});
 
                     colWidth = ($("#overviewPanel").width() - $("#metricNames").width() - margin)/columnStore.length;
 
@@ -178,21 +178,22 @@ $(document).ready(function() {
                     })[0].metrics[0];
 
                     // heatmap drawing
-                    var width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
-                        height = rawDataHeight - margin*2;
+                    var marginHeatmap = {top: datatablesHeader, right: 50, bottom: 100, left: 50};
+                    var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left,
+                        height = $(".dataTables_scrollBody").height()
+                        // height = rawDataHeight - marginHeatmap.top;
                     
-                    var xScale = d3.time.scale()
-                      .range([0, width])
-                      .nice(d3.time.year);
+                    var xScale = d3.scale.linear()
+                      .domain([0, metricData.evaluables.length])
+                      .range([0, width]);
 
                     var yScale = d3.scale.linear()
                       .range([height, 0])
                       .nice();
 
-                    //var x = d3.time.scale()
                     var x = d3.scale.linear( )
                       .domain([0, metricData.evaluables.length])
-                      .rangeRound([0, width]);
+                      .range([0, width]);
 
                     var y = d3.scale.linear()
                       .domain([rowModel.filtered, 0])
@@ -203,17 +204,13 @@ $(document).ready(function() {
                       .range(["white", "green"])
                       .interpolate(d3.interpolateRgb);
 
-                    var formatTime = d3.time.format("%I %p"),
-                      formatHour = function (d) {
-                        if (d == 12) return "noon";
-                        if (d == 24 || d == 0) return "midnight";
-                        return formatTime(new Date(2013, 2, 9, d, 00));
-                      };
-
                     var xAxis = d3.svg.axis()
-                      .scale(x)
+                      .scale(xScale)
                       .orient("bottom")
-                      .tickFormat(formatHour);
+                      .ticks(metricData.evaluables.length)
+                      .tickFormat(function(d) {
+                        return metricData.evaluables[d];
+                      });
 
                     var yAxis = d3.svg.axis()
                       .scale(y)
@@ -221,9 +218,10 @@ $(document).ready(function() {
                       .tickFormat(d3.format("d"));
 
                     var svg = d3.select("#heatmap").append("svg")
-                      .attr("width", width)
-                      .attr("height", height)
-                      .append("g"); //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                      .attr("width", width + marginHeatmap.left + marginHeatmap.right)
+                      .attr("height", height + marginHeatmap.top + marginHeatmap.bottom)
+                      .append("g")
+                      .attr("transform", "translate(" + marginHeatmap.left + "," + marginHeatmap.top + ")");
                     
                     var metricDetail = svg.selectAll(".metric-detail-row")
                       .data(metricData.dirtyIndices)
@@ -258,8 +256,12 @@ $(document).ready(function() {
 
                     svg.append("g")
                       .attr("class", "x axis")
-                      .attr("transform", "translate(0," + height + ")")
-                      .call(xAxis);
+                      .attr("transform", "translate(0," + (height) + ")")
+                      .call(xAxis)
+                    .selectAll(".tick text")
+                      .style("text-anchor", "start")
+                      .attr("x", 6)
+                      .attr("y", 6);
 
                     svg.append("g")
                       .attr("class", "y axis")
