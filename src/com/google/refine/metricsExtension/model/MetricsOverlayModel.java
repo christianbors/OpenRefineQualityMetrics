@@ -87,7 +87,7 @@ public class MetricsOverlayModel implements OverlayModel {
     public void dispose(Project project) {        
     }
 
-    public List<Metric> getMetrics(String columnName) {
+    public List<Metric> getMetricsForColumn(String columnName) {
     	return metricsMap.get(columnName);
     }
     
@@ -100,7 +100,11 @@ public class MetricsOverlayModel implements OverlayModel {
     	}
     }
     
-    public List<String> getMetricsColumns() {
+    public List<Metric> getMetricsColumn(String columnName) {
+    	return metricsMap.get(columnName);
+    }
+    
+    public List<String> getMetricColumnNames() {
     	List<String> columnList = new LinkedList<String>();
     	columnList.addAll(metricsMap.keySet());
     	return columnList;

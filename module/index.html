@@ -32,7 +32,10 @@
           </div>
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li class="dropdown">
+              <li>
+                <a href="#" id="recalculate">Recalculate Metrics</a>
+              </li>
+              <!-- <li class="dropdown">
                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Load Data<strong class="caret"></strong></a>
                 <ul class="dropdown-menu">
                   <li>
@@ -68,7 +71,7 @@
                     </div>
                   </li>
                 </ul>
-              </li>
+              </li> -->
             </ul>
           </div>
         </nav>
@@ -93,6 +96,62 @@
         </div>
       </div>
       <div class="col-md-5">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <div class="btn-group pull-right">
+              <a href="#" class="btn btn-default btn-sm" id="btnSave">Save</a>
+              <!-- <a href="#" class="btn btn-default btn-sm" id="btnSave">Apply</a> -->
+              <a href="#" class="btn btn-default btn-sm" id="btnReset">Reset</a>
+            </div>
+            <h4 class="pull-left">Available Customization</h4>
+          </div>
+          <!-- <div class="panel-body"> -->
+            <ul id="simpleList" class="list-group fixed-panel">
+              <li class="list-group-item pop" data-toggle="popover">
+                <label for="metricName">
+                  Name
+                </label>
+                <input class="form-control" id="metricName" />
+              </li>
+              <li class="list-group-item pop" data-toggle="popover">
+                <label for="metricName">
+                  Description
+                </label>
+                <input class="form-control" id="metricDescription" />
+              </li>
+              <li class="list-group-item"><label for="dataTypes">
+                  Data Type
+                </label>
+                <p>
+                  <div class="btn-group" data-toggle="buttons" id="dataTypes">
+                    <label class="btn btn-default active" id="dataTypeString">
+                      <input type="checkbox" checked> String
+                    </label>
+                    <label class="btn btn-default" id="dataTypeNumeric">
+                      <input type="checkbox"> Numeric
+                    </label>
+                    <label class="btn btn-default" id="dataTypeCategoric">
+                      <input type="checkbox"> Categoric
+                    </label>
+                    <label class="btn btn-default" id="dataTypeDateTime">
+                      <input type="checkbox"> Date/Time
+                    </label>
+                  </div>
+                </p></li>
+              <li class="list-group-item"><label for="name">Base Metric</label>
+                  <p>
+                    <div class="checkbox-inline" id="baseMetricsRadio">
+                    </div>
+<!--                     <div class="checkbox-inline">
+                      <label>
+                        <input type="radio" name="optionsRadios" id="basecompleteness1" 
+                           value="basecompleteness1"> Completeness 1
+                      </label>
+                    </div> -->
+                  </p></li>
+              <li class="list-group-item" id="addCheckButton"><label class="btn btn-default" id="addCheck">Add Check</label></li>
+            </ul>
+        </div>
       </div>
     </div>
     <!-- Table and Heatmap view -->
@@ -102,7 +161,7 @@
           <table class="table table-condensed table-hover" id="dataset">
           </table>
         </div>
-        <button type="button" id="clearSort">Reset Sorting</button>
+        <!-- <button type="button" id="clearSort">Reset Sorting</button> -->
       </div>
       <div class="col-md-5">
         <div id="heatmap"></div>
@@ -112,64 +171,6 @@
       <div class="col-md-7">
       </div>
       <div class="col-md-5">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            Available Customization
-          </div>
-          <!-- <div class="panel-body"> -->
-            <ul id="simpleList" class="list-group fixed-panel">
-              <li class="list-group-item pop" data-toggle="popover"><label for="metricName">
-                  Name
-                </label>
-                <input class="form-control" id="metricName" /></li>
-              <li class="list-group-item"><label for="dataTypes">
-                  Data Types allowed
-                </label>
-                <p>
-                  <div class="btn-group" data-toggle="buttons" id="dataTypes">
-                    <label class="btn btn-default active">
-                      <input type="checkbox" checked> String
-                    </label>
-                    <label class="btn btn-default">
-                      <input type="checkbox"> Numeric
-                    </label>
-                    <label class="btn btn-default">
-                      <input type="checkbox"> Categoric
-                    </label>
-                    <label class="btn btn-default">
-                      <input type="checkbox"> Date/Time
-                    </label>
-                  </div>
-                </p></li>
-              <li class="list-group-item"><label for="name">Example of Default Checkbox and radio button </label>
-                  <p>
-                    <div class="checkbox-inline">
-                      <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios1" 
-                           value="option1" checked> Option 1
-                      </label>
-                    </div>
-                    <div class="checkbox-inline">
-                      <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios2" 
-                           value="option2">
-                           Option 2
-                      </label>
-                    </div>
-                  </p></li>
-              <li class="list-group-item"><label for="exampleInputFile">
-                  File input
-                </label>
-                <input id="exampleInputFile" type="file" />
-                <p class="help-block">
-                  Example block-level help text here.
-                </p></li>
-              <li class="list-group-item">// metrics
-                <label>
-                  <input type="checkbox" /> Allow duplicates
-                </label></li>
-            </ul>
-        </div>
       </div>
     </div>
   </div>

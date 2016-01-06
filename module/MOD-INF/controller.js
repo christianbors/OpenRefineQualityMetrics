@@ -39,6 +39,7 @@ function init() {
   RS.registerCommand(module, "metricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
   RS.registerCommand(module, "evaluateMetrics", new Packages.com.google.refine.metricsExtension.commands.EvaluateMetricsCommand);
   RS.registerCommand(module, "get-metrics-overlay-model", new Packages.com.google.refine.metricsExtension.commands.GetMetricsOverlayModelCommand);
+  RS.registerCommand(module, "update-metric", new Packages.com.google.refine.metricsExtension.commands.UpdateMetricCommand);
 
   var OR = Packages.com.google.refine.operations.OperationRegistry;
   OR.registerOperation(module, "metricsExtension", Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation);

@@ -4,6 +4,9 @@ $(document).ready(function() {
   var dataSet = [];
   var columnStore = [];
   var colWidth = 50;
+  var selectedColName = "Altitude";
+  var selectedMetricIndex = 0;
+  var selectedBaseMetric;
 
   URL.getParameters = function () {
     var r = {};
@@ -120,13 +123,38 @@ $(document).ready(function() {
                 }
 
                 $.getJSON(
-                  "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), null,
+                  "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), 
+                  null,
                   function(data) {
                     var overlayModel = data;
                     var margin = 20;
 
                     $.each(data.availableMetrics, function(index, value) {
                       $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
+                    });
+
+                    $.each(data.availableMetrics, function(index, value) {
+                      $('#baseMetricsRadio').append("<label><input type='radio' name='optionsRadios' id='base"+value+ 
+                        "' value='"+value+"'> " + capitalizeFirstLetter(value) + "</label>");
+                    });
+                    $("input:radio[name=optionsRadios]").click(function() {
+                      selectedBaseMetric = $(this).attr("value");
+                    });
+
+                    $("#recalculate").on("click", function(d) {
+                      // recalculate
+                      // Refine.postProcess('metric-doc', 'evaluateMetrics', {}, {}, {}, {});
+                      $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
+                      function(data) {
+                        window.location.reload(false);
+                      }, "json");
+                    });
+
+                    $("#addCheck").on("click", function(d) {
+                      var i = $(".metricCheck").length + 1;
+                      var checkName = "Check " + i;
+                      $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
+                      + checkName + "</label><input class='form-control' id='eval"+(i)+"'/></li>").insertBefore("#addCheckButton");
                     });
 
                     var datatablesHeader = $(".dataTables_scrollHead").height();
@@ -173,14 +201,14 @@ $(document).ready(function() {
 
                     var metricData = data.metricColumns.filter(function(d) {
                       if (d != null) {
-                        return d.columnName == "km/h";
+                        return d.columnName == selectedColName;
                       }
-                    })[0].metrics[0];
+                    })[0].metrics[selectedMetricIndex];
 
                     // heatmap drawing
-                    var marginHeatmap = {top: datatablesHeader, right: 50, bottom: 100, left: 50};
-                    var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left,
-                        height = $(".dataTables_scrollBody").height()
+                    var marginHeatmap = {top: datatablesHeader, right: 0, bottom: 50, left: 50};
+                    var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
+                        height = $(".dataTables_scrollBody").height();
                         // height = rawDataHeight - marginHeatmap.top;
                     
                     var xScale = d3.scale.linear()
@@ -311,6 +339,44 @@ $(document).ready(function() {
                     // d3.select(window).on('resize', resize);
 
                     $('#dataset').dataTable().fnDraw();
+
+                    refillEditForm(metricData, selectedColName, selectedMetricIndex);
+                    if (metricData.evaluables.length > 0) {
+                      var metric = metricData.evaluables[0];
+                      selectedBaseMetric = metric.substr(0, metric.indexOf("("));
+                    }
+
+                    $("#btnReset").click(function() {
+                      refillEditForm(metricData, selectedColName, selectedMetricIndex);
+                    });
+
+                    $("#btnSave").click(function() {
+                      metricData.name = $("#metricName").val();
+                      metricData.description = $("#metricDescription").val();
+                      // var checks = $("#metricCheck");
+                      metricData.evaluables = [];
+                      metricData.evaluables.push(selectedBaseMetric + "(value)");
+                      for (var i = 0; i < $(".metricCheck").length; ++i) {
+                        metricData.evaluables.push($("#eval" + (i+1)).val());
+                      }
+                      $.post("../../command/metric-doc/update-metric?" + $.param(
+                          { 
+                            metricName: metricData.name, 
+                            column: selectedColName,
+                            metricIndex: selectedMetricIndex,
+                            metricDatatype: metricData.datatype,
+                            metricDescription: metricData.description,
+                            metricEvaluables: metricData.evaluables,
+                            project: theProject.id 
+                          }) + "&callback=?",
+                        {},
+                        {},
+                        function(response) {
+                          console.log("success");
+                        }, 
+                        "jsonp"
+                      );
+                    });
                   }, 
                   'json'
                 );
@@ -326,80 +392,53 @@ $(document).ready(function() {
   );
 
   Sortable.create(simpleList, { /* options */ });
+});
 
-  $("[data-toggle=popover]").popover({
-    html: 'true',
-    trigger: 'manual',
-    placement: 'auto left',
-    animation: 'false',
-    content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger">remove</button><button type="button" class="btn btn-warning">edit</button></div>'
-    // content:'<span class="label label-warning">Warning</span><span class="label label-danger">Danger</span>'
-  }).on("mouseenter", function () {
-    var _this = this;
-    $(this).popover("show");
-    $(".popover").on("mouseleave", function () {
-        $(_this).popover('hide');
-    });
-  }).on("mouseleave", function () {
-    var _this = this;
-    setTimeout(function () {
-        if (!$(".popover:hover").length) {
-            $(_this).popover("hide");
-        }
-    }, 300);
-  });
-/*
-  $.getJSON("../../command/core/get-columns-info?" + $.param({ project: theProject.id }),function(data) {
-    for (var col = 0; col < data.length; col++) {
-      var column = data[col];
-      columns[col] = {"title": column.name};
-    }
 
-    var dataCols = dataSet[0];
+function refillEditForm(d, colName, metricIndex) {
+  $("#metricName").val(d.name);
+  $("#metricDescription").val(d.description);
 
-    if(dataCols) {
-      if(dataCols.length == columns.length) {
-        $('#dataset').dataTable( {
-          "data": dataSet,
-          "columns": columns
-        } );
-      }
-    }
-
-    //load column names into the modal
-    for(var col = 0; col < columns.length; col++) {
-      var colName = columns[col];
-      $("<option />")
-     .attr("value", colName.title)
-     .attr("label", colName.title)
-     .appendTo("#columnFormMetricModal");
-    }
-  }); */
-} );
-
-function showMetric() {
-  params = { "column_name": "ID",
-    project: 2421247403318
-  };
-  body = {};
-  updateOptions = {};
-  callbacks = {
-    "onDone": function(response) {
-      doStatsDialog(response);
-    }
+  $(".metricCheck").remove();
+  
+  if (d.datatype.indexOf("numeric") > -1) {
+    $("#dataTypeNumeric").addClass('active');
+  } else {
+    $("#dataTypeNumeric").removeClass('active');
+  }
+  if (d.datatype.indexOf("string") > -1) {
+    $("#dataTypeString").addClass('active');
+  } else {
+    $("#dataTypeString").removeClass('active');
+  }
+  if (d.datatype.indexOf("datetime") > -1) {
+    $("#dataTypeDateTime").addClass('active');
+  } else {
+    $("#dataTypeDateTime").removeClass('active');
+  }
+  if (d.datatype.indexOf("categoric") > -1) {
+    $("#dataTypeCategoric").addClass('active');
+  } else {
+    $("#dataTypeCategoric").removeClass('active');
   }
 
-  $.post("../../command/metric-doc/completeness", params, function(response) {
-    var dialog = $(DOM.loadHTML("metric-doc", "../../scripts/completeness.html"));
+  if (d.evaluables.length > 0) {
+    var metric = d.evaluables[0];
+    metric = metric.substr(0, metric.indexOf("("));
+    $("#base" + metric).prop("checked", true);
+    selectedBaseMetric = metric;
+  }
+  if (d.evaluables.length > 1) {
+    for (var i = 1; i < d.evaluables.length; i++) {
+      var checkName = "Check " + i;
+      // insertBefore("addCheckButton")
+      $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
+       + checkName + "</label><input class='form-control' id='eval"+(i)+"'/></li>").insertBefore("#addCheckButton");
+      $("#eval" + i).val(d.evaluables[i]);
+    }
+  }
+}
 
-    var elmts = DOM.bind(dialog);
-    elmts.dialogHeader.text("Metrics for column \"" + params.column_name + "\"");
-
-    if (response["measure"]) { elmts.dialogCompleteness.text(response["measure"]) };
-
-    // var level = DialogSystem.showDialog(dialog);
-    // elmts.okButton.click(function() {
-    //   DialogSystem.dismissUntil(level - 1);
-    // });
-  });
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }

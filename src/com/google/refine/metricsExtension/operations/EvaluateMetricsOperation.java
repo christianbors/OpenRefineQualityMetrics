@@ -117,10 +117,10 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 
 				@Override
 				public boolean visit(Project project, int rowIndex, Row row) {
-					for (String columnName : model.getMetricsColumns()) {
+					for (String columnName : model.getMetricColumnNames()) {
 						int colIndex = project.columnModel.getColumnIndexByName(columnName);
 						Cell c = row.cells.get(colIndex);
-						List<Metric> metrics = model.getMetrics(columnName);
+						List<Metric> metrics = model.getMetricsForColumn(columnName);
 						
 						ExpressionUtils.bind(bindings, row, rowIndex, columnName, c);
 	
@@ -156,8 +156,8 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 
 				@Override
 				public void end(Project project) {
-					for (String columnName : model.getMetricsColumns()) {
-						for (Metric m : model.getMetrics(columnName)) {
+					for (String columnName : model.getMetricColumnNames()) {
+						for (Metric m : model.getMetricsForColumn(columnName)) {
 							float q = MetricUtils.determineQuality(bindings, m);
 							m.setMeasure(q);
 						}
