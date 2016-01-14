@@ -158,7 +158,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				public void end(Project project) {
 					for (String columnName : model.getMetricColumnNames()) {
 						for (Metric m : model.getMetricsForColumn(columnName)) {
-							float q = MetricUtils.determineQuality(bindings, m);
+							float q = 1f - MetricUtils.determineQuality(bindings, m);
 							m.setMeasure(q);
 						}
 						

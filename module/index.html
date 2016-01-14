@@ -98,13 +98,11 @@
       <div class="col-md-5">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
-            <div class="btn-group pull-right">
-              <a href="#" class="btn btn-default btn-sm" id="btnSave">Save</a>
-              <!-- <a href="#" class="btn btn-default btn-sm" id="btnSave">Apply</a> -->
-              <a href="#" class="btn btn-default btn-sm" id="btnReset">Reset</a>
-            </div>
-            <h4 class="pull-left">Available Customization</h4>
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+              <b>Metric Details</b>
+            </a>
           </div>
+          <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
           <!-- <div class="panel-body"> -->
             <ul id="simpleList" class="list-group fixed-panel">
               <li class="list-group-item pop" data-toggle="popover">
@@ -119,7 +117,7 @@
                 </label>
                 <input class="form-control" id="metricDescription" />
               </li>
-              <li class="list-group-item"><label for="dataTypes">
+<!--               <li class="list-group-item"><label for="dataTypes">
                   Data Type
                 </label>
                 <p>
@@ -137,20 +135,16 @@
                       <input type="checkbox"> Date/Time
                     </label>
                   </div>
-                </p></li>
-              <li class="list-group-item"><label for="name">Base Metric</label>
-                  <p>
-                    <div class="checkbox-inline" id="baseMetricsRadio">
-                    </div>
-<!--                     <div class="checkbox-inline">
-                      <label>
-                        <input type="radio" name="optionsRadios" id="basecompleteness1" 
-                           value="basecompleteness1"> Completeness 1
-                      </label>
-                    </div> -->
-                  </p></li>
+                </p></li> -->
               <li class="list-group-item" id="addCheckButton"><label class="btn btn-default" id="addCheck">Add Check</label></li>
             </ul>
+            <div class="panel-footer clearfix">
+              <div class="btn-group pull-right">
+                <a href="#" class="btn btn-default btn-sm" id="btnReset">Cancel</a>
+                <a href="#" class="btn btn-default btn-sm" id="btnSave">Save</a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -164,6 +158,7 @@
         <!-- <button type="button" id="clearSort">Reset Sorting</button> -->
       </div>
       <div class="col-md-5">
+        <h4 id="detailViewHeader"></h4>
         <div id="heatmap"></div>
       </div>
     </div>
