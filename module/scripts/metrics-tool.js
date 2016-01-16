@@ -111,18 +111,14 @@ $(document).ready(function() {
 
                 var dataCols = dataSet[0];
 
-                if(columnStore) {
-                  if(dataCols.length == columnStore.length) {
-                    $('#dataset').dataTable( {
-                      "data": dataSet,
-                      "columns": columnStore,
-                      "scrollY": "400px",
-                      "scrollCollapse": true,
-                      "paging": false,
-                      "dom": 'rt<"bottom"iflp><"clear">'
-                    } );
-                  }
-                }
+                $('#dataset').dataTable( {
+                  "data": dataSet,
+                  "columns": columnStore,
+                  "scrollY": "500px",
+                  "scrollCollapse": true,
+                  "paging": true,
+                  "dom": 'rt<"bottom"ip><"clear">'
+                });
 
                 $.getJSON(
                   "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), 
@@ -226,6 +222,7 @@ $(document).ready(function() {
 
                     redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel);
 
+                    drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel);
                     //todo: edit when selecting other metric
                     
                     // function resize() {
@@ -447,6 +444,125 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
     });
     d3.select(this.parentNode).style("fill", "transparent");
   });
+}
+
+function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel) {
+  var tablePos = $(".dataTables_scrollBody").position();
+  $("#overlay").css({top: tablePos.top, 
+    left: tablePos.left,
+    position:'absolute', 
+    width: $(".dataTables_scrollBody").width(), 
+    height: $(".dataTables_scrollBody").height()
+  });
+
+  var colWidths = [];
+  $.each($("#dataset > thead > tr > th"), function(i, header) {
+    colWidths.push(header.scrollWidth);
+  });
+
+  //this determines the width offset of the overlay
+  colWidths[0] = colWidths[0] - 12;
+  for(var i = 1; i < colWidths.length; i++) {
+    colWidths[i] = colWidths[i] + colWidths[i-1];
+  };
+
+  var overlayX = d3.scale.ordinal().range(colWidths);
+
+  // console.log(overlayX.range());
+  // console.log(overlayX.domain());
+
+  var overlayY = d3.scale.linear()
+    .domain([rowModel.filtered, 0])
+    .rangeRound([$(".dataTables_scrollBody").height(), 0]);
+
+  var z = d3.scale.linear()
+    .domain([0, 1])
+    .range(["white", "steelblue"])
+    .interpolate(d3.interpolateRgb);
+
+  var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
+    .data(overlayModel.metricColumns)
+    .enter().append("g")
+    .attr("class", "metrics-overlay")
+    .attr("transform", function (d, i) {
+      return "translate(" + colWidths[i] + ",0)";
+    });
+
+  var cols = overlay.selectAll(".metrics-overlay-col")
+    .data(function(d) {
+      if (d != null) {
+        return d.metrics;
+      } else {
+        return [];
+      }
+    })
+    .enter().append("g")
+    .attr("class", "metrics-overlay-col");
+
+  overlay;
+
+  var bins = cols.selectAll(".metrics-bin")
+    .data(function(d) { return d.dirtyIndices; })
+    .enter().append("rect")
+    .attr("class", "metrics-bin");
+
+  /*
+  .attr("x", function (d, i) {
+      var col = this.parentNode.parentNode;
+      var currentCol = columnStore.filter(function(column) {
+        return col.__data__.columnName == column.title;
+      })[0];
+      return overlayX(columnStore.indexOf(currentCol)); 
+    })
+  */
+  bins
+    .attr("width", function (d, i) {
+      return  12; 
+    })
+    .style("fill", function(d) {
+      return z(1);
+    });
+
+  bins.each(function (d) {
+    var ys = d3.select(this)
+      .attr("y", overlayY(d.index))
+      .attr("height", 1);
+  });
+
+  bins.on("click", function(d) {
+    console.log(d.index);
+    $.post(
+      "../../command/core/get-rows?" + $.param({ project: theProject.id, start: d.index, limit: 500 }) + "&callback=?",
+      [],
+      function(data) {
+        var dataSet = [];
+        for (var r = 0; r < data.rows.length; r++) {
+          var row = data.rows[r];
+          var rowValues = [];
+          for (var c = 0; c < theProject.columnModel.columns.length; c++) {
+            var cell = row.cells[c];
+            if (cell != null) {
+              rowValues.push(cell.v);
+            } else {
+              rowValues.push('');
+            }
+          }
+          dataSet.push(rowValues);
+        }
+        var dataTable = $('#dataset').dataTable();
+        dataTable.fnClearTable();
+        dataTable.fnAddData(dataSet);
+      },
+      "jsonp"
+    );
+  });
+  // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
+  // var svg = headers.insert("svg", "#dataset")
+  //   .attr("class", "overlay")
+  //   .attr("width", $(".dataTables_scrollBody").width())
+  //   .attr("height", $(".dataTables_scrollBody").height())
+  //   .attr("top", tablePos.top)
+  //   .attr("left", tablePos.left);
 }
 
 function refillEditForm(d, colName, metricIndex) {
