@@ -20,6 +20,7 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.history.Change;
 import com.google.refine.history.HistoryEntry;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsColumn;
@@ -61,7 +62,11 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 	@Override
 	protected HistoryEntry createHistoryEntry(Project project,
 			long historyEntryID) throws Exception {
-		return super.createHistoryEntry(project, historyEntryID);
+		Change metricsProjectChange = new MetricsProjectChange(model);
+
+		return new HistoryEntry(historyEntryID, project,
+				getBriefDescription(project), this,
+				metricsProjectChange);
 	}
 
 	@Override
@@ -161,11 +166,11 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 							float q = 1f - MetricUtils.determineQuality(bindings, m);
 							m.setMeasure(q);
 						}
-						
 					}
 				}
 			}.init(bindings, model));
             project.processManager.onDoneProcess(this);
+            project.setLastSave();
 		}
 
 		@Override
