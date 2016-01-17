@@ -16,6 +16,7 @@ import org.json.JSONWriter;
 import com.google.refine.browsing.Engine;
 import com.google.refine.browsing.FilteredRows;
 import com.google.refine.browsing.RowVisitor;
+import com.google.refine.expr.EvalError;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.expr.MetaParser;
@@ -136,11 +137,14 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 							for (String eval : m.getEvaluables()) {
 								boolean evalResult;
 								try {
-									evalResult = (Boolean) MetaParser.parse(eval).evaluate(bindings);
-									if (!evalResult) {
-										entryDirty = true;
+									Object evaluation = MetaParser.parse(eval).evaluate(bindings);
+									if (evaluation.getClass() != EvalError.class) {
+										evalResult = (Boolean) evaluation;
+										if (!evalResult) {
+											entryDirty = true;
+										}
+										evalResults.add(evalResult);
 									}
-									evalResults.add(evalResult);
 								} catch (ParsingException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();

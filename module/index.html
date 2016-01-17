@@ -98,24 +98,36 @@
       <div class="col-md-5">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
-            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
               <b>Metric Details</b>
             </a>
           </div>
-          <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div id="collapseDetails" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
           <!-- <div class="panel-body"> -->
             <ul id="simpleList" class="list-group fixed-panel">
-              <li class="list-group-item pop" data-toggle="popover">
+              <li class="list-group-item">
                 <label for="metricName">
                   Name
                 </label>
                 <input class="form-control" id="metricName" />
               </li>
-              <li class="list-group-item pop" data-toggle="popover">
+              <li class="list-group-item">
                 <label for="metricName">
                   Description
                 </label>
                 <input class="form-control" id="metricDescription" />
+              </li>
+            </ul>
+          </div>
+          <div class="panel-heading clearfix">
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseChecks" aria-expanded="false" aria-controls="collapseChecks">
+              <b>Checks</b>
+            </a>
+          </div>
+          <div id="collapseChecks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+            <ul id="checksList" class="list-group fixed-panel">
+              <li class="input-group">
+                
               </li>
 <!--               <li class="list-group-item"><label for="dataTypes">
                   Data Type

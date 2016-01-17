@@ -6,7 +6,6 @@ $(document).ready(function() {
   var colWidth = 50;
   var selectedColName = "Altitude";
   var selectedMetricIndex = 0;
-  var selectedBaseMetric;
   var selectedOverviewRect;
   var metricData;
 
@@ -56,9 +55,11 @@ $(document).ready(function() {
             overviewTable.insert('thead','tbody')
                 .append('tr')
                 .selectAll('th')
-                .data(columnStore).enter()
+                .data(columns).enter()
                 .append('th')
-                .text(function(col) { return col.title; });
+                .text(function(col) { 
+                  return col.name; 
+                });
             overviewTable.append('tbody');
 
             var dataCols = dataSet[0];
@@ -95,19 +96,27 @@ $(document).ready(function() {
                 var rowModel = data;
 
                 // Un-pool objects
+                var columns = theProject.columnModel.columns;
                 for (var r = 0; r < data.rows.length; r++) {
                   var row = data.rows[r];
                   var rowValues = [];
-                  for (var c = 0; c < theProject.columnModel.columns.length; c++) {
-                    var cell = row.cells[c];
-                    if (cell != null) {
-                      rowValues.push(cell.v);
-                    } else {
-                      rowValues.push('');
+                  $.each(columns, function(index, value) {
+                    if (value != null) {
+                      var cell = row.cells[value.cellIndex]
+                      if (cell != null) {
+                        rowValues.push(cell.v);
+                      } else {
+                        rowValues.push('');
+                      }
                     }
-                  }
+                  });
                   dataSet.push(rowValues);
                 }
+
+                columnStore = [];
+                $.each(columns, function(index, value) {
+                  columnStore[index] = {"title": value.name};
+                });
 
                 var dataCols = dataSet[0];
 
@@ -131,10 +140,6 @@ $(document).ready(function() {
                       $('#metricNames > tbody:last-child').append("<tr><td>" + value + "</td></tr>")
                     });
 
-                    $("input:radio[name=optionsRadios]").click(function() {
-                      selectedBaseMetric = $(this).attr("value");
-                    });
-
                     $("#recalculate").on("click", function(d) {
                       // recalculate
                       // Refine.postProcess('metric-doc', 'evaluateMetrics', {}, {}, {}, {});
@@ -146,9 +151,8 @@ $(document).ready(function() {
 
                     $("#addCheck").on("click", function(d) {
                       var i = $(".metricCheck").length + 1;
-                      var checkName = "Check " + i;
                       $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
-                      + checkName + "</label><input class='form-control' id='eval"+(i)+"'/></li>").insertBefore("#addCheckButton");
+                      + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
                     });
 
                     var datatablesHeader = $(".dataTables_scrollHead").height();
@@ -166,7 +170,9 @@ $(document).ready(function() {
                     var sortedMetrics = new Array();
                     for(var idx = 0; idx < theProject.columnModel.columns.length; idx++) {
                       var foundColumn = overlayModel.metricColumns.filter(function(col) {
-                        return col.columnName == columnStore[idx].title;
+                        if (columnStore[idx] != null) {
+                          return col.columnName == columnStore[idx].title;
+                        }
                       })[0];
                       if (foundColumn != null) {
                         sortedMetrics[idx] = foundColumn;
@@ -209,53 +215,24 @@ $(document).ready(function() {
                           return d.columnName == selectedColName;
                         }
                       })[0].metrics[selectedMetricIndex];
+                      refillEditForm(metricData, selectedColName, selectedMetricIndex);
                       redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel);
                     });
 
                     $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
 
-                    metricData = overlayModel.metricColumns.filter(function(d) {
-                      if (d != null) {
-                        return d.columnName == selectedColName;
-                      }
-                    })[0].metrics[selectedMetricIndex];
+                    // metricData = overlayModel.metricColumns.filter(function(d) {
+                    //   if (d != null) {
+                    //     return d.columnName == selectedColName;
+                    //   }
+                    // })[0].metrics[selectedMetricIndex];
 
-                    redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel);
+                    // redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel);
 
                     drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel);
                     //todo: edit when selecting other metric
-                    
-                    // function resize() {
-                    //   var margin = 20
-                    //       width = parseInt(d3.select("#heatmap").style("width")) - margin*2,
-                    //       height = rawDataHeight - margin*2;
-
-                      /* Update the range of the scale with new width/height */
-                      // xScale.range([0, width]).nice(d3.time.year);
-                      // yScale.range([height, 0]).nice();
-
-                      /* Update the axis with the new scale */
-                      // svg.select('.x.axis')
-                      //     .attr("transform", "translate(0," + height + ")")
-                      //     .call(xAxis);
-
-                      // svg.select('.y.axis')
-                      //     .call(yAxis);
-
-                      /* Force D3 to recalculate and update the line */
-                    //   svg.selectAll(".bin")
-                    //       .attr("d", bins);
-                    // }
-
-                    // d3.select(window).on('resize', resize);
 
                     $('#dataset').dataTable().fnDraw();
-
-                    refillEditForm(metricData, selectedColName, selectedMetricIndex);
-                    if (metricData.evaluables.length > 0) {
-                      var metric = metricData.evaluables[0];
-                      selectedBaseMetric = metric.substr(0, metric.indexOf("("));
-                    }
 
                     $("#btnReset").click(function() {
                       refillEditForm(metricData, selectedColName, selectedMetricIndex);
@@ -266,7 +243,7 @@ $(document).ready(function() {
                       metricData.description = $("#metricDescription").val();
                       // var checks = $("#metricCheck");
                       metricData.evaluables = [];
-                      metricData.evaluables.push(selectedBaseMetric + "(value)");
+                      metricData.evaluables.push(metricData.name + "(value)");
                       for (var i = 0; i < $(".metricCheck").length; ++i) {
                         metricData.evaluables.push($("#eval" + (i+1)).val());
                       }
@@ -302,7 +279,7 @@ $(document).ready(function() {
     'json'
   );
 
-  Sortable.create(simpleList, { /* options */ });
+  Sortable.create(checksList, { /* options */ });
 });
 
 function redrawDetailView(theProject, metricData, datatableHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel) {
@@ -316,6 +293,8 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
       height = $(".dataTables_scrollBody").height();
       // height = rawDataHeight - marginHeatmap.top;
   
+  if (width > (metricData.evaluables.length*100)) width = metricData.evaluables.length*100;
+
   var xScale = d3.scale.linear()
     .domain([0, metricData.evaluables.length])
     .range([0, width]);
@@ -356,94 +335,97 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
     .append("g")
     .attr("transform", "translate(" + marginHeatmap.left + "," + marginHeatmap.top + ")");
   
-  var metricDetail = svg.selectAll(".metric-detail-row")
-    .data(metricData.dirtyIndices)
-    .enter( ).append("g")
-    .attr("class", "metric-detail-row");
+  if (metricData.dirtyIndices != null) {
 
-  var bins = metricDetail.selectAll(".bin")
-      .data(function (d) { return d.dirty; })
-      .enter( ).append("rect")
-      .attr("class", "bin");
+    var metricDetail = svg.selectAll(".metric-detail-row")
+      .data(metricData.dirtyIndices)
+      .enter( ).append("g")
+      .attr("class", "metric-detail-row");
 
-  bins.attr("x", function (d, i) { 
-      return x(i); 
-    })
-    .attr("width", function (d, i) { 
-      return  x(i+1) - x(i); 
-    })
-    .style("fill", function(d) {
-      if (d == true) {
-        return z(0);
-      } else {
-        return z(1);
-      }
-      
-    });
+    var bins = metricDetail.selectAll(".bin")
+        .data(function (d) { return d.dirty; })
+        .enter( ).append("rect")
+        .attr("class", "bin");
 
-  metricDetail.each(function (d) {
-    var ys = d3.select(this).selectAll(".bin")
-      .attr("y", y(d.index) )
-      .attr("height", 1);
-  });
-
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + (height) + ")")
-    .call(xAxis)
-  .selectAll(".tick text")
-    .style("text-anchor", "start")
-    .attr("x", 6)
-    .attr("y", 6);
-
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
-
-  metricDetail.on("click", function(d) {
-    console.log(d.index);
-    $.post(
-      "../../command/core/get-rows?" + $.param({ project: theProject.id, start: d.index, limit: 500 }) + "&callback=?",
-      [],
-      function(data) {
-        var dataSet = [];
-        for (var r = 0; r < data.rows.length; r++) {
-          var row = data.rows[r];
-          var rowValues = [];
-          for (var c = 0; c < theProject.columnModel.columns.length; c++) {
-            var cell = row.cells[c];
-            if (cell != null) {
-              rowValues.push(cell.v);
-            } else {
-              rowValues.push('');
-            }
-          }
-          dataSet.push(rowValues);
+    bins.attr("x", function (d, i) { 
+        return x(i); 
+      })
+      .attr("width", function (d, i) { 
+        return  x(i+1) - x(i); 
+      })
+      .style("fill", function(d) {
+        if (d == true) {
+          return z(0);
+        } else {
+          return z(1);
         }
-        var dataTable = $('#dataset').dataTable();
-        dataTable.fnClearTable();
-        dataTable.fnAddData(dataSet);
-      },
-      "jsonp"
-    );
-  });
+        
+      });
 
-  bins.on("mouseover", function(d) {
-    d3.select(this).style("fill", "red");
-    d3.select(this.parentNode).style("fill", "black");
-  });
-
-  bins.on("mouseout", function(d) {
-    d3.select(this).style("fill", function(d) {
-      if (d == true) {
-        return z(0);
-      } else {
-        return z(1);
-      }
-      
+    metricDetail.each(function (d) {
+      var ys = d3.select(this).selectAll(".bin")
+        .attr("y", y(d.index) )
+        .attr("height", 1);
     });
-    d3.select(this.parentNode).style("fill", "transparent");
-  });
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (height) + ")")
+      .call(xAxis)
+    .selectAll(".tick text")
+      .style("text-anchor", "start")
+      .attr("x", 6)
+      .attr("y", 6);
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+
+    metricDetail.on("click", function(d) {
+      console.log(d.index);
+      $.post(
+        "../../command/core/get-rows?" + $.param({ project: theProject.id, start: d.index, limit: 500 }) + "&callback=?",
+        [],
+        function(data) {
+          var dataSet = [];
+          for (var r = 0; r < data.rows.length; r++) {
+            var row = data.rows[r];
+            var rowValues = [];
+            for (var c = 0; c < theProject.columnModel.columns.length; c++) {
+              var cell = row.cells[c];
+              if (cell != null) {
+                rowValues.push(cell.v);
+              } else {
+                rowValues.push('');
+              }
+            }
+            dataSet.push(rowValues);
+          }
+          var dataTable = $('#dataset').dataTable();
+          dataTable.fnClearTable();
+          dataTable.fnAddData(dataSet);
+        },
+        "jsonp"
+      );
+    });
+
+    bins.on("mouseover", function(d) {
+      d3.select(this).style("fill", "red");
+      d3.select(this.parentNode).style("fill", "black");
+    });
+
+    bins.on("mouseout", function(d) {
+      d3.select(this).style("fill", function(d) {
+        if (d == true) {
+          return z(0);
+        } else {
+          return z(1);
+        }
+        
+      });
+      d3.select(this.parentNode).style("fill", "transparent");
+    });
+  }
 }
 
 function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel) {
@@ -499,10 +481,13 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     .enter().append("g")
     .attr("class", "metrics-overlay-col");
 
-  overlay;
-
-  var bins = cols.selectAll(".metrics-bin")
-    .data(function(d) { return d.dirtyIndices; })
+  var bins = cols.selectAll(".metrics-bin").data(function(d) {
+      if (d.dirtyIndices != null) {
+        return d.dirtyIndices; 
+      } else {
+        return [];
+      }
+    })
     .enter().append("rect")
     .attr("class", "metrics-bin");
 
@@ -596,16 +581,16 @@ function refillEditForm(d, colName, metricIndex) {
     var metric = d.evaluables[0];
     metric = metric.substr(0, metric.indexOf("("));
     $("#base" + metric).prop("checked", true);
-    selectedBaseMetric = metric;
   }
   if (d.evaluables.length > 1) {
     for (var i = 1; i < d.evaluables.length; i++) {
-      var checkName = "Check " + i;
-      // insertBefore("addCheckButton")
       $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
-       + checkName + "</label><input class='form-control' id='eval"+(i)+"'/></li>").insertBefore("#addCheckButton");
+        + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
       $("#eval" + i).val(d.evaluables[i]);
     }
+    $(".remove-btn").click(function() {
+      this.parentNode.remove();
+    });
   }
 }
 
