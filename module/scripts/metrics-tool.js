@@ -60,7 +60,6 @@ $(document).ready(function() {
                 .text(function(col) { 
                   return col.name; 
                 });
-            overviewTable.append('tbody');
 
             var dataCols = dataSet[0];
 
@@ -182,7 +181,7 @@ $(document).ready(function() {
                     }
                     overlayModel.metricColumns = sortedMetrics;
 
-                    var tr = d3.select("#overviewTable").select("tbody").data(overlayModel.availableMetrics).append("tr");
+                    var tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
                     var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
 
                     td.append("svg")
@@ -205,11 +204,12 @@ $(document).ready(function() {
                         selectedOverviewRect.style("stroke-width", 0)
                           .style("stroke", "transparent");
                       }
+                      var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
                       selectedOverviewRect = d3.select(this)
                         .style("stroke-width", 2)
                         .style("stroke", "black");
                       selectedColName = d.columnName;
-                      selectedMetricIndex = overlayModel.availableMetrics.indexOf(d.metrics[0].name);
+                      selectedMetricIndex = overlayModel.availableMetrics.indexOf(d.metrics[rowIndex].name);
                       metricData = overlayModel.metricColumns.filter(function(d) {
                         if (d != null) {
                           return d.columnName == selectedColName;
