@@ -256,9 +256,9 @@ $(document).ready(function() {
                       // var checks = $("#metricCheck");
                       var baseMetric = metricData.evaluables[0];
                       metricData.evaluables = [];
-                      metricData.evaluables.push(baseMetric);
+                      // metricData.evaluables.push(baseMetric);
                       for (var i = 0; i < $(".metricCheck").length; ++i) {
-                        metricData.evaluables.push($("#eval" + (i+1)).val());
+                        metricData.evaluables.push($("#eval" + (i)).val());
                       }
                       $.post("../../command/metric-doc/update-metric?" + $.param(
                           { 
@@ -614,6 +614,7 @@ function refillEditForm(d, colName, metricIndex) {
   $("#metricDescription").text(d.description);
 
   $(".metricCheck").remove();
+  $("#typeDetail").remove();
   
   if (d.datatype.indexOf("numeric") > -1) {
     $("#dataTypeNumeric").addClass('active');
@@ -636,13 +637,45 @@ function refillEditForm(d, colName, metricIndex) {
     $("#dataTypeCategoric").removeClass('active');
   }
 
+  if (d.name == "validity") {
+    $("#simpleList").append("<li class='list-group-item' id='typeDetail'><label>Detected Data Types (Placeholder)</label><table><tbody /></table></li>");
+    var dataTypes = [{type: "String", val: 20}, {type: "Numeric", val: 70}, {type: "Date/Time", val: 3}, {type: "unknown", val: 7}];
+    var tr = d3.select("#typeDetail").select("tbody").selectAll("tr")
+      .data(dataTypes)
+      .enter()
+      .append("tr");
+    tr.append("td")
+      .text(function(d) {
+        return d.type;
+      });
+    tr.append("td")
+      .append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+      .append("rect")
+      .attr("width", function(d) {
+        return (d.val/100)*71;
+      })
+      .attr("height", 12)
+      .style("fill", "steelblue");
+    // var types = d3.select("#typeDetail").append("div")
+    //   .append("g")
+    //   .selectAll("text")
+    //   .data(dataTypes)
+    //   .enter()
+    //   .append("text")
+    //   .text(function(data) { 
+    //     return data.type; 
+    //   });
+    }
+
   if (d.evaluables.length > 0) {
     var metric = d.evaluables[0];
     metric = metric.substr(0, metric.indexOf("("));
     $("#base" + metric).prop("checked", true);
   }
-  if (d.evaluables.length > 1) {
-    for (var i = 1; i < d.evaluables.length; i++) {
+  if (d.evaluables.length > 0) {
+    for (var i = 0; i < d.evaluables.length; i++) {
       $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
         + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
       $("#eval" + i).val(d.evaluables[i]);
