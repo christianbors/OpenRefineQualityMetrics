@@ -35,7 +35,7 @@ public class Validity implements Function {
 				return o1 instanceof Date;
 			}
 		}
-		return null;
+		return false;
 	}
 
 }

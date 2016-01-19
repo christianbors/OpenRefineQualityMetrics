@@ -35,7 +35,7 @@ body {
 
 .fixed-panel {
     width: 100%;
-    min-height: 150px;
+    min-height: 75px;
     max-height: 200px;
     overflow-y: scroll;
 }
@@ -62,10 +62,6 @@ tbody tr:first-child td {
 
 tbody td {
   padding: 0;
-}
-
-tbody rect {
-  fill: steelblue;
 }
 
 svg .g:hover rect {
