@@ -15,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
@@ -65,6 +66,8 @@ public class MetricsExtensionCommand extends Command {
 			
 			AbstractOperation op = new MetricsExtensionOperation(overlayModel);
 			Process process = op.createProcess(project, new Properties());
+			
+			ProjectManager.singleton.ensureProjectSaved(project.id);
 			
 			performProcessAndRespond(request, response, project, process);
 		} catch (Exception e) {

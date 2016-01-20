@@ -122,7 +122,7 @@ $(document).ready(function() {
                 $('#dataset').dataTable( {
                   "data": dataSet,
                   "columns": columnStore,
-                  "scrollY": "600px",
+                  "scrollY": "600",
                   "scrollCollapse": true,
                   "paging": true,
                   "dom": 'rt<"bottom"ip><"clear">'
@@ -148,8 +148,14 @@ $(document).ready(function() {
                       }, "json");
                     });
 
+                    $("#persist").on("click", function(d) {
+                      $.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }), null, 
+                        function(data) {}, 
+                        "json");
+                    })
+
                     $("#addCheck").on("click", function(d) {
-                      var i = $(".metricCheck").length + 1;
+                      var i = $(".metricCheck").length;
                       $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
                       + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
                     });

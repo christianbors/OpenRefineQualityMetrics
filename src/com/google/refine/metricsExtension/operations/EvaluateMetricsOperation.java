@@ -174,7 +174,6 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				}
 			}.init(bindings, model));
             project.processManager.onDoneProcess(this);
-            project.setLastSave();
 		}
 
 		@Override

@@ -68,7 +68,6 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
         baseColumnName: column.name,
         metricName: metricName,
         metricFunction: metricFunction,
-        metricsOverlayModel: overlayModel || {}
       },
       body,
       updateOptions,
@@ -83,10 +82,10 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     {},
     {
       id: "metric-doc/metricsOverlayModel",
-      label: "Add Metrics Functionality",
+      label: "Add Metrics",
       click: prepMetricsDialog
     }
     ]
-    );
+  );
 });
 

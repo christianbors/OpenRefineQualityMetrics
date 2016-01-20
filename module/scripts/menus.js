@@ -6,8 +6,12 @@ ExtensionBar.addExtensionMenu({
             "id" : "metric-doc/CalculateMetrics",
             label: "Calculate Metrics",
             click: dialogHandler(CalculateMetrics)
+        },
+        {
+            "id" : "metric-doc/PersistMetrics",
+            label: "Persist Metrics",
+            click: dialogHandler(PersistMetrics)  
         }
-
     ]
 });
 

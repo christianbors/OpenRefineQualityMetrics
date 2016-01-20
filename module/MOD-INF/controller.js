@@ -15,6 +15,7 @@ function init() {
     module,
     [
       "scripts/dialogs/calculateMetricsDialog.js",
+      "scripts/dialogs/persistMetrics.js",
       "scripts/project-injection.js",
       "scripts/facets/metrics-facet.js",
       "scripts/menus.js"
@@ -38,12 +39,14 @@ function init() {
 
   RS.registerCommand(module, "metricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
   RS.registerCommand(module, "evaluateMetrics", new Packages.com.google.refine.metricsExtension.commands.EvaluateMetricsCommand);
+  RS.registerCommand(module, "persistMetrics", new Packages.com.google.refine.metricsExtension.commands.PersistMetricsCommand);
   RS.registerCommand(module, "get-metrics-overlay-model", new Packages.com.google.refine.metricsExtension.commands.GetMetricsOverlayModelCommand);
   RS.registerCommand(module, "update-metric", new Packages.com.google.refine.metricsExtension.commands.UpdateMetricCommand);
 
   var OR = Packages.com.google.refine.operations.OperationRegistry;
   OR.registerOperation(module, "metricsExtension", Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation);
   OR.registerOperation(module, "evaluateMetrics", Packages.com.google.refine.metricsExtension.operations.EvaluateMetricsOperation);
+  OR.registerOperation(module, "persistMetrics", Packages.com.google.refine.metricsExtension.operations.PersistMetricsOperation);
 
   var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;
   FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.Completeness());
