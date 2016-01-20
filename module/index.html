@@ -79,7 +79,7 @@
     </div>
     <!-- Metrics Overview and Parameter details -->
     <div class="row myrow">
-      <div class="col-md-7">
+      <div class="col-md-9">
         <div class="panel panel-default" id="overviewPanel" style="height:150px;">
           <table class="floated-table" id="metricNames">
             <tr><td><br/></td></tr>
@@ -95,7 +95,7 @@
           </table>
         </div>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-3">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
             <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
@@ -162,15 +162,15 @@
     </div>
     <!-- Table and Heatmap view -->
     <div class="row">
-      <div class="col-md-7">
+      <div class="col-md-9">
         <div id="raw-data-container">
           <table class="table table-condensed table-hover" id="dataset">
           </table>
-          <svg id="overlay"></svg>
+          <svg id="overlay" style="pointer-events: none"></svg>
         </div>
         <!-- <button type="button" id="clearSort">Reset Sorting</button> -->
       </div>
-      <div class="col-md-5">
+      <div class="col-md-3">
         <h4 id="detailViewHeader"></h4>
         <div id="heatmap"></div>
       </div>

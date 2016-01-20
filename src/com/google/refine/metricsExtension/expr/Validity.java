@@ -25,6 +25,9 @@ public class Validity implements Function {
 		if (args.length >= 2) {
 			Object o1 = args[0];
 			Object type = args[1];
+			if (o1.toString().isEmpty()) {
+				return true;
+			}
 			if (type.toString().equals("string")) {
 				return o1 instanceof String;
 			} else if (type.toString().equals("number")) {
@@ -35,7 +38,7 @@ public class Validity implements Function {
 				return o1 instanceof Date;
 			}
 		}
-		return false;
+		return true;
 	}
 
 }

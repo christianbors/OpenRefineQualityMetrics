@@ -41,6 +41,7 @@ public class UpdateMetricCommand extends Command {
 			toBeEdited.addEvaluable(metricEvaluableString[i]);
 		}
 		toBeEdited.getDirtyIndices().clear();
+		toBeEdited.setMeasure(0f);
 		
 		columnMetrics.add(metricIndex, toBeEdited);
 	}

@@ -122,7 +122,7 @@ $(document).ready(function() {
                 $('#dataset').dataTable( {
                   "data": dataSet,
                   "columns": columnStore,
-                  "scrollY": "500px",
+                  "scrollY": "600px",
                   "scrollCollapse": true,
                   "paging": true,
                   "dom": 'rt<"bottom"ip><"clear">'
@@ -513,7 +513,8 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
         });
       }
       return "translate(" + colWidths[i] + ",0)";
-    });
+    })
+    .attr('pointer-events', 'all');
 
   var cols = overlay.selectAll(".metrics-overlay-col")
     .data(function(d) {
