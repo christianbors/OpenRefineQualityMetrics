@@ -437,17 +437,20 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
         [],
         function(data) {
           var dataSet = [];
+          var columns = theProject.columnModel.columns;
           for (var r = 0; r < data.rows.length; r++) {
             var row = data.rows[r];
             var rowValues = [];
-            for (var c = 0; c < theProject.columnModel.columns.length; c++) {
-              var cell = row.cells[c];
-              if (cell != null) {
-                rowValues.push(cell.v);
-              } else {
-                rowValues.push('');
+            $.each(columns, function(index, value) {
+              if (value != null) {
+                var cell = row.cells[value.cellIndex]
+                if (cell != null) {
+                  rowValues.push(cell.v);
+                } else {
+                  rowValues.push('');
+                }
               }
-            }
+            });
             dataSet.push(rowValues);
           }
           var dataTable = $('#dataset').dataTable();
@@ -586,18 +589,21 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
       "../../command/core/get-rows?" + $.param({ project: theProject.id, start: d.index, limit: 500 }) + "&callback=?",
       [],
       function(data) {
+        var columns = theProject.columnModel.columns;
         var dataSet = [];
         for (var r = 0; r < data.rows.length; r++) {
           var row = data.rows[r];
           var rowValues = [];
-          for (var c = 0; c < theProject.columnModel.columns.length; c++) {
-            var cell = row.cells[c];
-            if (cell != null) {
-              rowValues.push(cell.v);
-            } else {
-              rowValues.push('');
+          $.each(columns, function(index, value) {
+            if (value != null) {
+              var cell = row.cells[value.cellIndex]
+              if (cell != null) {
+                rowValues.push(cell.v);
+              } else {
+                rowValues.push('');
+              }
             }
-          }
+          });
           dataSet.push(rowValues);
         }
         var dataTable = $('#dataset').dataTable();

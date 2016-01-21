@@ -124,35 +124,47 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				@Override
 				public boolean visit(Project project, int rowIndex, Row row) {
 					for (String columnName : model.getMetricColumnNames()) {
-						int colIndex = project.columnModel.getColumnIndexByName(columnName);
-						Cell c = row.cells.get(colIndex);
-						List<Metric> metrics = model.getMetricsForColumn(columnName);
-						
-						ExpressionUtils.bind(bindings, row, rowIndex, columnName, c);
-	
-						for (Metric m : metrics) {
-							List<Boolean> evalResults = new ArrayList<Boolean>();
-							boolean entryDirty = false;
-	
-							for (String eval : m.getEvaluables()) {
-								boolean evalResult;
-								try {
-									Object evaluation = MetaParser.parse(eval).evaluate(bindings);
-									if (evaluation.getClass() != EvalError.class) {
-										evalResult = (Boolean) evaluation;
-										if (!evalResult) {
-											entryDirty = true;
-										}
-										evalResults.add(evalResult);
-									}
-								} catch (ParsingException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+						int colIndex = -1;
+						for (int idx = 0; idx <= project.columnModel.getMaxCellIndex(); ++idx) {
+							if (project.columnModel.getColumnByCellIndex(idx) != null && 
+									columnName.equals(project.columnModel.getColumnByCellIndex(idx).getName())) {
+								colIndex = idx;
+								break;
 							}
-	
-							if (entryDirty) {
-								m.addDirtyIndex(rowIndex, evalResults);
+						}
+						if (colIndex >= 0) {
+							Cell c = row.getCell(colIndex);
+							List<Metric> metrics = model
+									.getMetricsForColumn(columnName);
+
+							ExpressionUtils.bind(bindings, row, rowIndex,
+									columnName, c);
+
+							for (Metric m : metrics) {
+								List<Boolean> evalResults = new ArrayList<Boolean>();
+								boolean entryDirty = false;
+
+								for (String eval : m.getEvaluables()) {
+									boolean evalResult;
+									try {
+										Object evaluation = MetaParser.parse(
+												eval).evaluate(bindings);
+										if (evaluation.getClass() != EvalError.class) {
+											evalResult = (Boolean) evaluation;
+											if (!evalResult) {
+												entryDirty = true;
+											}
+											evalResults.add(evalResult);
+										}
+									} catch (ParsingException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+
+								if (entryDirty) {
+									m.addDirtyIndex(rowIndex, evalResults);
+								}
 							}
 						}
 					}
