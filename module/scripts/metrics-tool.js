@@ -190,7 +190,12 @@ $(document).ready(function() {
                     var tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
                     var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
 
-                    var z = d3.scale.category10().domain([0, overlayModel.availableMetrics]);
+                    var minScale = 3;
+                    if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
+                      
+                    var z = d3.scale.ordinal()
+                      .range(colorbrewer.OrRd[minScale])
+                      .domain([0, overlayModel.availableMetrics]);
 
                     td.append("svg")
                       .attr("width", colWidth)
@@ -307,7 +312,7 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
   d3.select("#heatmap").select("svg").remove();
   // heatmap drawing
   var headerHeightComp = datatableHeader - $('#detailViewHeader').height();
-  var marginHeatmap = {top: headerHeightComp, right: 0, bottom: 70, left: 35};
+  var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
   var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
       height = $(".dataTables_scrollBody").height();
       // height = rawDataHeight - marginHeatmap.top;
@@ -506,7 +511,12 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     .domain([rowModel.filtered, 0])
     .rangeRound([$(".dataTables_scrollBody").height(), 0]);
 
-  var z = d3.scale.category10().domain([0, overlayModel.availableMetrics]);
+  var minScale = 3;
+  if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
+
+  var z = d3.scale.ordinal()
+    .range(colorbrewer.OrRd[minScale])
+    .domain([0, overlayModel.availableMetrics]);
 
   var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
     .data(overlayModel.metricColumns)

@@ -9,11 +9,13 @@
     <link href="styles/bootstrap/bootstrap.min.css" rel="stylesheet">
     <link href="styles/datatables/dataTables.bootstrap.css" rel="stylesheet">
     <link href="styles/style.css" rel="stylesheet" type="text/css">
+    <link href="bower_components/colorbrewer/colorbrewer.css" rel="stylesheet">
 
     <script src="http://d3js.org/d3.v3.min.js"></script>
 
 
     <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/colorbrewer/colorbrewer.js"></script>
     <!--<script src="scripts/angular/controllers.js"></script>-->
     <script src="bower_components/jquery/dist/jquery.js"></script>
   </head>
@@ -167,7 +169,7 @@
     <div class="row">
       <div class="col-md-9">
         <div id="raw-data-container">
-          <table class="table table-condensed table-hover" id="dataset">
+          <table class="table table-condensed table-bordered table-hover" id="dataset">
           </table>
           <svg id="overlay" style="pointer-events: none"></svg>
         </div>
