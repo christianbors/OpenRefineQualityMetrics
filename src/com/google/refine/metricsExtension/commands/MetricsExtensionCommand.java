@@ -2,6 +2,7 @@ package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,10 @@ import com.google.refine.commands.Command;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.operations.MetricsExtensionOperation;
+import com.google.refine.metricsExtension.util.MetricUtils;
+import com.google.refine.metricsExtension.util.MetricUtils.RegisteredMetrics;
 import com.google.refine.model.AbstractOperation;
+import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 import com.google.refine.process.Process;
 import com.google.refine.util.ParsingUtilities;
@@ -34,37 +38,36 @@ public class MetricsExtensionCommand extends Command {
 		try {
 			Project project = getProject(request);
 			
-			String[] metricNameString = request.getParameterValues("metricName[]");
-			String[][] metricFunctionString = new String[metricNameString.length][];
-			for (int i = 0; i < metricNameString.length; ++i) {
-				metricFunctionString[i] = request.getParameterValues("metricFunction[" + i + "][]");
-			}
-			String baseColumnString = request.getParameter("baseColumnName");
-			MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-//			JSONObject column = ParsingUtilities.evaluateJsonStringToObject(baseColumnString);
-			
-			List<Metric> metrics = new ArrayList<Metric>(); 
-			for (int i = 0; i < metricNameString.length; ++i) {
-				metrics.add(new Metric(metricNameString[i], ""));
-//				Metric.load(metricsString[i]);
-			}
-			for (int i = 0; i < metricNameString.length; ++i) {
-				for (int j = 0; j < metricFunctionString[i].length; ++j) {
-					metrics.get(i).addEvaluable(metricFunctionString[i][j]);
+			MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+			if (metricsOverlayModel == null) {
+				Map<String, List<Metric>> metricsMap = new HashMap<String, List<Metric>>();
+				for (Column col : project.columnModel.columns) {
+					List<Metric> metricList = new ArrayList<Metric>();
+					for (RegisteredMetrics rm : MetricUtils.RegisteredMetrics.values()) {
+						if(!rm.equals(RegisteredMetrics.uniqueness)) {
+							metricList.add(new Metric(rm.toString(), rm.description(), rm.datatype()));
+						}
+					}
+					metricsMap.put(col.getName(), metricList);
+				}
+				if (request.getParameter("computeDuplicates") != null) {
+					boolean computeDuplicates = Boolean.parseBoolean(request.getParameter("computeDuplicates"));
+					if (computeDuplicates) {
+						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies");
+						metricsOverlayModel = new MetricsOverlayModel(
+								metricsMap, 
+								new ArrayList<String>(Arrays.asList(duplicateDependencies)), 
+								new Metric(RegisteredMetrics.uniqueness.toString(), 
+										RegisteredMetrics.uniqueness.description(), 
+										RegisteredMetrics.uniqueness.datatype())
+								);
+					} else {
+						metricsOverlayModel = new MetricsOverlayModel(metricsMap);
+					}
 				}
 			}
 			
-//			String colName = column.getString("baseColumnName");
-			
-			if (overlayModel != null) {
-				overlayModel.addMetrics(baseColumnString, metrics);
-			} else {
-				Map<String, List<Metric>> metricsMap = new HashMap<String, List<Metric>>();
-				metricsMap.put(baseColumnString, metrics);
-				overlayModel = new MetricsOverlayModel(metricsMap);
-			}
-			
-			AbstractOperation op = new MetricsExtensionOperation(overlayModel);
+			AbstractOperation op = new MetricsExtensionOperation(metricsOverlayModel);
 			Process process = op.createProcess(project, new Properties());
 			
 			ProjectManager.singleton.ensureProjectSaved(project.id);
@@ -75,5 +78,4 @@ public class MetricsExtensionCommand extends Command {
 			e.printStackTrace();
 		}
 	}
-
 }

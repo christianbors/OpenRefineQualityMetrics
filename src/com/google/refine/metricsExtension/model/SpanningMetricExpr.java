@@ -1,13 +1,15 @@
 package com.google.refine.metricsExtension.model;
 
 import java.util.Properties;
+import java.util.Set;
 
 import com.google.refine.expr.Evaluable;
 import com.google.refine.grel.Function;
+import com.google.refine.model.Cell;
 
-public class MetricEvaluable implements Evaluable {
+public class SpanningMetricExpr implements Evaluable {
 
-	public MetricEvaluable(Evaluable[] args, Function function) {
+	public SpanningMetricExpr(Evaluable[] args, Function function, Set<Cell[]> cellSet) {
 		// TODO Auto-generated constructor stub
 	}
 	

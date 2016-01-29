@@ -3,7 +3,6 @@ package com.google.refine.metricsExtension.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,22 +14,23 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
-import com.google.refine.expr.Evaluable;
-import com.google.refine.expr.MetaParser;
-import com.google.refine.expr.ParsingException;
 
 public class Metric implements Jsonizable {
 
-    private String name;
-    private String description;
-    private float measure;
-    private String dataType;
+    protected String name;
+    protected String description;
+    protected float measure;
+    protected String dataType;
 
-    private List<String> evaluables;
-    private Map<Integer, List<Boolean>> dirtyIndices;
+    protected List<String> evaluables;
+    protected Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
         this(name, description, 0f, "unknown");
+    }
+    
+    public Metric(String name, String description, String dataType) {
+    	this(name, description, 0f, dataType);
     }
     
     public Metric(String name, String description, float measure, String dataType) {

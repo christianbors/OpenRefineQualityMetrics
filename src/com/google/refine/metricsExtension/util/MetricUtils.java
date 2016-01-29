@@ -7,7 +7,10 @@ import java.util.Set;
 
 import com.google.refine.expr.Binder;
 import com.google.refine.expr.CellTuple;
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedRow;
+import com.google.refine.metricsExtension.expr.SpanningMetricParser;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
@@ -19,6 +22,52 @@ public class MetricUtils {
 
 	static public void registerBinder(Binder binder) {
 		s_binders.add(binder);
+	}
+	
+	public enum RegisteredMetrics {
+		uniqueness("string") {
+			public String description() {
+				return "Determines if duplicate rows exist";
+			}
+
+			@Override
+			public String evaluable() {
+				return "uniqueness()";
+			}
+		},
+		completeness("string") {
+			public String description() {
+				return "Detects missing entries for the specified column";
+			}
+
+			@Override
+			public String evaluable() {
+				return "completeness(value)";
+			}
+		},
+		validity("number") {
+			public String description() {
+				return "Validates an entry towards a specific data type";
+			}
+
+			@Override
+			public String evaluable() {
+				return "validity(" + datatype() + ")";
+			}
+		};
+		
+		private String datatype;
+		
+		private RegisteredMetrics(String datatype) {
+			this.datatype = datatype;
+		}
+		
+		public String datatype() {
+			return datatype;
+		}
+		
+		abstract public String description();
+		abstract public String evaluable();
 	}
 
 	static public void bind(Properties bindings, Row row, int rowIndex,
@@ -52,5 +101,11 @@ public class MetricUtils {
 		} else {
 			return 1f;
 		}
+	}
+
+	public static Evaluable parseSpanning(String spanningEvaluable) throws ParsingException  {
+		SpanningMetricParser smp = new SpanningMetricParser(spanningEvaluable);
+		
+		return smp.getExpression();
 	}
 }

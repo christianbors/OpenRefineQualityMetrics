@@ -1,11 +1,9 @@
 package com.google.refine.metricsExtension.operations;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -16,25 +14,22 @@ import org.json.JSONWriter;
 import com.google.refine.browsing.Engine;
 import com.google.refine.browsing.FilteredRows;
 import com.google.refine.browsing.RowVisitor;
+import com.google.refine.expr.CellTuple;
 import com.google.refine.expr.EvalError;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.expr.WrappedCell;
 import com.google.refine.history.Change;
 import com.google.refine.history.HistoryEntry;
 import com.google.refine.metricsExtension.model.Metric;
-import com.google.refine.metricsExtension.model.MetricsColumn;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
-import com.google.refine.metricsExtension.model.changes.MetricChange;
+import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.metricsExtension.util.MetricUtils;
-import com.google.refine.model.AbstractOperation;
 import com.google.refine.model.Cell;
-import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
-import com.google.refine.model.changes.CellChange;
-import com.google.refine.operations.EngineDependentMassCellOperation;
 import com.google.refine.operations.EngineDependentOperation;
 import com.google.refine.process.LongRunningProcess;
 import com.google.refine.process.Process;
@@ -114,6 +109,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
             filteredRows.accept(project, new RowVisitor() {
 				private Properties bindings;
 				private MetricsOverlayModel model;
+				private Map<SpanningMetric, Set<Cell[]>> spanningMetricCellSet;
 
 				public RowVisitor init(Properties bindings, MetricsOverlayModel model) {
 					this.bindings = bindings;
@@ -123,17 +119,32 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 
 				@Override
 				public boolean visit(Project project, int rowIndex, Row row) {
-					for (String columnName : model.getMetricColumnNames()) {
-						int colIndex = -1;
-						for (int idx = 0; idx <= project.columnModel.getMaxCellIndex(); ++idx) {
-							if (project.columnModel.getColumnByCellIndex(idx) != null && 
-									columnName.equals(project.columnModel.getColumnByCellIndex(idx).getName())) {
-								colIndex = idx;
-								break;
-							}
+					// compute duplicates
+					if (model.isComputeDuplicates()) {
+						Set<Cell[]> cellSet = new LinkedHashSet<Cell[]>();
+						
+						model.getDuplicateDependencies();
+						Cell[] cells = new Cell[model.getDuplicateDependencies().size()];
+						for (int i = 0; i < model.getDuplicateDependencies().size(); ++i) {
+							String columnName = model.getDuplicateDependencies().get(i);
+							WrappedCell wc = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
+							cells[i] = wc.cell;
 						}
-						if (colIndex >= 0) {
-							Cell c = row.getCell(colIndex);
+						// evaluate here
+						if (cellSet.contains(cells)) {
+							List<Boolean> errors = new ArrayList<Boolean>();
+							errors.add(true);
+							model.getUniqueness().addDirtyIndex(rowIndex, new ArrayList<Boolean>(errors));
+						} else {
+							// after that add the data
+							cellSet.add(cells);
+						}
+					}
+					// evaluate metrics
+					for (String columnName : model.getMetricColumnNames()) {
+						WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
+						if (ct != null) {
+							Cell c = ((WrappedCell )ct).cell;
 							List<Metric> metrics = model
 									.getMetricsForColumn(columnName);
 
@@ -177,6 +188,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 
 				@Override
 				public void end(Project project) {
+					// TODO: add AND/OR/XOR
 					for (String columnName : model.getMetricColumnNames()) {
 						for (Metric m : model.getMetricsForColumn(columnName)) {
 							float q = 1f - MetricUtils.determineQuality(bindings, m);
@@ -194,5 +206,4 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 		}
 
 	}
-	
 }

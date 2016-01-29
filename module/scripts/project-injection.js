@@ -57,17 +57,12 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     updateOptions = {};
     callbacks = {}
 
-    var metricName = ["completeness"];
-    var metricFunction = [["completeness(value)", "if(value > 0, true, false)"]];
-    var overlayModel = JSON.stringify(theProject.overlayModels.metricsOverlayModel);
-
     Refine.postProcess(
       "metric-doc",
       "metricsOverlayModel",
       {
-        baseColumnName: column.name,
-        metricName: metricName,
-        metricFunction: metricFunction,
+        computeDuplicates: true,
+        duplicateDependencies: [column.name]
       },
       body,
       updateOptions,
