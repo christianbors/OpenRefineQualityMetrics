@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import jdk.nashorn.internal.ir.LiteralNode.ArrayLiteralNode.ArrayUnit;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -109,6 +111,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
             filteredRows.accept(project, new RowVisitor() {
 				private Properties bindings;
 				private MetricsOverlayModel model;
+				private Set<Cell[]> uniquesSet = new LinkedHashSet<Cell[]>();
 				private Map<SpanningMetric, Set<Cell[]>> spanningMetricCellSet;
 
 				public RowVisitor init(Properties bindings, MetricsOverlayModel model) {
@@ -121,7 +124,6 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				public boolean visit(Project project, int rowIndex, Row row) {
 					// compute duplicates
 					if (model.isComputeDuplicates()) {
-						Set<Cell[]> cellSet = new LinkedHashSet<Cell[]>();
 						
 						model.getDuplicateDependencies();
 						Cell[] cells = new Cell[model.getDuplicateDependencies().size()];
@@ -131,13 +133,21 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 							cells[i] = wc.cell;
 						}
 						// evaluate here
-						if (cellSet.contains(cells)) {
+						boolean foundDuplicate = false;
+						for (Cell[] toBeChecked : uniquesSet) {
+							for (int i = 0; i < toBeChecked.length; ++i) {
+								if(!toBeChecked[i].value.equals(cells[i].value)) {
+									break;
+								}
+							}
 							List<Boolean> errors = new ArrayList<Boolean>();
 							errors.add(true);
 							model.getUniqueness().addDirtyIndex(rowIndex, new ArrayList<Boolean>(errors));
-						} else {
+							foundDuplicate = true;
+						}
+						if (!foundDuplicate) {
 							// after that add the data
-							cellSet.add(cells);
+							uniquesSet.add(cells);
 						}
 					}
 					// evaluate metrics
@@ -194,6 +204,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 							float q = 1f - MetricUtils.determineQuality(bindings, m);
 							m.setMeasure(q);
 						}
+						model.getUniqueness().setMeasure(1f - MetricUtils.determineQuality(bindings, model.getUniqueness()));
 					}
 				}
 			}.init(bindings, model));

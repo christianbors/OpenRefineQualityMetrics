@@ -6,9 +6,9 @@ var inputFormatArray = [];
 CalculateMetrics.prototype = {
     init: function () {
         var self = this;
-        this.dialogElement = $(DOM.loadHTML("metric-doc", "scripts/dialogs/calculateMetrics.html"));
-        var controls = DOM.bind(this.dialogElement);
-        controls.close.click(this.extraBound("hide"));
+        // this.dialogElement = $(DOM.loadHTML("metric-doc", "scripts/dialogs/calculateMetrics.html"));
+        // var controls = DOM.bind(this.dialogElement);
+        // controls.close.click(this.extraBound("hide"));
         Refine.postProcess('metric-doc', 'evaluateMetrics', {}, {}, {}, {});
         // controls.reformatDates.click(function () {
         //     self.reformat();
@@ -22,7 +22,7 @@ CalculateMetrics.prototype = {
     },
     show: function () {
         this.init();
-        this.dialogLevel = DialogSystem.showDialog(this.dialogElement);
+        // this.dialogLevel = DialogSystem.showDialog(this.dialogElement);
         // columnsReformat.forEach(function (entry) {
         //     $("#reformatDateSelect").append("<option value='" + entry + "'>" + entry + "</option>");
         // });

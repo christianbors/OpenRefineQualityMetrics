@@ -10,7 +10,6 @@ import com.google.refine.expr.CellTuple;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedRow;
-import com.google.refine.metricsExtension.expr.SpanningMetricParser;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
@@ -52,7 +51,7 @@ public class MetricUtils {
 
 			@Override
 			public String evaluable() {
-				return "validity(" + datatype() + ")";
+				return "validity(value, '" + datatype() + "')";
 			}
 		};
 		
@@ -101,11 +100,5 @@ public class MetricUtils {
 		} else {
 			return 1f;
 		}
-	}
-
-	public static Evaluable parseSpanning(String spanningEvaluable) throws ParsingException  {
-		SpanningMetricParser smp = new SpanningMetricParser(spanningEvaluable);
-		
-		return smp.getExpression();
 	}
 }

@@ -80,6 +80,13 @@ public class MetricsOverlayModel implements OverlayModel {
         }
         writer.endArray();
         
+        writer.key("availableMetrics");
+        writer.array();
+        for (String m : getAvailableMetrics()) {
+        	writer.value(m);
+        }
+        writer.endArray();
+
         writer.key("computeDuplicates").value(computeDuplicates);
         
 		if (computeDuplicates) {

@@ -1,10 +1,6 @@
 
 package com.google.refine.metricsExtension.expr;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Properties;
 
 import org.json.JSONException;
@@ -12,9 +8,6 @@ import org.json.JSONWriter;
 
 import com.google.refine.expr.EvalError;
 import com.google.refine.grel.Function;
-import com.google.refine.metricsExtension.model.Metric;
-import com.google.refine.metricsExtension.model.MetricEvaluable;
-import com.google.refine.util.StringUtils;
 
 
 public class Completeness implements Function {
@@ -45,7 +38,7 @@ public class Completeness implements Function {
 		
         writer.object();
         writer.key("description"); writer.value("Evaluates if a value is null");
-        writer.key("params"); writer.value("o");
+        writer.key("params"); writer.value("object o");
         writer.key("returns"); writer.value("boolean");
         writer.endObject();
 	}

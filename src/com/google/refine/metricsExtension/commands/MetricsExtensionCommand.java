@@ -45,7 +45,9 @@ public class MetricsExtensionCommand extends Command {
 					List<Metric> metricList = new ArrayList<Metric>();
 					for (RegisteredMetrics rm : MetricUtils.RegisteredMetrics.values()) {
 						if(!rm.equals(RegisteredMetrics.uniqueness)) {
-							metricList.add(new Metric(rm.toString(), rm.description(), rm.datatype()));
+							Metric m = new Metric(rm.toString(), rm.description(), rm.datatype());
+							m.addEvaluable(rm.evaluable());
+							metricList.add(m);
 						}
 					}
 					metricsMap.put(col.getName(), metricList);
@@ -53,7 +55,7 @@ public class MetricsExtensionCommand extends Command {
 				if (request.getParameter("computeDuplicates") != null) {
 					boolean computeDuplicates = Boolean.parseBoolean(request.getParameter("computeDuplicates"));
 					if (computeDuplicates) {
-						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies");
+						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies[]");
 						metricsOverlayModel = new MetricsOverlayModel(
 								metricsMap, 
 								new ArrayList<String>(Arrays.asList(duplicateDependencies)), 
