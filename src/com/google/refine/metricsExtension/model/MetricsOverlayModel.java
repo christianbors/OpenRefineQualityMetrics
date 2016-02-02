@@ -13,6 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import com.google.refine.metricsExtension.util.MetricUtils.RegisteredMetrics;
+import com.google.refine.metricsExtension.util.MetricUtils.RegisteredSpanningMetrics;
 import com.google.refine.model.OverlayModel;
 import com.google.refine.model.Project;
 
@@ -20,44 +22,55 @@ import com.google.refine.model.Project;
 public class MetricsOverlayModel implements OverlayModel {
 
 	private Map<String, List<Metric>> metricsMap;
+	private List<SpanningMetric> spanMetricsList;
+	
 	private boolean computeDuplicates;
 	private List<String> duplicateDependencies;
 	private Metric uniqueness;
 	
 	public static MetricsOverlayModel reconstruct(JSONObject metricsOverlayModel) throws Exception {
 		
-		Map<String, List<Metric>> reconstructMap = new HashMap<String, List<Metric>>();
 		if (metricsOverlayModel != null) {
+			Map<String, List<Metric>> reconstructMap = new HashMap<String, List<Metric>>();
+			MetricsOverlayModel overlayModel;
 			JSONArray metricColumns = metricsOverlayModel.getJSONArray("metricColumns");
 			for (int i = 0; i < metricColumns.length(); ++i) {
 				JSONObject obj = metricColumns.getJSONObject(i);
 				reconstructMap.put(obj.getString("columnName"), reconstructMetrics(obj.getJSONArray("metrics")));
 			}
-		}
-		boolean computeDuplicates = metricsOverlayModel.getBoolean("computeDuplicates");
-		MetricsOverlayModel overlayModel;
-		if (!computeDuplicates) {
-			overlayModel = new MetricsOverlayModel(reconstructMap);
-		} else {
-			Metric uniqueness = Metric.load(metricsOverlayModel.getJSONObject("uniqueness"));
-			List<String> duplicateDepList = new ArrayList<String>();
-			JSONArray colNameArray = metricsOverlayModel.getJSONArray("duplicateDependencies");
-			for (int i = 0; i < colNameArray.length(); ++i) {
-				duplicateDepList.add(colNameArray.getString(i));
+			List<SpanningMetric> spanMetrics;
+			if (metricsOverlayModel.has("spanningMetrics")) {
+				spanMetrics = reconstructSpanningMetrics(metricsOverlayModel
+						.getJSONArray("spanningMetrics"));
+			} else {
+				spanMetrics = new ArrayList<SpanningMetric>();
 			}
-			overlayModel = new MetricsOverlayModel(reconstructMap, duplicateDepList, uniqueness);
+			
+			boolean computeDuplicates = metricsOverlayModel.getBoolean("computeDuplicates");
+			if (!computeDuplicates) {
+				overlayModel = new MetricsOverlayModel(reconstructMap, spanMetrics);
+			} else {
+				Metric uniqueness = Metric.load(metricsOverlayModel.getJSONObject("uniqueness"));
+				List<String> duplicateDepList = new ArrayList<String>();
+				JSONArray colNameArray = metricsOverlayModel.getJSONArray("duplicateDependencies");
+				for (int i = 0; i < colNameArray.length(); ++i) {
+					duplicateDepList.add(colNameArray.getString(i));
+				}
+				overlayModel = new MetricsOverlayModel(reconstructMap, spanMetrics, duplicateDepList, uniqueness);
+			}
+			return overlayModel;
 		}
-		
-		return overlayModel;
+		return null;
 	}
 	
-    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap) {
+    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<SpanningMetric> spanMetricsList) {
     	this.metricsMap = metricsMap;
     	this.computeDuplicates = false;
+    	this.spanMetricsList = spanMetricsList;
 	}
     
-    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<String> duplicateDependencies, Metric uniqueness) {
-    	this(metricsMap);
+    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<SpanningMetric> spanMetricsList, List<String> duplicateDependencies, Metric uniqueness) {
+    	this(metricsMap, spanMetricsList);
     	this.computeDuplicates = true;
     	this.duplicateDependencies = duplicateDependencies;
     	this.uniqueness = uniqueness;
@@ -82,11 +95,18 @@ public class MetricsOverlayModel implements OverlayModel {
         
         writer.key("availableMetrics");
         writer.array();
-        for (String m : getAvailableMetrics()) {
-        	writer.value(m);
+        for (RegisteredMetrics rm : getAvailableMetrics()) {
+        	rm.write(writer, options);
         }
         writer.endArray();
 
+        writer.key("availableSpanningMetrics");
+        writer.array();
+        for (RegisteredSpanningMetrics rm : getAvailableSpanningMetrics()) {
+        	rm.write(writer, options);
+        }
+        writer.endArray();
+        
         writer.key("computeDuplicates").value(computeDuplicates);
         
 		if (computeDuplicates) {
@@ -133,15 +153,23 @@ public class MetricsOverlayModel implements OverlayModel {
     	return columnList;
     }
     
-    public List<String> getAvailableMetrics() {
-    	List<String> availableMetrics = new LinkedList<String>();
-    	for (Entry<String, List<Metric>> entry : metricsMap.entrySet()) {
-    		for (Metric m : entry.getValue())
-				if (!availableMetrics.contains(m.getName())) {
-					availableMetrics.add(m.getName());
-				}
-    	}
-    	return availableMetrics;
+//    public List<String> getAvailableMetrics() {
+//    	List<String> availableMetrics = new LinkedList<String>();
+//    	for (Entry<String, List<Metric>> entry : metricsMap.entrySet()) {
+//    		for (Metric m : entry.getValue())
+//				if (!availableMetrics.contains(m.getName())) {
+//					availableMetrics.add(m.getName());
+//				}
+//    	}
+//    	return availableMetrics;
+//    }
+    
+    public RegisteredMetrics[] getAvailableMetrics() {
+    	return RegisteredMetrics.values();
+    }
+    
+    public RegisteredSpanningMetrics[] getAvailableSpanningMetrics() {
+    	return RegisteredSpanningMetrics.values();
     }
     
     public boolean isComputeDuplicates() {
@@ -168,6 +196,14 @@ public class MetricsOverlayModel implements OverlayModel {
 		this.uniqueness = uniqueness;
 	}
 
+	public List<SpanningMetric> getSpanMetricsList() {
+		return spanMetricsList;
+	}
+
+	public void setSpanMetricsList(List<SpanningMetric> spanMetricsList) {
+		this.spanMetricsList = spanMetricsList;
+	}
+
 	private static List<Metric> reconstructMetrics(JSONArray jsonArray) throws JSONException {
 		List<Metric> metricsList = new ArrayList<Metric>();
 		for (int i = 0; i < jsonArray.length(); ++i) {
@@ -175,6 +211,15 @@ public class MetricsOverlayModel implements OverlayModel {
 			metricsList.add(Metric.load(o));
 		}
 		return metricsList;
+	}
+	
+	private static List<SpanningMetric> reconstructSpanningMetrics(JSONArray jsonArray) throws JSONException {
+		List<SpanningMetric> spanningMetricsList = new ArrayList<SpanningMetric>();
+		for (int i = 0; i < jsonArray.length(); ++i) {
+			JSONObject o = jsonArray.getJSONObject(i);
+			spanningMetricsList.add(SpanningMetric.load(o));
+		}
+		return spanningMetricsList;
 	}
 
 	public static MetricsOverlayModel load(Project project, JSONObject jsonObject) throws Exception {

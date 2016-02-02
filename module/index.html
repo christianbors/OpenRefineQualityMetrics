@@ -35,6 +35,9 @@
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
               <li>
+                <a href="#" id="addMetric" data-toggle="modal" data-target="#addMetricModal">Add Metric</a>
+              </li>
+              <li>
                 <a href="#" id="recalculate">Recalculate Metrics</a>
               </li>
               <li>
@@ -185,7 +188,7 @@
     </div>
   </div>
 
-  <div class="modal fade bs-example-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+<!--   <div class="modal fade bs-example-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -211,10 +214,8 @@
           <div class="panel-heading">
             Base Metric
           </div>
-          <div class="panel-body"><!-- TODO: angular - create metrics based on what is available-->
-            <!-- #set( $metrics = ["Completeness", "Validity", "Consistency","Completeness", "Validity"])
-            #makeButtonGroup($metrics, "id") -->
-          </div>
+          <div class="panel-body"><!-- TODO: angular - create metrics based on what is available             #set( $metrics = ["Completeness", "Validity", "Consistency","Completeness", "Validity"])
+            #makeButtonGroup($metrics, "id")           </div>
         </div>
         <div class="panel panel-primary">
           <div class="panel-heading">
@@ -225,6 +226,80 @@
     </div>
   </div>
 </div>
+ -->
+<div id="addMetricModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="gridSystemModalLabel">Add Metric</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <label for="name">Column</label>
+            </div>
+            <div class="panel-body">
+              <select multiple class="form-control" style="height:auto;" id="columnFormMetricModal">
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <label for="name">Metric</label>
+              </div>
+              <div class="panel-body">
+                <div class="btn-group" role="group" aria-label="..." id="metricSelectMetricModal">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <label for="name">Detected Data Types</label>
+              </div>
+              <div class="panel-body" id="typeDetailModal">
+                <table>
+                  <thead><th></th></thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+<!--         <div class="row">
+          <div class="col-md-3 col-md-offset-3">.col-md-3 .col-md-offset-3</div>
+          <div class="col-md-2 col-md-offset-4">.col-md-2 .col-md-offset-4</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 col-md-offset-3">.col-md-6 .col-md-offset-3</div>
+        </div>
+        <div class="row">
+          <div class="col-sm-9">
+            Level 1: .col-sm-9
+            <div class="row">
+              <div class="col-xs-8 col-sm-6">
+                Level 2: .col-xs-8 .col-sm-6
+              </div>
+              <div class="col-xs-4 col-sm-6">
+                Level 2: .col-xs-4 .col-sm-6
+              </div>
+            </div>
+          </div>
+        </div> -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary">Create</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <div id="popoverExampleTwoHiddenContent" style="display: none">
      <div class="alert alert-danger"><b>Popover Example</b> 2 - Content</div>

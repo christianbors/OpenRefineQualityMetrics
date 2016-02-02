@@ -4,12 +4,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
+
+import org.json.JSONException;
+import org.json.JSONWriter;
 
 import com.google.refine.expr.Binder;
 import com.google.refine.expr.CellTuple;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedRow;
+import com.google.refine.metricsExtension.expr.DateInterval;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
@@ -24,16 +29,6 @@ public class MetricUtils {
 	}
 	
 	public enum RegisteredMetrics {
-		uniqueness("string") {
-			public String description() {
-				return "Determines if duplicate rows exist";
-			}
-
-			@Override
-			public String evaluable() {
-				return "uniqueness()";
-			}
-		},
 		completeness("string") {
 			public String description() {
 				return "Detects missing entries for the specified column";
@@ -65,9 +60,49 @@ public class MetricUtils {
 			return datatype;
 		}
 		
+		public void write(JSONWriter writer, Properties options)
+	            throws JSONException {
+	        writer.object();
+	        writer.key("name").value(name());
+	        writer.key("description").value(description());
+	        writer.key("datatype").value(datatype());
+	        writer.endObject();
+	    }
+		
 		abstract public String description();
 		abstract public String evaluable();
 	}
+	
+	public enum RegisteredSpanningMetrics {
+		dateInterval {
+			public String description() {
+				return "Determine if an interval is negative";
+			}
+		};
+		
+		abstract public String description();
+		
+		public void write(JSONWriter writer, Properties options)
+	            throws JSONException {
+	        writer.object();
+	        writer.key("name").value(name());
+	        writer.key("description").value(description());
+	        writer.endObject();
+	    }
+	}
+	/*
+	 * ,
+		dateInterval("date") {
+			public String description() {
+				return "Determine if an interval is negative";
+			}
+
+			@Override
+			public String evaluable() {
+				return "dateInterval()";
+			}
+		}
+	 */
 
 	static public void bind(Properties bindings, Row row, int rowIndex,
 			String columnName, Cell cell, List<Metric> metrics) {

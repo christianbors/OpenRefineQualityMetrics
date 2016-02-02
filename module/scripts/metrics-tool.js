@@ -90,6 +90,15 @@ $(document).ready(function() {
                     "dom": 'rt<"bottom"ip><"clear">'
                   });
 
+                  $.each(columnStore, function(key, value){
+                    $("#columnFormMetricModal").append('<option value="' + value.title + '">' + value.title + '</option>');
+                  });
+
+                  // modal on click change
+                  $( "#columnFormMetricModal" ).change(function() {
+                    fillModalAfterColumnSelection(theProject);
+                  });
+
                   $.getJSON(
                     "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), 
                     null,
@@ -140,7 +149,7 @@ $(document).ready(function() {
                       overlayModel.metricColumns = sortedMetrics;
 
                       var tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
-                      tr.append("th").text(function(d) { return d; });
+                      tr.append("th").text(function(d) { return d.name; });
                       var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
 
                       var minScale = 3;
@@ -192,16 +201,20 @@ $(document).ready(function() {
                           if (d != null) {
                             var metricName = this.parentNode.parentNode.parentNode.__data__;
                             var metricCurrent = d.metrics.filter(function(m) {
-                              return m.name == metricName;
+                              return m.name == metricName.name;
                             });
-                            return metricCurrent[0].measure * colWidths[i];
+                            if (metricCurrent.length > 0) {
+                              return metricCurrent[0].measure * colWidths[i];
+                            } else {
+                              return 0;
+                            }
                           }
                         })
                         .style("fill", function(d, i) {
                           if (d != null) {
                             var metricName = this.parentNode.parentNode.parentNode.__data__;
                             var metricCurrent = d.metrics.filter(function(m) {
-                              return m.name == metricName;
+                              return m.name == metricName.name;
                             });
                             var idx = d.metrics.indexOf(metricCurrent[0]);
                             return z(d.metrics.indexOf(metricCurrent[0]));
@@ -229,8 +242,17 @@ $(document).ready(function() {
                         .style("fill", function(d, i) {
                           return z(overlayModel.availableMetrics.length);
                         });
+                        /*.on("mouseover", function(d) {
+                          tooltip.transition()
+                            .duration(100)
+                            .style("opacity", .9);
+                          tooltip.html(d.)
+                        })*/
 
                       td.on("click", function(d) {
+                        if (d3.event.shiftKey) {
+                            console.log("shift+click")
+                        } 
                         if (selectedOverviewRect != null) {
                           selectedOverviewRect.style("stroke-width", 0)
                             .style("stroke", "transparent");
@@ -240,13 +262,12 @@ $(document).ready(function() {
                           .style("stroke-width", 2)
                           .style("stroke", "black");
                         selectedColName = d.columnName;
-                        selectedMetricIndex = overlayModel.availableMetrics.indexOf(d.metrics[rowIndex].name);
                         metricData = overlayModel.metricColumns.filter(function(d) {
                           if (d != null) {
                             return d.columnName == selectedColName;
                           }
-                        })[0].metrics[selectedMetricIndex];
-                        refillEditForm(metricData, selectedColName, selectedMetricIndex);
+                        })[0].metrics[rowIndex];
+                        refillEditForm(metricData, selectedColName, rowIndex);
                         redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel, z(selectedMetricIndex));
                       });
 
@@ -714,6 +735,90 @@ function refillEditForm(d, colName, metricIndex) {
     $(".remove-btn").click(function() {
       this.parentNode.remove();
     });
+  }
+}
+
+function fillModalAfterColumnSelection(theProject) {
+  var selectedCols = $("#columnFormMetricModal").val();
+  $("#metricSelectMetricModal .btn").remove();
+  d3.select("#typeDetailModal").select("tbody").selectAll("tr").remove();
+  d3.select("#typeDetailModal").select("thead tr").selectAll("td").remove();
+
+  var dataTypes;
+  if(selectedCols.length == 1) {
+    dataTypes = [{type: "String", val: 20}, {type: "Numeric", val: 70}, {type: "Date/Time", val: 3}, {type: "unknown", val: 7}];
+    var metricCol = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
+        return col.columnName == selectedCols[0];
+    });
+    var activeMetrics = [];
+    $.each(metricCol[0].metrics, function(idx, val) {
+      activeMetrics.push(val.name);
+    })
+    $.each(theProject.overlayModels.metricsOverlayModel.availableMetrics, function(key, value) {
+      var cl = "btn btn-default";
+      if(activeMetrics.indexOf(value.name) >= 0) cl += " disabled";
+      $("#metricSelectMetricModal").append('<button type="button" value="' + value + '" class="' + cl + '">'+ value.name + '</button>');
+    });
+    var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
+      .data(dataTypes)
+      .enter()
+      .append("tr");
+    tr.append("th")
+      .text(function(d) {
+        return d.type;
+      });
+    tr.append("td")
+      .append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+      .append("rect")
+      .attr("width", function(d) {
+        return (d.val/100)*71;
+      })
+      .attr("height", 12)
+      .style("fill", "steelblue");
+  } else if(selectedCols.length == 2) {
+    dataTypes = [{type: "String", val: [20, 10]}, {type: "Numeric", val: [70, 85]}, {type: "Date/Time", val: [3, 1]}, {type: "unknown", val: [7, 4]}];
+    $.each(theProject.overlayModels.metricsOverlayModel.availableSpanningMetrics, function(key, value) {
+      $("#metricSelectMetricModal").append('<button type="button" value="' + value + '" class="btn btn-default">'+ value.name + '</button>');
+    });
+    d3.select("#typeDetailModal").select("thead tr")
+      .selectAll('td')
+      .data(selectedCols).enter()
+      .append('td')
+      .text(function(d) { 
+        return d; 
+      });
+    var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
+      .data(dataTypes)
+      .enter()
+      .append("tr");
+    tr.append("th")
+      .text(function(d) {
+        return d.type;
+      });
+    tr.append("td")
+      .append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+      .append("rect")
+      .attr("width", function(d) {
+        return (d.val[0]/100)*71;
+      })
+      .attr("height", 12)
+      .style("fill", "steelblue");
+    tr.append("td")
+      .append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+      .append("rect")
+      .attr("width", function(d) {
+        return (d.val[1]/100)*71;
+      })
+      .attr("height", 12)
+      .style("fill", "steelblue");
+  } else {
+    alert("currently metrics support a maximum of two columns as input");
   }
 }
 

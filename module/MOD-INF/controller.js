@@ -51,6 +51,7 @@ function init() {
   var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;
   FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.Completeness());
   FCR.registerFunction("validity", new Packages.com.google.refine.metricsExtension.expr.Validity());
+  FCR.registerFunction("dateInterval", new Packages.com.google.refine.metricsExtension.expr.DateInterval());
 
   Packages.com.google.refine.model.Project.
     registerOverlayModel("metricsOverlayModel", Packages.com.google.refine.metricsExtension.model.MetricsOverlayModel);

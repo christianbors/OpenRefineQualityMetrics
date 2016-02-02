@@ -1,5 +1,6 @@
 package com.google.refine.metricsExtension.expr;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
 
@@ -35,7 +36,7 @@ public class Validity implements Function {
 	                    || o1 instanceof Double
 	                    || o1 instanceof Float); 
 			} else if (type.toString().equals("date")) {
-				return o1 instanceof Date;
+				return o1 instanceof Date || o1 instanceof Calendar;
 			}
 		}
 		return true;

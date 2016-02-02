@@ -20,9 +20,11 @@ import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
+import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.metricsExtension.operations.MetricsExtensionOperation;
 import com.google.refine.metricsExtension.util.MetricUtils;
 import com.google.refine.metricsExtension.util.MetricUtils.RegisteredMetrics;
+import com.google.refine.metricsExtension.util.MetricUtils.RegisteredSpanningMetrics;
 import com.google.refine.model.AbstractOperation;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
@@ -44,27 +46,29 @@ public class MetricsExtensionCommand extends Command {
 				for (Column col : project.columnModel.columns) {
 					List<Metric> metricList = new ArrayList<Metric>();
 					for (RegisteredMetrics rm : MetricUtils.RegisteredMetrics.values()) {
-						if(!rm.equals(RegisteredMetrics.uniqueness)) {
-							Metric m = new Metric(rm.toString(), rm.description(), rm.datatype());
-							m.addEvaluable(rm.evaluable());
-							metricList.add(m);
-						}
+						Metric m = new Metric(rm.toString(), rm.description(),
+								rm.datatype());
+						m.addEvaluable(rm.evaluable());
+						metricList.add(m);
 					}
 					metricsMap.put(col.getName(), metricList);
 				}
+				List<SpanningMetric> spanningMetrics = new ArrayList<SpanningMetric>();
+				//TODO: insert spanning metrics
+				
 				if (request.getParameter("computeDuplicates") != null) {
 					boolean computeDuplicates = Boolean.parseBoolean(request.getParameter("computeDuplicates"));
 					if (computeDuplicates) {
 						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies[]");
 						metricsOverlayModel = new MetricsOverlayModel(
 								metricsMap, 
-								new ArrayList<String>(Arrays.asList(duplicateDependencies)), 
-								new Metric(RegisteredMetrics.uniqueness.toString(), 
-										RegisteredMetrics.uniqueness.description(), 
-										RegisteredMetrics.uniqueness.datatype())
-								);
+								spanningMetrics,
+								new ArrayList<String>(Arrays.asList(duplicateDependencies)),
+								new Metric("uniqueness", 
+										"Determines if duplicate rows exist", 
+										"string"));
 					} else {
-						metricsOverlayModel = new MetricsOverlayModel(metricsMap);
+						metricsOverlayModel = new MetricsOverlayModel(metricsMap, spanningMetrics);
 					}
 				}
 			}

@@ -112,7 +112,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				private Properties bindings;
 				private MetricsOverlayModel model;
 				private Set<Cell[]> uniquesSet = new LinkedHashSet<Cell[]>();
-				private Map<SpanningMetric, Set<Cell[]>> spanningMetricCellSet;
+				private Map<SpanningMetric, Cell[]> spanningMetricCellSet;
 
 				public RowVisitor init(Properties bindings, MetricsOverlayModel model) {
 					this.bindings = bindings;
