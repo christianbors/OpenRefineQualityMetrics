@@ -18,14 +18,14 @@ import com.google.refine.expr.ParsingException;
 public class SpanningMetric extends Metric {
 
 	private List<String> spanningColumns;
-	private String spanningEvaluable;
+	private Evaluable spanningEvaluable;
 
-	public SpanningMetric(String name, String description, String spanningEvaluable, List<String> columns) {
+	public SpanningMetric(String name, String description, Evaluable spanningEvaluable, List<String> columns) {
 		this(name, description, 0f, "none", spanningEvaluable, columns);
 	}
 	
 	public SpanningMetric(String name, String description, float measure,
-			String dataType, String spanningEvaluable, List<String> columns) {
+			String dataType, Evaluable spanningEvaluable, List<String> columns) {
 		super(name, description, measure, dataType);
 		this.spanningColumns = columns;
 		this.spanningEvaluable = spanningEvaluable;
@@ -54,7 +54,7 @@ public class SpanningMetric extends Metric {
 			writer.endArray();
 		}
         writer.key("evaluables").array();
-        for (String e : evaluables) {
+        for (Evaluable e : evaluables) {
         	writer.value(e.toString());
         }
         writer.endArray();
@@ -76,7 +76,7 @@ public class SpanningMetric extends Metric {
         			o.getString("description"), 
         			new Float(o.getString("measure")), 
         			o.getString("datatype"), 
-        			o.getString("spanningEvaluable"), 
+        			MetaParser.parse(o.getString("spanningEvaluable")), 
         			new ArrayList<String>());
         	JSONArray colNameArray = o.getJSONArray("spanningColumns");
         	for (int spanningIdx = 0; spanningIdx < colNameArray.length(); ++spanningIdx) {
@@ -99,11 +99,11 @@ public class SpanningMetric extends Metric {
 			if (o.has("evaluables")) {
 				JSONArray evals = o.getJSONArray("evaluables");
 				for (int i = 0; i < evals.length(); ++i) {
-					m.addEvaluable(evals.getString(i));
+					m.addEvaluable(MetaParser.parse(evals.getString(i)));
 				}
 			}
             return m;
-        } catch (JSONException e) {
+        } catch (JSONException | NumberFormatException | ParsingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -118,11 +118,11 @@ public class SpanningMetric extends Metric {
 		this.spanningColumns = spanningColumns;
 	}
 
-	public String getSpanningEvaluable() {
+	public Evaluable getSpanningEvaluable() {
 		return spanningEvaluable;
 	}
 
-	public void setSpanningEvaluable(String spanningEvaluable) {
+	public void setSpanningEvaluable(Evaluable spanningEvaluable) {
 		this.spanningEvaluable = spanningEvaluable;
 	}
 

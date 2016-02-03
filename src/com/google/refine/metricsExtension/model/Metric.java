@@ -14,6 +14,9 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.Jsonizable;
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 
 public class Metric implements Jsonizable {
 
@@ -22,7 +25,7 @@ public class Metric implements Jsonizable {
     protected float measure;
     protected String dataType;
 
-    protected List<String> evaluables;
+    protected List<Evaluable> evaluables;
     protected Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
@@ -39,7 +42,7 @@ public class Metric implements Jsonizable {
         this.measure = measure;
         this.dataType = dataType;
         this.dirtyIndices = new HashMap<Integer, List<Boolean>>();
-        this.evaluables = new ArrayList<String>();
+        this.evaluables = new ArrayList<Evaluable>();
     }
 
     @Override
@@ -65,7 +68,7 @@ public class Metric implements Jsonizable {
 			writer.endArray();
 		}
         writer.key("evaluables").array();
-        for (String e : evaluables) {
+        for (Evaluable e : evaluables) {
         	writer.value(e.toString());
         }
         writer.endArray();
@@ -93,7 +96,12 @@ public class Metric implements Jsonizable {
 			if (o.has("evaluables")) {
 				JSONArray evals = o.getJSONArray("evaluables");
 				for (int i = 0; i < evals.length(); ++i) {
-					m.addEvaluable(evals.getString(i));
+					try {
+						m.addEvaluable(MetaParser.parse(evals.getString(i).toLowerCase()));
+					} catch (ParsingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
             return m;
@@ -104,7 +112,7 @@ public class Metric implements Jsonizable {
         return null;
     }
 	
-	public void addEvaluable(String toBeParsed) {
+	public void addEvaluable(Evaluable toBeParsed) {
 		this.evaluables.add(toBeParsed);
 	}
     
@@ -140,7 +148,7 @@ public class Metric implements Jsonizable {
         this.description = description;
     }
 
-    public List<String> getEvaluables() {
+    public List<Evaluable> getEvaluables() {
     	return evaluables;
     }
 

@@ -60,7 +60,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 	@Override
 	protected HistoryEntry createHistoryEntry(Project project,
 			long historyEntryID) throws Exception {
-		Change metricsProjectChange = new MetricsProjectChange(model);
+		Change metricsProjectChange = new MetricsExtensionOperation.MetricsProjectChange(model);
 
 		return new HistoryEntry(historyEntryID, project,
 				getBriefDescription(project), this,
@@ -165,21 +165,15 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 								List<Boolean> evalResults = new ArrayList<Boolean>();
 								boolean entryDirty = false;
 
-								for (String eval : m.getEvaluables()) {
+								for (Evaluable eval : m.getEvaluables()) {
 									boolean evalResult;
-									try {
-										Object evaluation = MetaParser.parse(
-												eval).evaluate(bindings);
-										if (evaluation.getClass() != EvalError.class) {
-											evalResult = (Boolean) evaluation;
-											if (!evalResult) {
-												entryDirty = true;
-											}
-											evalResults.add(evalResult);
+									Object evaluation = eval.evaluate(bindings);
+									if (evaluation.getClass() != EvalError.class) {
+										evalResult = (Boolean) evaluation;
+										if (!evalResult) {
+											entryDirty = true;
 										}
-									} catch (ParsingException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
+										evalResults.add(evalResult);
 									}
 								}
 

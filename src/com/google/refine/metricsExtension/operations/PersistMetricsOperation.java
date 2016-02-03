@@ -50,7 +50,7 @@ public class PersistMetricsOperation extends AbstractOperation {
 	@Override
 	protected HistoryEntry createHistoryEntry(Project project,
 			long historyEntryID) throws Exception {
-		Change metricsProjectChange = new MetricsProjectChange(metricsOverlayModel);
+		Change metricsProjectChange = new MetricsExtensionOperation.MetricsProjectChange(metricsOverlayModel);
 
 		return new HistoryEntry(historyEntryID, project,
 				getBriefDescription(project), this,

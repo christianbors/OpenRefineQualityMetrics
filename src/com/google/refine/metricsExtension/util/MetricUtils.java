@@ -12,6 +12,7 @@ import org.json.JSONWriter;
 import com.google.refine.expr.Binder;
 import com.google.refine.expr.CellTuple;
 import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedRow;
 import com.google.refine.metricsExtension.expr.DateInterval;
@@ -35,8 +36,8 @@ public class MetricUtils {
 			}
 
 			@Override
-			public String evaluable() {
-				return "completeness(value)";
+			public Evaluable evaluable() throws ParsingException {
+				return MetaParser.parse("completeness(value)");
 			}
 		},
 		validity("number") {
@@ -45,8 +46,8 @@ public class MetricUtils {
 			}
 
 			@Override
-			public String evaluable() {
-				return "validity(value, '" + datatype() + "')";
+			public Evaluable evaluable() throws ParsingException {
+				return MetaParser.parse("validity(value, '" + datatype() + "')");
 			}
 		};
 		
@@ -70,17 +71,23 @@ public class MetricUtils {
 	    }
 		
 		abstract public String description();
-		abstract public String evaluable();
+		abstract public Evaluable evaluable() throws ParsingException;
 	}
 	
-	public enum RegisteredSpanningMetrics {
-		dateInterval {
+	public enum RegisteredSpanningMetrics {	
+		dateinterval {
 			public String description() {
 				return "Determine if an interval is negative";
+			}
+
+			@Override
+			public Evaluable evaluable(String colFrom, String colTo) throws ParsingException {
+				return MetaParser.parse("dateInterval(cells." + colFrom + ".value, cells." + colTo + ".value)");
 			}
 		};
 		
 		abstract public String description();
+		abstract public Evaluable evaluable(String colFrom, String colTo) throws ParsingException;
 		
 		public void write(JSONWriter writer, Properties options)
 	            throws JSONException {

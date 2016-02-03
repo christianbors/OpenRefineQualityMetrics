@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.refine.commands.Command;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.model.Project;
@@ -38,7 +40,12 @@ public class UpdateMetricCommand extends Command {
 		}
 		toBeEdited.getEvaluables().clear();
 		for (int i = 0; i < metricEvaluableString.length; ++i) {
-			toBeEdited.addEvaluable(metricEvaluableString[i]);
+			try {
+				toBeEdited.addEvaluable(MetaParser.parse(metricEvaluableString[i]));
+			} catch (ParsingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		toBeEdited.getDirtyIndices().clear();
 		toBeEdited.setMeasure(0f);

@@ -1,12 +1,13 @@
 package com.google.refine.metricsExtension.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,6 +108,14 @@ public class MetricsOverlayModel implements OverlayModel {
         }
         writer.endArray();
         
+		if (this.spanMetricsList.size() > 0) {
+			writer.key("spanningMetrics").array();
+			for (SpanningMetric sm : this.spanMetricsList) {
+				sm.write(writer, options);
+			}
+			writer.endArray();
+		}
+        
         writer.key("computeDuplicates").value(computeDuplicates);
         
 		if (computeDuplicates) {
@@ -137,6 +146,18 @@ public class MetricsOverlayModel implements OverlayModel {
 
     public List<Metric> getMetricsForColumn(String columnName) {
     	return metricsMap.get(columnName);
+    }
+    
+    public void addMetric(String columnName, Metric metric) {
+    	if(this.metricsMap.containsKey(columnName)) {
+    		this.metricsMap.get(columnName).add(metric);
+    	} else {
+    		this.metricsMap.put(columnName, new ArrayList<Metric>(Arrays.asList(metric)));    		
+    	}
+    }
+    
+    public void addSpanningMetric(SpanningMetric spanningMetric) {
+    	this.spanMetricsList.add(spanningMetric);
     }
     
     public void addMetrics(String columnName, List<Metric> metrics) {

@@ -9,6 +9,8 @@ $(document).ready(function() {
   var selectedOverviewRect;
   var metricData;
 
+  var selectedMetricModal;
+
   URL.getParameters = function () {
     var r = {};
 
@@ -100,7 +102,7 @@ $(document).ready(function() {
                   });
 
                   $.getJSON(
-                    "../../command/metric-doc/get-metrics-overlay-model?" + $.param({ project: theProject.id }), 
+                    "../../command/metric-doc/getMetricsOverlayModel?" + $.param({ project: theProject.id }), 
                     null,
                     function(data) {
                       var overlayModel = data;
@@ -127,6 +129,20 @@ $(document).ready(function() {
                         var i = $(".metricCheck").length;
                         $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
                         + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
+                      });
+
+                      $("#createMetricBtn").on("click", function(btn) {
+                        var params = { 
+                          project: theProject.id, 
+                          metric: $("#metricSelectMetricModal").val(), 
+                          columns: $("#columnFormMetricModal").val(), 
+                          description: "test", 
+                          datatype: "unknown"
+                        };
+                        $.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
+                          function(data) {
+                            $("#addMetricModal").modal("hide");
+                          });
                       });
 
                       var datatablesHeader = $(".dataTables_scrollHead").height();
@@ -298,7 +314,7 @@ $(document).ready(function() {
                         for (var i = 0; i < $(".metricCheck").length; ++i) {
                           metricData.evaluables.push($("#eval" + (i)).val());
                         }
-                        $.post("../../command/metric-doc/update-metric?" + $.param(
+                        $.post("../../command/metric-doc/updateMetric?" + $.param(
                             { 
                               metricName: metricData.name, 
                               column: selectedColName,
@@ -745,81 +761,78 @@ function fillModalAfterColumnSelection(theProject) {
   d3.select("#typeDetailModal").select("thead tr").selectAll("td").remove();
 
   var dataTypes;
+  var metrics;
   if(selectedCols.length == 1) {
-    dataTypes = [{type: "String", val: 20}, {type: "Numeric", val: 70}, {type: "Date/Time", val: 3}, {type: "unknown", val: 7}];
-    var metricCol = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
-        return col.columnName == selectedCols[0];
-    });
-    var activeMetrics = [];
-    $.each(metricCol[0].metrics, function(idx, val) {
-      activeMetrics.push(val.name);
-    })
-    $.each(theProject.overlayModels.metricsOverlayModel.availableMetrics, function(key, value) {
-      var cl = "btn btn-default";
-      if(activeMetrics.indexOf(value.name) >= 0) cl += " disabled";
-      $("#metricSelectMetricModal").append('<button type="button" value="' + value + '" class="' + cl + '">'+ value.name + '</button>');
-    });
-    var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
-      .data(dataTypes)
-      .enter()
-      .append("tr");
-    tr.append("th")
-      .text(function(d) {
-        return d.type;
-      });
-    tr.append("td")
-      .append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-      .append("rect")
-      .attr("width", function(d) {
-        return (d.val/100)*71;
-      })
-      .attr("height", 12)
-      .style("fill", "steelblue");
-  } else if(selectedCols.length == 2) {
-    dataTypes = [{type: "String", val: [20, 10]}, {type: "Numeric", val: [70, 85]}, {type: "Date/Time", val: [3, 1]}, {type: "unknown", val: [7, 4]}];
-    $.each(theProject.overlayModels.metricsOverlayModel.availableSpanningMetrics, function(key, value) {
-      $("#metricSelectMetricModal").append('<button type="button" value="' + value + '" class="btn btn-default">'+ value.name + '</button>');
-    });
-    d3.select("#typeDetailModal").select("thead tr")
-      .selectAll('td')
-      .data(selectedCols).enter()
-      .append('td')
-      .text(function(d) { 
-        return d; 
-      });
-    var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
-      .data(dataTypes)
-      .enter()
-      .append("tr");
-    tr.append("th")
-      .text(function(d) {
-        return d.type;
-      });
-    tr.append("td")
-      .append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-      .append("rect")
-      .attr("width", function(d) {
-        return (d.val[0]/100)*71;
-      })
-      .attr("height", 12)
-      .style("fill", "steelblue");
-    tr.append("td")
-      .append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-      .append("rect")
-      .attr("width", function(d) {
-        return (d.val[1]/100)*71;
-      })
-      .attr("height", 12)
-      .style("fill", "steelblue");
+    dataTypes = [{type: "String", val: [20]}, {type: "Numeric", val: [70]}, {type: "Date/Time", val: [3]}, {type: "unknown", val: [7]}];
+    metrics = theProject.overlayModels.metricsOverlayModel.availableMetrics;
   } else {
-    alert("currently metrics support a maximum of two columns as input");
+    dataTypes = [{type: "String", val: [20, 10]}, {type: "Numeric", val: [70, 85]}, {type: "Date/Time", val: [3, 1]}, {type: "unknown", val: [7, 4]}];
+    metrics = theProject.overlayModels.metricsOverlayModel.availableSpanningMetrics;
   }
+  if (selectedCols.length > 1) {
+    d3.select("#typeDetailModal").select("thead tr")
+    .selectAll('td')
+    .data(selectedCols).enter()
+    .append('td')
+    .text(function(d) { 
+      return d; 
+    });
+  }
+  var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
+    .data(dataTypes)
+    .enter()
+    .append("tr");
+  tr.append("th")
+    .text(function(d) {
+      return d.type;
+    });
+  for(var selectedColIdx = 0; selectedColIdx < selectedCols.length; selectedColIdx++) {
+    tr.append("td")
+      .append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+      .append("rect")
+      .attr("width", function(d) {
+        return (d.val[selectedColIdx]/100)*71;
+      })
+      .attr("height", 12)
+      .style("fill", "steelblue");
+  }
+  $.each(metrics, function(key, value) {
+      var cl = "btn btn-default";
+      if(selectedCols.length == 1) {
+        var selectedMetrics = theProject.overlayModels.metricsOverlayModel.metricColumns[0].metrics;
+        for (var i = 0; i < selectedMetrics.length; i++) {
+          if(selectedMetrics[i].name == value.name) {
+            cl += " disabled";
+            break;
+          }
+        }
+      } else if (selectedCols.length > 1) {
+        var spanningMetrics = theProject.overlayModels.metricsOverlayModel.spanningMetrics;
+        if (spanningMetrics != null) {
+          for (var i = 0; i < spanningMetrics.length; i++) {
+            if (value.name == spanningMetrics[i]) {
+              var disable = false;
+              for (var j = 0; j < selectedCols.length; j++) {
+                if (spanningMetrics[i].spanningColumns.indexOf(selectedCols[j].name) < 0) {
+                  disable = true;
+                  break;
+                }
+              }
+              if(disable) {
+                cl += " disabled";
+                break;
+              }
+            }
+          }
+        }
+      }
+      $("#metricSelectMetricModal").append('<button type="button" value="' + value.name + '" class="' + cl + '">'+ capitalizeFirstLetter(value.name) + '</button>');
+      $("#metricSelectMetricModal > button").on("click", function() {
+        $("#metricSelectMetricModal").val($(this).text());
+      });
+    });
 }
 
 function capitalizeFirstLetter(string) {
