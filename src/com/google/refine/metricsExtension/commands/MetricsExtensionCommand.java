@@ -18,6 +18,8 @@ import org.json.JSONObject;
 
 import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
@@ -61,12 +63,11 @@ public class MetricsExtensionCommand extends Command {
 					if (computeDuplicates) {
 						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies[]");
 						metricsOverlayModel = new MetricsOverlayModel(
-								metricsMap, 
-								spanningMetrics,
-								new ArrayList<String>(Arrays.asList(duplicateDependencies)),
-								new Metric("uniqueness", 
-										"Determines if duplicate rows exist", 
-										"string"));
+								metricsMap, spanningMetrics,
+								new SpanningMetric("uniqueness",
+										"Determines if duplicate rows exist",
+										MetaParser.parse("uniqueness()"),
+										Arrays.asList(duplicateDependencies)));
 					} else {
 						metricsOverlayModel = new MetricsOverlayModel(metricsMap, spanningMetrics);
 					}

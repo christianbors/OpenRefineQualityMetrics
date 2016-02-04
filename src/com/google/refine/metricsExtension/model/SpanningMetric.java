@@ -14,6 +14,7 @@ import org.json.JSONWriter;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.metricsExtension.util.MetricUtils;
 
 public class SpanningMetric extends Metric {
 
@@ -76,7 +77,7 @@ public class SpanningMetric extends Metric {
         			o.getString("description"), 
         			new Float(o.getString("measure")), 
         			o.getString("datatype"), 
-        			MetaParser.parse(o.getString("spanningEvaluable")), 
+        			MetaParser.parse(MetricUtils.decapitalize(o.getString("spanningEvaluable"))), 
         			new ArrayList<String>());
         	JSONArray colNameArray = o.getJSONArray("spanningColumns");
         	for (int spanningIdx = 0; spanningIdx < colNameArray.length(); ++spanningIdx) {

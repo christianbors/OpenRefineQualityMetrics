@@ -75,7 +75,7 @@ public class MetricUtils {
 	}
 	
 	public enum RegisteredSpanningMetrics {	
-		dateinterval {
+		dateInterval {
 			public String description() {
 				return "Determine if an interval is negative";
 			}
@@ -97,19 +97,15 @@ public class MetricUtils {
 	        writer.endObject();
 	    }
 	}
-	/*
-	 * ,
-		dateInterval("date") {
-			public String description() {
-				return "Determine if an interval is negative";
-			}
 
-			@Override
-			public String evaluable() {
-				return "dateInterval()";
-			}
+	public static String decapitalize(String string) {
+		if (string == null || string.length() == 0) {
+			return string;
 		}
-	 */
+		char c[] = string.toCharArray();
+		c[0] = Character.toLowerCase(c[0]);
+		return new String(c);
+	}
 
 	static public void bind(Properties bindings, Row row, int rowIndex,
 			String columnName, Cell cell, List<Metric> metrics) {

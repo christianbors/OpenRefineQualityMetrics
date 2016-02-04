@@ -26,8 +26,7 @@ public class MetricsOverlayModel implements OverlayModel {
 	private List<SpanningMetric> spanMetricsList;
 	
 	private boolean computeDuplicates;
-	private List<String> duplicateDependencies;
-	private Metric uniqueness;
+	private SpanningMetric uniqueness;
 	
 	public static MetricsOverlayModel reconstruct(JSONObject metricsOverlayModel) throws Exception {
 		
@@ -51,13 +50,8 @@ public class MetricsOverlayModel implements OverlayModel {
 			if (!computeDuplicates) {
 				overlayModel = new MetricsOverlayModel(reconstructMap, spanMetrics);
 			} else {
-				Metric uniqueness = Metric.load(metricsOverlayModel.getJSONObject("uniqueness"));
-				List<String> duplicateDepList = new ArrayList<String>();
-				JSONArray colNameArray = metricsOverlayModel.getJSONArray("duplicateDependencies");
-				for (int i = 0; i < colNameArray.length(); ++i) {
-					duplicateDepList.add(colNameArray.getString(i));
-				}
-				overlayModel = new MetricsOverlayModel(reconstructMap, spanMetrics, duplicateDepList, uniqueness);
+				SpanningMetric uniqueness = SpanningMetric.load(metricsOverlayModel.getJSONObject("uniqueness"));
+				overlayModel = new MetricsOverlayModel(reconstructMap, spanMetrics, uniqueness);
 			}
 			return overlayModel;
 		}
@@ -70,10 +64,9 @@ public class MetricsOverlayModel implements OverlayModel {
     	this.spanMetricsList = spanMetricsList;
 	}
     
-    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<SpanningMetric> spanMetricsList, List<String> duplicateDependencies, Metric uniqueness) {
+    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<SpanningMetric> spanMetricsList, SpanningMetric uniqueness) {
     	this(metricsMap, spanMetricsList);
     	this.computeDuplicates = true;
-    	this.duplicateDependencies = duplicateDependencies;
     	this.uniqueness = uniqueness;
 	}
 
@@ -121,12 +114,6 @@ public class MetricsOverlayModel implements OverlayModel {
 		if (computeDuplicates) {
 			writer.key("uniqueness");
 			uniqueness.write(writer, options);
-			
-			writer.key("duplicateDependencies").array();
-			for (String colName : duplicateDependencies) {
-				writer.value(colName);
-			}
-			writer.endArray();
 		}
         
         writer.endObject();
@@ -201,19 +188,11 @@ public class MetricsOverlayModel implements OverlayModel {
     	this.computeDuplicates = computeDuplicates;
     }
     
-    public List<String> getDuplicateDependencies() {
-    	return duplicateDependencies;
-    }
-    
-    public void setDuplicateDependencies(List<String> duplicateDependencies) {
-    	this.duplicateDependencies = duplicateDependencies;
-    }
-
-	public Metric getUniqueness() {
+	public SpanningMetric getUniqueness() {
 		return uniqueness;
 	}
 
-	public void setUniqueness(Metric uniqueness) {
+	public void setUniqueness(SpanningMetric uniqueness) {
 		this.uniqueness = uniqueness;
 	}
 

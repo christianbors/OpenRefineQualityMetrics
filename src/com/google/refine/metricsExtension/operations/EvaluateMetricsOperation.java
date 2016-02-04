@@ -112,7 +112,6 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				private Properties bindings;
 				private MetricsOverlayModel model;
 				private Set<Cell[]> uniquesSet = new LinkedHashSet<Cell[]>();
-				private Map<SpanningMetric, Cell[]> spanningMetricCellSet;
 
 				public RowVisitor init(Properties bindings, MetricsOverlayModel model) {
 					this.bindings = bindings;
@@ -124,11 +123,10 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 				public boolean visit(Project project, int rowIndex, Row row) {
 					// compute duplicates
 					if (model.isComputeDuplicates()) {
-						
-						model.getDuplicateDependencies();
-						Cell[] cells = new Cell[model.getDuplicateDependencies().size()];
-						for (int i = 0; i < model.getDuplicateDependencies().size(); ++i) {
-							String columnName = model.getDuplicateDependencies().get(i);
+						SpanningMetric uniqueness = model.getUniqueness();
+						Cell[] cells = new Cell[uniqueness.getSpanningColumns().size()];
+						for (int i = 0; i < uniqueness.getSpanningColumns().size(); ++i) {
+							String columnName = uniqueness.getSpanningColumns().get(i);
 							WrappedCell wc = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
 							cells[i] = wc.cell;
 						}
@@ -157,6 +155,7 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 							Cell c = ((WrappedCell )ct).cell;
 							List<Metric> metrics = model
 									.getMetricsForColumn(columnName);
+							List<SpanningMetric> spanMetrics = model.getSpanMetricsList();
 
 							ExpressionUtils.bind(bindings, row, rowIndex,
 									columnName, c);
@@ -179,6 +178,31 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 
 								if (entryDirty) {
 									m.addDirtyIndex(rowIndex, evalResults);
+								}
+							}
+							
+							for (SpanningMetric sm : spanMetrics) {
+								List<Boolean> evalResults = new ArrayList<Boolean>();
+								boolean entryDirty = false;
+								
+								Object spanEvalResult = sm.getSpanningEvaluable().evaluate(bindings);
+								if (spanEvalResult.getClass() != EvalError.class) {
+									evalResults.add((Boolean) spanEvalResult);
+								}
+								for (Evaluable eval : sm.getEvaluables()) {
+									boolean evalResult;
+									Object evaluation = eval.evaluate(bindings);
+									if (evaluation.getClass() != EvalError.class) {
+										evalResult = (Boolean) evaluation;
+										if (!evalResult) {
+											entryDirty = true;
+										}
+										evalResults.add(evalResult);
+									}
+								}
+
+								if (entryDirty) {
+									sm.addDirtyIndex(rowIndex, evalResults);
 								}
 							}
 						}

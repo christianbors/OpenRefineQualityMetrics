@@ -17,6 +17,7 @@ import com.google.refine.Jsonizable;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.metricsExtension.util.MetricUtils;
 
 public class Metric implements Jsonizable {
 
@@ -97,7 +98,7 @@ public class Metric implements Jsonizable {
 				JSONArray evals = o.getJSONArray("evaluables");
 				for (int i = 0; i < evals.length(); ++i) {
 					try {
-						m.addEvaluable(MetaParser.parse(evals.getString(i).toLowerCase()));
+						m.addEvaluable(MetaParser.parse(MetricUtils.decapitalize(evals.getString(i))));
 					} catch (ParsingException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

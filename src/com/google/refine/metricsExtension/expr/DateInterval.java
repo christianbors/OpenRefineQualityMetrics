@@ -1,5 +1,6 @@
 package com.google.refine.metricsExtension.expr;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
 
@@ -28,11 +29,18 @@ public class DateInterval implements Function {
 		if (args.length >= 2) {
 			Object valFrom = args[0];
 			Object valTo = args[1];
-			if ((valFrom.toString().isEmpty() || valFrom.toString().isEmpty()) ||
-					(!(valFrom instanceof Date) || !(valTo instanceof Date))) {
+			if (valFrom.toString().isEmpty() || valFrom.toString().isEmpty()) {
 				return false;
 			}
-			int isAfter = ((Date) valFrom).compareTo((Date) valTo);
+			int isAfter;
+			if (valFrom instanceof Date && valTo instanceof Date) {
+				isAfter = ((Date) valFrom).compareTo((Date) valTo);
+			}
+			else if (valFrom instanceof Calendar && valTo instanceof Calendar) {
+				isAfter = ((Calendar) valFrom).compareTo((Calendar) valTo);
+			} else {
+				return false;
+			}
 			return isAfter < 0;
 		}
 		return false;

@@ -235,56 +235,104 @@ $(document).ready(function() {
                             var idx = d.metrics.indexOf(metricCurrent[0]);
                             return z(d.metrics.indexOf(metricCurrent[0]));
                           }
+                        })
+                        .append("svg:title")
+                        .text(function(d) {
+                          if (d != null) {
+                            var metricName = this.parentNode.parentNode.parentNode.parentNode.__data__;
+                            var metricCurrent = d.metrics.filter(function(m) {
+                              return m.name == metricName.name;
+                            });
+                            return (100 * metricCurrent[0].measure) + "%"; 
+                          }
                         });
 
-                      var uniquenessArray = new Array(overlayModel.uniqueness);
-                      var utr = d3.select("#uniquenessTable").select("tbody").selectAll("tr").data(uniquenessArray).enter().append("tr");
+                      var spanningArray;
+                      if(overlayModel.spanningMetrics != null) {
+                        spanningArray = overlayModel.spanningMetrics;
+                        spanningArray.push(overlayModel.uniqueness);
+                      } else {
+                        spanningArray = new Array(overlayModel.uniqueness);
+                      }
 
-                      utr.append("th").text(function(d) { 
-                        return d.name; })
-                        .attr("width", function(d, i) {
-                          return $("#overviewTable > thead > tr > th").outerWidth();
-                        });
-                      utr.append("svg")
-                        .attr("width", function(d, i) {
-                          return ($("#dataset").width()/dataCols.length) * overlayModel.duplicateDependencies.length;
-                        })
-                        .attr("height", 12)
-                        .append("rect")
-                        .attr("height", 12)
-                        .attr("width", function(d, i) {
-                          return d.measure * (($("#dataset").width()/dataCols.length) * overlayModel.duplicateDependencies.length);
-                        })
-                        .style("fill", function(d, i) {
-                          return z(overlayModel.availableMetrics.length);
-                        });
-                        /*.on("mouseover", function(d) {
-                          tooltip.transition()
-                            .duration(100)
-                            .style("opacity", .9);
-                          tooltip.html(d.)
-                        })*/
+                      // var utr = d3.select("#uniquenessTable").select("tbody").selectAll("tr").data(uniquenessArray).enter().append("tr");
+                      var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(spanningArray).enter().append("table").each(function(d, i) {
+                        var table = d3.select(this);
+                        var hrow = table.append("thead").append("tr");
+                        hrow.append("th");
+                        hrow.selectAll("td").data(d.spanningColumns).enter().append("td").text(function(d) { return d;});
+
+                        var trow = table.append("tbody").append("tr");
+                        trow.append("th").text(function(d) { return d.name; })
+                          .attr("width", function(d, i) { return $("#overviewTable > thead > tr > th").outerWidth(); });
+
+                        trow.append("svg")
+                          .attr("width", function(d, i) {
+                            return ($("#dataset").width()/dataCols.length) * d.spanningColumns.length;
+                          })
+                          .attr("height", 12)
+                          .append("rect")
+                          .attr("height", 12)
+                          .attr("width", function(d, i) {
+                            return d.measure * (($("#dataset").width()/dataCols.length) * d.spanningColumns.length);
+                          })
+                          .style("fill", function(d, i) {
+                            return z(overlayModel.availableMetrics.length);
+                          })
+                          .append("svg:title")
+                            .text(function(d) { 
+                              return (100 * d.measure) + "%"; 
+                            }
+                          );
+                      });
+                      // spanningTable.append("thead").append("th");
+
+                      // utr.append("th").text(function(d) { 
+                      //   return d.name; })
+                      //   .attr("width", function(d, i) {
+                      //     return $("#overviewTable > thead > tr > th").outerWidth();
+                      //   });
+                      // utr.append("svg")
+                      //   .attr("width", function(d, i) {
+                      //     return ($("#dataset").width()/dataCols.length) * overlayModel.duplicateDependencies.length;
+                      //   })
+                      //   .attr("height", 12)
+                      //   .append("rect")
+                      //   .attr("height", 12)
+                      //   .attr("width", function(d, i) {
+                      //     return d.measure * (($("#dataset").width()/dataCols.length) * overlayModel.duplicateDependencies.length);
+                      //   })
+                      //   .style("fill", function(d, i) {
+                      //     return z(overlayModel.availableMetrics.length);
+                      //   })
+                      //   .append("svg:title")
+                      //     .text(function(d) { 
+                      //       return (100 * d.measure) + "%"; 
+                      //     }
+                      //   );
 
                       td.on("click", function(d) {
-                        if (d3.event.shiftKey) {
-                            console.log("shift+click")
-                        } 
-                        if (selectedOverviewRect != null) {
-                          selectedOverviewRect.style("stroke-width", 0)
-                            .style("stroke", "transparent");
-                        }
-                        var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
-                        selectedOverviewRect = d3.select(this)
-                          .style("stroke-width", 2)
-                          .style("stroke", "black");
-                        selectedColName = d.columnName;
-                        metricData = overlayModel.metricColumns.filter(function(d) {
-                          if (d != null) {
-                            return d.columnName == selectedColName;
+                        if (d != null) {
+                          if (d3.event.shiftKey) {
+                              console.log("shift+click")
+                          } 
+                          if (selectedOverviewRect != null) {
+                            selectedOverviewRect.style("stroke-width", 0)
+                              .style("stroke", "transparent");
                           }
-                        })[0].metrics[rowIndex];
-                        refillEditForm(metricData, selectedColName, rowIndex);
-                        redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel, z(selectedMetricIndex));
+                          var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
+                          selectedOverviewRect = d3.select(this)
+                            .style("stroke-width", 2)
+                            .style("stroke", "black");
+                          selectedColName = d.columnName;
+                          metricData = overlayModel.metricColumns.filter(function(d) {
+                            if (d != null) {
+                              return d.columnName == selectedColName;
+                            }
+                          })[0].metrics[rowIndex];
+                          refillEditForm(metricData, selectedColName, rowIndex);
+                          redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel, z(selectedMetricIndex));
+                        }
                       });
 
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
@@ -812,11 +860,12 @@ function fillModalAfterColumnSelection(theProject) {
         var spanningMetrics = theProject.overlayModels.metricsOverlayModel.spanningMetrics;
         if (spanningMetrics != null) {
           for (var i = 0; i < spanningMetrics.length; i++) {
-            if (value.name == spanningMetrics[i]) {
-              var disable = false;
+            if (value.name == spanningMetrics[i].name.toLowerCase()) {
+              var disable = true;
               for (var j = 0; j < selectedCols.length; j++) {
-                if (spanningMetrics[i].spanningColumns.indexOf(selectedCols[j].name) < 0) {
-                  disable = true;
+                var colIdx = spanningMetrics[i].spanningColumns.indexOf(selectedCols[j]);
+                if (colIdx < 0) {
+                  disable = false;
                   break;
                 }
               }
