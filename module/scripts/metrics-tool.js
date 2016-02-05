@@ -810,6 +810,42 @@ function fillModalAfterColumnSelection(theProject) {
 
   var dataTypes;
   var metrics;
+  var params = { 
+    project: theProject.id, 
+    columns: $("#columnFormMetricModal").val(), 
+  };
+  $.post("../../command/metric-doc/evaluateDataTypes?" + $.param(params) + "&callback=?",
+    function(data) {
+        var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
+          .data(data)
+          .enter()
+          .append("tr");
+        tr.append("th")
+          .text(function(d) {
+            return d.type;
+          });
+        if (selectedCols.length > 1) {
+          d3.select("#typeDetailModal").select("thead tr")
+          .selectAll('td')
+          .data(selectedCols).enter()
+          .append('td')
+          .text(function(d) { 
+            return d; 
+          });
+        }
+        for(var selectedColIdx = 0; selectedColIdx < selectedCols.length; selectedColIdx++) {
+          tr.append("td")
+            .append("svg")
+            .attr("width", 71)
+            .attr("height", 12)
+            .append("rect")
+            .attr("width", function(d) {
+              return d.val[selectedColIdx]*71;
+            })
+            .attr("height", 12)
+            .style("fill", "steelblue");
+        }
+    });
   if(selectedCols.length == 1) {
     dataTypes = [{type: "String", val: [20]}, {type: "Numeric", val: [70]}, {type: "Date/Time", val: [3]}, {type: "unknown", val: [7]}];
     metrics = theProject.overlayModels.metricsOverlayModel.availableMetrics;
@@ -817,35 +853,7 @@ function fillModalAfterColumnSelection(theProject) {
     dataTypes = [{type: "String", val: [20, 10]}, {type: "Numeric", val: [70, 85]}, {type: "Date/Time", val: [3, 1]}, {type: "unknown", val: [7, 4]}];
     metrics = theProject.overlayModels.metricsOverlayModel.availableSpanningMetrics;
   }
-  if (selectedCols.length > 1) {
-    d3.select("#typeDetailModal").select("thead tr")
-    .selectAll('td')
-    .data(selectedCols).enter()
-    .append('td')
-    .text(function(d) { 
-      return d; 
-    });
-  }
-  var tr = d3.select("#typeDetailModal").select("tbody").selectAll("tr")
-    .data(dataTypes)
-    .enter()
-    .append("tr");
-  tr.append("th")
-    .text(function(d) {
-      return d.type;
-    });
-  for(var selectedColIdx = 0; selectedColIdx < selectedCols.length; selectedColIdx++) {
-    tr.append("td")
-      .append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-      .append("rect")
-      .attr("width", function(d) {
-        return (d.val[selectedColIdx]/100)*71;
-      })
-      .attr("height", 12)
-      .style("fill", "steelblue");
-  }
+
   $.each(metrics, function(key, value) {
       var cl = "btn btn-default";
       if(selectedCols.length == 1) {

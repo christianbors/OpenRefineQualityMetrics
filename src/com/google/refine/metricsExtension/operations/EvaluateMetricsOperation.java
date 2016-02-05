@@ -68,21 +68,6 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 	}
 
 	@Override
-	protected String getBriefDescription(Project project) {
-		return "TODO";
-	}
-
-	static protected class MetricsEntry {
-		final public int rowIndex;
-		final public Cell cell;
-
-		public MetricsEntry(int rowIndex, Cell cell) {
-			this.rowIndex = rowIndex;
-			this.cell = cell;
-		}
-	}
-
-	@Override
 	public Process createProcess(Project project, Properties options)
 			throws Exception {
 		return new EvaluateMetricsProcess(project, model, getBriefDescription(project));
