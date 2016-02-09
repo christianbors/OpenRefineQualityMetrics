@@ -1,3 +1,10 @@
+var detailWidth,
+    dragbarbottom,
+    dragheight = 20,
+    dragbarw = 20;
+var detailWidths;
+var metricData;
+
 $(document).ready(function() {
   //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
 
@@ -7,7 +14,6 @@ $(document).ready(function() {
   var selectedColName = "Altitude";
   var selectedMetricIndex = 0;
   var selectedOverviewRect;
-  var metricData;
 
   var selectedMetricModal;
 
@@ -243,7 +249,9 @@ $(document).ready(function() {
                             var metricCurrent = d.metrics.filter(function(m) {
                               return m.name == metricName.name;
                             });
-                            return (100 * metricCurrent[0].measure) + "%"; 
+                            if(metricCurrent[0] != null) {
+                              return (100 * metricCurrent[0].measure) + "%";
+                            }
                           }
                         });
 
@@ -315,15 +323,14 @@ $(document).ready(function() {
                         if (d != null) {
                           if (d3.event.shiftKey) {
                               console.log("shift+click")
-                          } 
-                          if (selectedOverviewRect != null) {
-                            selectedOverviewRect.style("stroke-width", 0)
-                              .style("stroke", "transparent");
+                          } else {
+                            if (selectedOverviewRect != null) {
+                              d3.selectAll(".selected").classed("selected", false);
+                            }
                           }
                           var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
-                          selectedOverviewRect = d3.select(this)
-                            .style("stroke-width", 2)
-                            .style("stroke", "black");
+                          selectedMetricIndex = rowIndex;
+                          selectedOverviewRect = d3.select(this).attr("class", "selected");
                           selectedColName = d.columnName;
                           metricData = overlayModel.metricColumns.filter(function(d) {
                             if (d != null) {
@@ -331,7 +338,18 @@ $(document).ready(function() {
                             }
                           })[0].metrics[rowIndex];
                           refillEditForm(metricData, selectedColName, rowIndex);
-                          redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel, z(selectedMetricIndex));
+
+                          var headerHeightComp = datatablesHeader - $('#detailViewHeader').height();
+                          var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
+                          var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
+                              height = $(".dataTables_scrollBody").height();
+                          if (width > (metricData.evaluables.length*100)) width = metricData.evaluables.length*100;
+                          detailWidths = [];
+                          for (var i = 0; i < metricData.evaluables.length; i++) {
+                            detailWidths.push(width/metricData.evaluables.length);
+                          }
+
+                          redrawDetailView(theProject, metricData, rowIndex, selectedColName, rowModel, overlayModel, z(rowIndex), height, width, headerHeightComp, marginHeatmap);
                         }
                       });
 
@@ -356,11 +374,10 @@ $(document).ready(function() {
                         metricData.name = $("#metricName").text();
                         metricData.description = $("#metricDescription").text();
                         // var checks = $("#metricCheck");
-                        var baseMetric = metricData.evaluables[0];
                         metricData.evaluables = [];
                         // metricData.evaluables.push(baseMetric);
                         for (var i = 0; i < $(".metricCheck").length; ++i) {
-                          metricData.evaluables.push($("#eval" + (i)).val());
+                          metricData.evaluables.push(lowercaseFirstLetter($("#eval" + (i)).val()));
                         }
                         $.post("../../command/metric-doc/updateMetric?" + $.param(
                             { 
@@ -399,30 +416,31 @@ $(document).ready(function() {
   Sortable.create(checksList, { /* options */ });
 });
 
-function redrawDetailView(theProject, metricData, datatableHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel, rectColor) {
-  $('#detailViewHeader').text(selectedColName + " - " + overlayModel.availableMetrics[selectedMetricIndex]);
+function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedColName, rowModel, overlayModel, rectColor, height, width, headerHeightComp, marginHeatmap) {
+  $('#detailViewHeader').text(selectedColName + " - " + overlayModel.availableMetrics[selectedMetricIndex].name);
 
   d3.select("#heatmap").select("svg").remove();
-  // heatmap drawing
-  var headerHeightComp = datatableHeader - $('#detailViewHeader').height();
-  var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
-  var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
-      height = $(".dataTables_scrollBody").height();
-      // height = rawDataHeight - marginHeatmap.top;
   
-  if (width > (metricData.evaluables.length*100)) width = metricData.evaluables.length*100;
+  var axisWidths = [];
+  axisWidths.push(0);
+  for (var i = 1; i <= metricData.evaluables.length; i++) {
+    axisWidths.push(detailWidths[i-1] + axisWidths[i-1]);
+  }
+  var ordinalScale = [];
+  for (var i = 0; i <= metricData.evaluables.length; i++) ordinalScale.push(i);
 
-  var xScale = d3.scale.linear()
-    .domain([0, metricData.evaluables.length])
-    .range([0, width]);
+  // heatmap drawing
+  var xScale = d3.scale.ordinal()
+    .domain(ordinalScale)
+    .range(axisWidths);
 
   var yScale = d3.scale.linear()
     .range([height, 0])
     .nice();
 
-  var x = d3.scale.linear( )
-    .domain([0, metricData.evaluables.length])
-    .range([0, width]);
+  var x = d3.scale.ordinal( )
+    .domain(ordinalScale)
+    .range(axisWidths);
 
   var y = d3.scale.linear()
     .domain([rowModel.filtered, 0])
@@ -468,11 +486,11 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
         .enter( ).append("rect")
         .attr("class", "bin");
 
-    bins.attr("x", function (d, i) { 
-        return x(i); 
+    bins.attr("x", function (d, i) {
+        return x(i);
       })
-      .attr("width", function (d, i) { 
-        return  x(i+1) - x(i); 
+      .attr("width", function (d, i) {
+        return x(i + 1) - x(i);
       })
       .style("fill", function(d) {
         if (d == true) {
@@ -480,7 +498,6 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
         } else {
           return rectColor;
         }
-        
       });
 
     metricDetail.each(function (d) {
@@ -492,6 +509,8 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + (height) + ")")
+      .attr("x", height)
+      .attr("y", 0)
       .call(xAxis)
     .selectAll(".tick text")
       .style("font-size", 12)
@@ -499,6 +518,25 @@ function redrawDetailView(theProject, metricData, datatableHeader, selectedMetri
       .style("text-anchor", "start")
       .attr("x", 6)
       .attr("y", 6);
+
+    detailWidth = width/metricData.evaluables.length;
+
+    var axis = d3.selectAll("g.x.axis g.tick");
+
+    var drag = d3.behavior.drag().origin(Object).on("drag", detaildragresize).on("dragend", detaildragdone);
+
+    dragbarbottom = axis.append("rect")
+      .attr("x", function(d) { 
+        return d.x; })
+      .attr("y", function(d) { 
+        return d.y; })
+      .attr("id", "dragright")
+      .attr("height", dragbarw)
+      .attr("width", width/metricData.evaluables.length)
+      .attr("fill", "lightgreen")
+      .attr("fill-opacity", .5)
+      .attr("cursor", "ew-resize")
+      .call(drag);
 
     function wrap(text, width) {
       text.each(function() {
@@ -892,6 +930,80 @@ function fillModalAfterColumnSelection(theProject) {
     });
 }
 
+function detaildragresize(d) {
+  //Max x on the left is x - width 
+  //Max x on the right is width of screen + (dragbarw/2)
+  var dragx = Math.max(d.x + (dragbarw/2), Math.min(detailWidth, d.x + dragbarw + d3.event.dx));
+  // console.log(d.x+10 + ", max of(" + detailWidth + ", " + (d.x + 20 + d3.event.dx));
+  //recalculate width
+  detailWidth = detailWidth + d3.event.dx;
+  console.log(detailWidth);
+
+  var selectedIdx = this.__data__;
+  detailWidths[selectedIdx] = detailWidth;
+
+  var bins = d3.selectAll("g.metric-detail-row");
+  bins.selectAll("rect")
+    .filter(function(d, i) { return i === selectedIdx; })
+    .attr("width", detailWidth);
+  bins.selectAll("rect")
+    .filter(function(d, i) { return i > selectedIdx; })
+    .attr("x", function(d, i) {
+      return parseInt(this.attributes.x.value) + d3.event.dx;
+    });
+
+  //move the right drag handle
+  dragbarbottom.filter(function(d, i) { return i === selectedIdx; })
+    .attr("width", detailWidth)
+    .attr("border", 1);
+
+  var axisWidths = [];
+  axisWidths.push(0);
+  for (var i = 1; i <= metricData.evaluables.length; i++) {
+    axisWidths.push(detailWidths[i-1] + axisWidths[i-1]);
+  }
+
+  var ordinalScale = [];
+  for (var i = 0; i <= metricData.evaluables.length; i++) ordinalScale.push(i);
+
+  var xScale = d3.scale.ordinal()
+    .domain(ordinalScale)
+    .range(axisWidths);
+
+  var x = d3.scale.ordinal( )
+    .domain(ordinalScale)
+    .range(axisWidths);
+
+  var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient("bottom")
+    .ticks(metricData.evaluables.length)
+    .tickFormat(function(d) {
+      var script = metricData.evaluables[d];
+      if (script != null) {
+        var label;
+        if (script.indexOf(metricData.name) < 0) {
+          label = script.substr(3, script.indexOf(",")-3);
+        } else {
+          label = script;
+        }
+        return label;
+      }
+    });
+
+  d3.select("g.x.axis").call(xAxis);
+  //resize the drag rectangle
+  //as we are only resizing from the right, the x coordinate does not need to change
+}
+
+function detaildragdone(d) {
+  var axis = d3.selectAll("g.metric-detail-row g");
+}
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function lowercaseFirstLetter(string) {
+    return string.charAt(0).toLowerCase() + string.slice(1);
 }

@@ -30,7 +30,12 @@ body {
 
 #overviewTable {
     position: absolute;
-    border-color: rgb(221, 221, 221);
+    /*border-color: rgb(221, 221, 221);*/
+}
+
+.selected {
+    stroke-width: 3px;
+    border: 2px solid yellow;
 }
 
 .fixed-panel {

@@ -73,6 +73,11 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 		return new EvaluateMetricsProcess(project, model, getBriefDescription(project));
 	}
 
+	@Override
+	protected String getBriefDescription(Project project) {
+		return "Evaluate Metrics for all Columns";
+	}
+
 	private class EvaluateMetricsProcess extends LongRunningProcess implements Runnable {
 		
 		private Project project;
