@@ -86,6 +86,55 @@
       </div>
     </div>
     <!-- Metrics Overview and Parameter details -->
+    <div class="row">
+      <div class="col-md-4">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
+              <b>Metric Details</b>
+            </a>
+          </div>
+          <div id="collapseDetails" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+            <ul id="simpleList" class="list-group fixed-panel">
+              <li class="list-group-item">
+                <label for="metricName">
+                  Name:
+                </label>
+                <span id="metricName" />
+              </li>
+              <li class="list-group-item">
+                <label for="metricName">
+                  Description: 
+                </label>
+                <div id="metricDescription" />
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseChecks" aria-expanded="false" aria-controls="collapseChecks">
+              <b>Checks</b>
+            </a>
+          </div>
+          <div id="collapseChecks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+            <ul id="checksList" class="list-group fixed-panel">
+              <li class="input-group">
+              </li>
+              <li class="list-group-item" id="addCheckButton"><label class="btn btn-default" id="addCheck">Add Check</label></li>
+            </ul>
+            <div class="panel-footer clearfix">
+              <div class="btn-group pull-right">
+                <a href="#" class="btn btn-default btn-sm" id="btnReset">Cancel</a>
+                <a href="#" class="btn btn-default btn-sm" id="btnSave">Save</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="row myrow">
       <div class="col-md-9">
         <div id="overviewPanel" style="height:150px;">
@@ -103,68 +152,6 @@
         </div>
       </div>
       <div class="col-md-3">
-        <div class="panel panel-default">
-          <div class="panel-heading clearfix">
-            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
-              <b>Metric Details</b>
-            </a>
-          </div>
-          <div id="collapseDetails" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-          <!-- <div class="panel-body"> -->
-            <ul id="simpleList" class="list-group fixed-panel">
-              <li class="list-group-item">
-                <label for="metricName">
-                  Name:
-                </label>
-                <span id="metricName" />
-              </li>
-              <li class="list-group-item">
-                <label for="metricName">
-                  Description: 
-                </label>
-                <div id="metricDescription" />
-              </li>
-            </ul>
-          </div>
-          <div class="panel-heading clearfix">
-            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseChecks" aria-expanded="false" aria-controls="collapseChecks">
-              <b>Checks</b>
-            </a>
-          </div>
-          <div id="collapseChecks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-            <ul id="checksList" class="list-group fixed-panel">
-              <li class="input-group">
-                
-              </li>
-<!--               <li class="list-group-item"><label for="dataTypes">
-                  Data Type
-                </label>
-                <p>
-                  <div class="btn-group" data-toggle="buttons" id="dataTypes">
-                    <label class="btn btn-default active" id="dataTypeString">
-                      <input type="checkbox" checked> String
-                    </label>
-                    <label class="btn btn-default" id="dataTypeNumeric">
-                      <input type="checkbox"> Numeric
-                    </label>
-                    <label class="btn btn-default" id="dataTypeCategoric">
-                      <input type="checkbox"> Categoric
-                    </label>
-                    <label class="btn btn-default" id="dataTypeDateTime">
-                      <input type="checkbox"> Date/Time
-                    </label>
-                  </div>
-                </p></li> -->
-              <li class="list-group-item" id="addCheckButton"><label class="btn btn-default" id="addCheck">Add Check</label></li>
-            </ul>
-            <div class="panel-footer clearfix">
-              <div class="btn-group pull-right">
-                <a href="#" class="btn btn-default btn-sm" id="btnReset">Cancel</a>
-                <a href="#" class="btn btn-default btn-sm" id="btnSave">Save</a>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
     <!-- Table and Heatmap view -->
@@ -304,8 +291,8 @@
 </div><!-- /.modal -->
 
 <div id="popoverExampleTwoHiddenContent" style="display: none">
-     <div class="alert alert-danger"><b>Popover Example</b> 2 - Content</div>
-  </div>  
+   <div class="alert alert-danger"><b>Popover Example</b> 2 - Content</div>
+</div>
 
     <!-- libraries -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
