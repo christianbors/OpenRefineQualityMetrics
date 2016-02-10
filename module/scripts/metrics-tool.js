@@ -95,7 +95,9 @@ $(document).ready(function() {
                     "scrollY": "600",
                     "scrollCollapse": true,
                     "paging": true,
-                    "dom": 'rt<"bottom"ip><"clear">'
+                    "scroller": true,
+                    "bSort": false,
+                    "dom": 'rt<"bottom"i><"clear">'
                   });
 
                   $.each(columnStore, function(key, value){
@@ -182,10 +184,11 @@ $(document).ready(function() {
                         .domain([0, overlayModel.availableMetrics]);
 
                       $("#raw-data-container").css({marginLeft: $("#overviewTable > thead > tr > th").outerWidth()});
-                      $('#detailViewHeader').css('margin', 0 + 'px');
+                      $('#detailViewHeader').css('marginTop', 0 + 'px')
+                        .css('marginBottom', 0 + 'px');
 
-                      $('#dataset').dataTable().fnDraw();
-                      $('#dataset').dataTable().fnAdjustColumnSizing();
+                      $('#dataset').DataTable().columns.adjust().draw();
+                      // $('#dataset').DataTable().columns().header().draw();
 
                       var colWidths = [];
                         $.each($("#dataset > thead > tr > th"), function(i, header) {
@@ -339,6 +342,7 @@ $(document).ready(function() {
                           })[0].metrics[rowIndex];
                           refillEditForm(metricData, selectedColName, rowIndex);
 
+                          $('#detailViewHeader').text(selectedColName + " - " + overlayModel.availableMetrics[selectedMetricIndex].name);
                           var headerHeightComp = datatablesHeader - $('#detailViewHeader').height();
                           var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
                           var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
@@ -417,8 +421,6 @@ $(document).ready(function() {
 });
 
 function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedColName, rowModel, overlayModel, rectColor, height, width, headerHeightComp, marginHeatmap) {
-  $('#detailViewHeader').text(selectedColName + " - " + overlayModel.availableMetrics[selectedMetricIndex].name);
-
   d3.select("#heatmap").select("svg").remove();
   
   var axisWidths = [];
@@ -454,10 +456,10 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       var script = metricData.evaluables[d];
       if (script != null) {
         var label;
-        if (script.indexOf(metricData.name) < 0) {
-          label = script.substr(3, script.indexOf(",")-3);
-        } else {
+        if (script.toLowerCase().indexOf(metricData.name) < 0) {
           label = script;
+        } else {
+          label = metricData.name;
         }
         return label;
       }
@@ -525,7 +527,10 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
 
     var drag = d3.behavior.drag().origin(Object).on("drag", detaildragresize).on("dragend", detaildragdone);
 
-    dragbarbottom = axis.append("rect")
+    dragbarbottom = axis.filter(function(d, i) {
+        return d < metricData.evaluables.length;
+      })
+      .append("rect")
       .attr("x", function(d) { 
         return d.x; })
       .attr("y", function(d) { 
@@ -533,8 +538,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       .attr("id", "dragright")
       .attr("height", dragbarw)
       .attr("width", width/metricData.evaluables.length)
-      .attr("fill", "lightgreen")
-      .attr("fill-opacity", .5)
+      .attr("fill-opacity", 0)
       .attr("cursor", "ew-resize")
       .call(drag);
 
@@ -567,34 +571,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       .call(yAxis);
 
     metricDetail.on("click", function(d) {
-      console.log(d.index);
-      $.post(
-        "../../command/core/get-rows?" + $.param({ project: theProject.id, start: d.index, limit: 0 }) + "&callback=?",
-        [],
-        function(data) {
-          var dataSet = [];
-          var columns = theProject.columnModel.columns;
-          for (var r = 0; r < data.rows.length; r++) {
-            var row = data.rows[r];
-            var rowValues = [];
-            $.each(columns, function(index, value) {
-              if (value != null) {
-                var cell = row.cells[value.cellIndex]
-                if (cell != null) {
-                  rowValues.push(cell.v);
-                } else {
-                  rowValues.push('');
-                }
-              }
-            });
-            dataSet.push(rowValues);
-          }
-          var dataTable = $('#dataset').dataTable();
-          dataTable.fnClearTable();
-          dataTable.fnAddData(dataSet);
-        },
-        "jsonp"
-      );
+      $('#dataset').DataTable().row(d.index).scrollTo();
     });
 
     bins.on("mouseover", function(d) {
@@ -725,34 +702,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   });
 
   bins.on("click", function(d) {
-    console.log(d.index);
-    $.post(
-      "../../command/core/get-rows?" + $.param({ project: theProject.id, start: d.index, limit: 500 }) + "&callback=?",
-      [],
-      function(data) {
-        var columns = theProject.columnModel.columns;
-        var dataSet = [];
-        for (var r = 0; r < data.rows.length; r++) {
-          var row = data.rows[r];
-          var rowValues = [];
-          $.each(columns, function(index, value) {
-            if (value != null) {
-              var cell = row.cells[value.cellIndex]
-              if (cell != null) {
-                rowValues.push(cell.v);
-              } else {
-                rowValues.push('');
-              }
-            }
-          });
-          dataSet.push(rowValues);
-        }
-        var dataTable = $('#dataset').dataTable();
-        dataTable.fnClearTable();
-        dataTable.fnAddData(dataSet);
-      },
-      "jsonp"
-    );
+    $('#dataset').DataTable().row(d.index).scrollTo();
   });
   // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
   // var svg = headers.insert("svg", "#dataset")

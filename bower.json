@@ -11,7 +11,8 @@
     "jquery": "~2.1.1",
     "bootstrap": "~3.1.1",
     "dc.js": "latest",
-    "datatables": "latest",
+    "datatables.net-bs": "latest",
+    "datatables.net-scroller-bs": "latest",
     "colorbrewer": "latest"
   }
 }
