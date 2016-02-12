@@ -30,12 +30,12 @@ body {
 
 #overviewTable {
     position: absolute;
-    /*border-color: rgb(221, 221, 221);*/
+    border-color: rgb(221, 221, 221);
 }
 
 .selected {
-    stroke-width: 3px;
-    border: 2px solid yellow;
+    /*stroke-width: 3px;*/
+    border: 2px solid steelblue;
 }
 
 .fixed-panel {
@@ -47,6 +47,11 @@ body {
 
 .floated-table {
     display: inline-block;
+}
+
+td.highlight {
+    font-weight: bold;
+    color: steelblue;
 }
 
 th {
@@ -68,8 +73,12 @@ tbody td {
   padding: 0;
 }
 
-svg .g:hover rect {
-  fill: brown;
+.bin {
+  fill: ;
+}
+
+.bin.hover {
+  fill: steelblue;
 }
 
 td { font-size: 12px;}

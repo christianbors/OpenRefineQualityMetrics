@@ -8,6 +8,8 @@ var selectedMetricIndex = [0]
     selectedColName = [],
     metricData = [],
     totalEvaluables = [];
+// coloring scale should be defined globally
+var z;
 
 $(document).ready(function() {
   //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
@@ -180,7 +182,7 @@ $(document).ready(function() {
                       var minScale = 3;
                       if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
                         
-                      var z = d3.scale.ordinal()
+                      z = d3.scale.ordinal()
                         .range(colorbrewer.Reds[minScale])
                         .domain([0, overlayModel.availableMetrics]);
 
@@ -365,7 +367,7 @@ $(document).ready(function() {
                             detailWidths.push(width/totalEvaluables.length);
                           }
 
-                          redrawDetailView(theProject, metricData, rowIndex, selectedColName, rowModel, overlayModel, z(rowIndex), height, width, marginHeatmap);
+                          redrawDetailView(theProject, metricData, rowIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap);
                         }
                       });
 
@@ -431,7 +433,7 @@ $(document).ready(function() {
   Sortable.create(checksList, { /* options */ });
 });
 
-function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedColName, rowModel, overlayModel, rectColor, height, width, marginHeatmap) {
+function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap) {
   d3.select("#heatmap").select("svg").remove();
   
   var axisWidths = [];
@@ -598,18 +600,16 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
         .attr("class", "bin");
 
     bins.attr("x", function (d, i) {
-        return x(i);
-      })
-      .attr("width", function (d, i) {
-        return x(i + 1) - x(i);
-      })
-      .style("fill", function(d) {
-        if (d == true) {
-          return "transparent";
-        } else {
-          return rectColor;
-        }
-      });
+      return x(i);
+    }).attr("width", function (d, i) {
+      return x(i + 1) - x(i);
+    }).style("fill", function(d) {
+      if (d == true) {
+        return "transparent";
+      } else {
+        return z(selectedMetricIndex);
+      }
+    });
 
     metricDetail.each(function (d) {
       var ys = d3.select(this).selectAll(".bin")
@@ -618,20 +618,24 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
     });
 
     metricDetail.on("click", function(d) {
-      $('#dataset').DataTable().row(d.index).scrollTo();
+      $("#dataset td").removeClass("highlight");
+      $("#dataset").DataTable().row(d.index).scrollTo();
+      $.each($("#dataset").DataTable().row(d.index).node().children, function(i, td) {
+        td.classList.add("highlight");
+      });
     });
 
     bins.on("mouseover", function(d) {
-      d3.select(this).style("fill", "red");
-      d3.select(this.parentNode).style("fill", "black");
+      d3.select(this.parentNode).selectAll("rect").style("fill", "steelblue");
+      // d3.select(this.parentNode).style("fill", "black");
     });
 
     bins.on("mouseout", function(d) {
-      d3.select(this).style("fill", function(d) {
+      d3.select(this.parentNode).selectAll("rect").style("fill", function(d) {
         if (d == true) {
           return "transparent";
         } else {
-          return rectColor;
+          return z(selectedMetricIndex);
         }
         
       });
@@ -668,10 +672,6 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
 
   var minScale = 3;
   if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
-
-  var z = d3.scale.ordinal()
-    .range(colorbrewer.Reds[minScale])
-    .domain([0, overlayModel.availableMetrics]);
 
   var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
     .data(overlayModel.metricColumns)
@@ -761,6 +761,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
 }
 
 function refillEditForm(d, colName, metricIndex) {
+  $("#metricInfoDetailHeader").text("Metric Detail - " + capitalizeFirstLetter(d[0].name) + " - " + selectedColName[0]);
   $("#metricName").text(d[0].name);
   $("#metricDescription").text(d[0].description);
 
@@ -827,8 +828,12 @@ function refillEditForm(d, colName, metricIndex) {
   }
   if (d[0].evaluables.length > 0) {
     for (var i = 0; i < d[0].evaluables.length; i++) {
-      $("<li class='list-group-item pop metricCheck' data-toggle='popover' title='Edit Check' data-content='test'><label for='metricCheck" + i + "'>"
-        + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
+      $("<li class='input-group metricCheck' for='metricCheck" + i + "'>" + 
+        "<span class='input-group-addon' id='edit' data-toggle='popover'>edit</span>" + 
+        "<input type='text' class='form-control pop metricCheck' placeholder='Check'id='eval"+(i)+"'/>  " + //TODO: aria-describedby='basic-addon1'>
+        "</li>").insertBefore("#addCheckButton");
+      // $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
+      //   + "</label><input class='form-control' id='eval"+(i)+"'/></li>").insertBefore("#addCheckButton");
       $("#eval" + i).val(d[0].evaluables[i]);
     }
     $(".remove-btn").click(function() {
@@ -837,23 +842,17 @@ function refillEditForm(d, colName, metricIndex) {
     $("[data-toggle=popover]").popover({
       html: 'true',
       trigger: 'manual',
-      placement: 'left',
+      placement: 'auto top',
       animation: 'false',
-      content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger">remove</button><button type="button" class="btn btn-warning">edit</button></div>'
+      container: 'body',
+      content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger">remove</button><button type="button" class="btn">disable</button></div>'
       //content:'<a class="alert alert-danger" href="" title="test add link">link on content</a>'
-    }).on("mouseenter", function () {
+    }).on("click", function () {
       var _this = this;
-      $(this).popover("show");
+      $(this).popover("toggle");
       $(".popover").on("mouseleave", function () {
           $(_this).popover('hide');
       });
-    }).on("mouseleave", function () {
-      var _this = this;
-      setTimeout(function () {
-          if (!$(".popover:hover").length) {
-              $(_this).popover("hide");
-          }
-      }, 300);
     });
 
   }

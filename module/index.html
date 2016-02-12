@@ -10,6 +10,8 @@
     <link href="bower_components/datatables.net-bs/css/dataTables.bootstrap.css" rel="stylesheet">
     <link href="styles/style.css" rel="stylesheet" type="text/css">
     <link href="bower_components/colorbrewer/colorbrewer.css" rel="stylesheet">
+    <link href="bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.woff" type="application/x-font-woff">
+    <link href="bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.ttf" type="application/x-font-ttf">
 
     <script src="http://d3js.org/d3.v3.min.js"></script>
 
@@ -18,6 +20,7 @@
     <script src="bower_components/colorbrewer/colorbrewer.js"></script>
     <!--<script src="scripts/angular/controllers.js"></script>-->
     <script src="bower_components/jquery/dist/jquery.js"></script>
+
   </head>
   <body>
 
@@ -87,11 +90,11 @@
     </div>
     <!-- Metrics Overview and Parameter details -->
     <div class="row">
-      <div class="col-md-4">
+      <div aria-hidden="true" class="col-md-4">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
-            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
-              <b>Metric Details</b>
+            <a id="metricInfoDetailHeader" class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
+              Metric Details
             </a>
           </div>
           <div id="collapseDetails" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
@@ -112,17 +115,15 @@
           </div>
         </div>
       </div>
-      <div class="col-md-8">
+      <div aria-hidden="true" class="col-md-8">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
             <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseChecks" aria-expanded="false" aria-controls="collapseChecks">
-              <b>Checks</b>
+              Checks
             </a>
           </div>
           <div id="collapseChecks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
             <ul id="checksList" class="list-group fixed-panel">
-              <li class="input-group">
-              </li>
               <li class="list-group-item" id="addCheckButton"><label class="btn btn-default" id="addCheck">Add Check</label></li>
             </ul>
             <div class="panel-footer clearfix">
@@ -292,6 +293,7 @@
 
 <div id="popoverExampleTwoHiddenContent" style="display: none">
    <div class="alert alert-danger"><b>Popover Example</b> 2 - Content</div>
+
 </div>
 
     <!-- libraries -->
