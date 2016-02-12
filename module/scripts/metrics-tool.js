@@ -713,34 +713,35 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
       return "translate(-" + offset + ",0)";
     });
 
-  var bins = cols.selectAll(".metrics-bin").data(function(d) {
-      if (d.dirtyIndices != null) {
-        return d.dirtyIndices; 
+  var bins = cols.selectAll(".metrics-bin")
+  .data(function(d) {
+    if (d.dirtyIndices != null) {
+      return d.dirtyIndices; 
+    } else {
+      return [];
+    }
+  }).enter()
+  .append("rect")
+  .attr("class", "metrics-bin")
+  .attr("width", function (d, i) {
+    return  12; 
+  }).style("fill", function(d, i) {
+    var metricsCol = this.parentNode.parentNode.__data__;
+    var current = this.parentNode.__data__;
+    return z(metricsCol.metrics.indexOf(current));
+  });
+  var tooltip = d3.tip()
+    .attr("class", "d3-tip")
+    .offset([-10, 0])
+    .html(function(d) {
+      if(d.first != null) {
+        return "<strong>Rows:</strong> <span style='color:steelblue'>" + d.first + " - " + d.last + "</span>";
       } else {
-        return [];
+        return "<strong>Row:</strong> <span style='color:steelblue'>" + d + "</span>";
       }
-    })
-    .enter().append("rect")
-    .attr("class", "metrics-bin");
-
-  /*
-  .attr("x", function (d, i) {
-      var col = this.parentNode.parentNode;
-      var currentCol = columnStore.filter(function(column) {
-        return col.__data__.columnName == column.title;
-      })[0];
-      return overlayX(columnStore.indexOf(currentCol)); 
-    })
-  */
-  bins
-    .attr("width", function (d, i) {
-      return  12; 
-    })
-    .style("fill", function(d, i) {
-      var metricsCol = this.parentNode.parentNode.__data__;
-      var current = this.parentNode.__data__;
-      return z(metricsCol.metrics.indexOf(current));
     });
+
+  bins.call(tooltip);
 
   bins.each(function (d) {
     var ys = d3.select(this)
@@ -749,8 +750,36 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   });
 
   bins.on("click", function(d) {
-    $('#dataset').DataTable().row(d.index).scrollTo();
+    $("#dataset td").removeClass("highlight");
+    $("#dataset").DataTable().row(d.index).scrollTo();
+    $.each($("#dataset").DataTable().row(d.index).node().children, function(i, td) {
+      td.classList.add("highlight");
+    });
   });
+
+  bins.on("mouseover", function(d) {
+    d3.select(this).style("fill", "steelblue");
+    var selThis = this;
+    var sameRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
+      return d3.select(this).attr("y") === d3.select(selThis).attr("y");
+    })[0];
+    if(sameRows.length > 1) {
+      var indices = {
+        first: sameRows[0].__data__.index,
+        last: sameRows[sameRows.length-1].__data__.index
+      };
+      tooltip.show(indices);
+    }
+  });
+
+  bins.on("mouseout", function(d) {
+      d3.select(this).style("fill", function(d, i) {
+        var metricsCol = this.parentNode.parentNode.__data__;
+        var current = this.parentNode.__data__;
+        return z(metricsCol.metrics.indexOf(current));
+      });
+      tooltip.hide;
+    });
   // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
   // var svg = headers.insert("svg", "#dataset")
   //   .attr("class", "overlay")

@@ -13,6 +13,7 @@
     "dc.js": "latest",
     "datatables.net-bs": "latest",
     "datatables.net-scroller-bs": "latest",
-    "colorbrewer": "latest"
+    "colorbrewer": "latest",
+    "d3-tip": "latest"
   }
 }
