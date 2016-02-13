@@ -11,6 +11,28 @@ var selectedMetricIndex = [0]
 // coloring scale should be defined globally
 var z;
 
+var tooltipInvalid = d3.tip()
+  .attr("class", "d3-tip")
+  .offset([-10, 0])
+  .html(function(d) {
+    if(d != null && d.first != null) {
+      return "<strong>Rows:</strong> <span style='color:steelblue'>" + d.first + " - " + d.last + "</span>";
+    } else {
+      return "<strong>Row:</strong> <span style='color:steelblue'>" + d + "</span>";
+    }
+  });
+var tooltipOverview = d3.tip()
+  .attr("class", "d3-tip")
+  .offset([-10, 0])
+  .html(function(d) {
+    if (d != null) {
+      return "<span style='color:steelblue'>" + capitalizeFirstLetter(d.name) + "</span><br>" +
+        "<strong>Metric Value:</strong> <span style='color:steelblue'>" + d.measure + "</span><br>" + 
+        "<strong>Number of Checks:</strong> <span style='color:steelblue'>" + d.evaluables.length + "</span><br>" + 
+        "<strong>Data Type:</strong> <span style='color:steelblue'>" + d.datatype + "</span>";
+    }
+  });
+
 $(document).ready(function() {
   //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
 
@@ -370,6 +392,15 @@ $(document).ready(function() {
                           redrawDetailView(theProject, metricData, rowIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap);
                         }
                       });
+                      td.select("svg").call(tooltipOverview);
+                      td.select("svg").on("mouseover", function(d) {
+                        if (d != null) {
+                          var rowIndex = this.parentNode.parentNode.sectionRowIndex;
+                          tooltipOverview.show(d.metrics[rowIndex]);
+                        };
+                      }).on("mouseout", function(d) {
+                        tooltipOverview.hide();
+                      });
 
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
 
@@ -619,14 +650,32 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
 
     metricDetail.on("click", function(d) {
       $("#dataset td").removeClass("highlight");
-      $("#dataset").DataTable().row(d.index).scrollTo();
-      $.each($("#dataset").DataTable().row(d.index).node().children, function(i, td) {
-        td.classList.add("highlight");
+      var attrY = d3.select(this.firstChild).attr("y");
+      var selectedRows = d3.selectAll("g.metric-detail-row").filter(function(r) {
+        return d3.select(this.firstChild).attr("y") === attrY;
+      })[0];
+      $("#dataset").DataTable().row(selectedRows[0].__data__.index).scrollTo();
+      $.each(selectedRows, function(i, rowCurrent) {
+        $.each($("#dataset").DataTable().row(rowCurrent.__data__.index).node().children, function(i, td) {
+          td.classList.add("highlight");
+        });
       });
     });
 
     bins.on("mouseover", function(d) {
-      d3.select(this.parentNode).selectAll("rect").style("fill", "steelblue");
+      var attrY = d3.select(this).attr("y");
+      var sameRows = d3.selectAll("g.metric-detail-row").filter(function(r) {
+        return d3.select(this.firstChild).attr("y") === attrY;
+      })[0];
+      if(sameRows.length > 1) {
+        var indices = {
+          first: sameRows[0].__data__.index,
+          last: sameRows[sameRows.length-1].__data__.index
+        };
+        tooltipInvalid.show(indices);
+      } else {
+        tooltipInvalid.show(this.parentNode.__data__.index);
+      }
       // d3.select(this.parentNode).style("fill", "black");
     });
 
@@ -640,6 +689,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
         
       });
       d3.select(this.parentNode).style("fill", "transparent");
+      tooltipInvalid.hide();
     });
   }
 }
@@ -730,18 +780,8 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     var current = this.parentNode.__data__;
     return z(metricsCol.metrics.indexOf(current));
   });
-  var tooltip = d3.tip()
-    .attr("class", "d3-tip")
-    .offset([-10, 0])
-    .html(function(d) {
-      if(d.first != null) {
-        return "<strong>Rows:</strong> <span style='color:steelblue'>" + d.first + " - " + d.last + "</span>";
-      } else {
-        return "<strong>Row:</strong> <span style='color:steelblue'>" + d + "</span>";
-      }
-    });
 
-  bins.call(tooltip);
+  bins.call(tooltipInvalid);
 
   bins.each(function (d) {
     var ys = d3.select(this)
@@ -751,9 +791,15 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
 
   bins.on("click", function(d) {
     $("#dataset td").removeClass("highlight");
-    $("#dataset").DataTable().row(d.index).scrollTo();
-    $.each($("#dataset").DataTable().row(d.index).node().children, function(i, td) {
-      td.classList.add("highlight");
+    var selThis = this;
+    var selectedRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
+      return d3.select(this).attr("y") === d3.select(selThis).attr("y");
+    })[0];
+    $("#dataset").DataTable().row(selectedRows[0].__data__.index).scrollTo();
+    $.each(selectedRows, function(i, rowCurrent) {
+      $.each($("#dataset").DataTable().row(rowCurrent.__data__.index).node().children, function(i, td) {
+        td.classList.add("highlight");
+      });
     });
   });
 
@@ -768,7 +814,9 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
         first: sameRows[0].__data__.index,
         last: sameRows[sameRows.length-1].__data__.index
       };
-      tooltip.show(indices);
+      tooltipInvalid.show(indices);
+    } else {
+      tooltipInvalid.show(d.index)
     }
   });
 
@@ -778,7 +826,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
         var current = this.parentNode.__data__;
         return z(metricsCol.metrics.indexOf(current));
       });
-      tooltip.hide;
+      tooltipInvalid.hide();
     });
   // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
   // var svg = headers.insert("svg", "#dataset")
@@ -848,7 +896,7 @@ function refillEditForm(d, colName, metricIndex) {
     //   .text(function(data) { 
     //     return data.type; 
     //   });
-    }
+  }
 
   if (d[0].evaluables.length > 0) {
     var metric = d[0].evaluables[0];
