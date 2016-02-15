@@ -21,23 +21,32 @@ import com.google.refine.metricsExtension.util.MetricUtils;
 
 public class Metric implements Jsonizable {
 
+	public enum Concatenation {
+		AND, OR, XOR;
+	}
+	
     protected String name;
     protected String description;
     protected float measure;
     protected String dataType;
+    protected Concatenation concat;
 
     protected List<Evaluable> evaluables;
     protected Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
-        this(name, description, 0f, "unknown");
+        this(name, description, 0f, "unknown", Concatenation.OR);
     }
     
     public Metric(String name, String description, String dataType) {
-    	this(name, description, 0f, dataType);
+    	this(name, description, 0f, dataType, Concatenation.OR);
     }
     
-    public Metric(String name, String description, float measure, String dataType) {
+    public Metric(String name, String description, String dataType, Concatenation concat) {
+    	this(name, description, 0f, dataType, concat);
+    }
+    
+    public Metric(String name, String description, float measure, String dataType, Concatenation concat) {
     	this.name = name;
         this.description = description;
         this.measure = measure;
@@ -55,6 +64,7 @@ public class Metric implements Jsonizable {
         writer.key("measure").value(Float.toString(measure));
         writer.key("datatype").value(dataType);
         writer.key("description").value(description);
+        writer.key("concat").value(concat);
 		if (!dirtyIndices.isEmpty()) {
 			writer.key("dirtyIndices");
 			writer.array();
@@ -79,7 +89,11 @@ public class Metric implements Jsonizable {
 
 	public static Metric load(JSONObject o) {
         try {
-        	Metric m = new Metric(o.getString("name"), o.getString("description"), new Float(o.getString("measure")), o.getString("datatype"));
+        	Metric m = new Metric(o.getString("name"), 
+        			o.getString("description"), 
+        			new Float(o.getString("measure")), 
+        			o.getString("datatype"), 
+        			Concatenation.valueOf(o.getString("concat")));
 			if (o.has("dirtyIndices")) {
 				JSONArray di = o.getJSONArray("dirtyIndices");
 				m.dirtyIndices = new HashMap<Integer, List<Boolean>>();
@@ -140,8 +154,16 @@ public class Metric implements Jsonizable {
     public void setMeasure(float measure) {
         this.measure = measure;
     }
+    
+    public Concatenation getConcat() {
+		return concat;
+	}
 
-    public void setName(String name) {
+	public void setConcat(Concatenation concat) {
+		this.concat = concat;
+	}
+
+	public void setName(String name) {
         this.name = name;
     }
 

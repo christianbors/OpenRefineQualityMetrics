@@ -43,15 +43,31 @@ body {
     min-height: 75px;
     max-height: 200px;
     overflow-y: scroll;
+    margin-bottom: 0px;
 }
 
 .floated-table {
     display: inline-block;
 }
 
+rect.posHighlight {
+    color: black;
+    opacity: 0.1;
+}
+
 td.highlight {
     font-weight: bold;
     color: steelblue;
+}
+
+.panel-footer {
+    overflow: hidden;
+    padding-top: 20px;
+}
+
+.panel-footer .btn-group {
+    position: relative;
+    top: -5px;
 }
 
 th {

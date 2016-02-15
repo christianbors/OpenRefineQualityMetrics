@@ -662,6 +662,19 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       });
     });
 
+    $('.dataTables_scrollBody').on('scroll', function() {
+      var regex = /(\d+)/g;
+      var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+      d3.select("rect.posHighlight").remove();
+      
+      var detailHeat = d3.select("#heatmap svg g").append("rect")
+        .classed("posHighlight", true)
+        .attr("x", 0)
+        .attr("y", y(nums[0]))
+        .attr("width", width)
+        .attr("height", y(nums[1]) - y(nums[0]));
+    });
+
     bins.on("mouseover", function(d) {
       var attrY = d3.select(this).attr("y");
       var sameRows = d3.selectAll("g.metric-detail-row").filter(function(r) {
