@@ -1,3 +1,4 @@
+var theProject;
 var detailWidth,
     dragbarbottom,
     dragheight = 20,
@@ -10,6 +11,7 @@ var selectedMetricIndex = [0]
     totalEvaluables = [];
 // coloring scale should be defined globally
 var z;
+var selectedEditEvaluable
 
 var tooltipInvalid = d3.tip()
   .attr("class", "d3-tip")
@@ -57,7 +59,7 @@ $(document).ready(function() {
     return r;
   };
 
-  var theProject = { id : URL.getParameters().project};
+  theProject = { id : URL.getParameters().project};
 
   $.getJSON(
     "../../command/core/get-project-metadata?" + $.param({ project: theProject.id }), null,
@@ -160,8 +162,12 @@ $(document).ready(function() {
 
                       $("#addCheck").on("click", function(d) {
                         var i = $(".metricCheck").length;
-                        $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
-                        + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
+                        $("<li class='input-group metricCheck' for='metricCheck" + i + "'>" + 
+                          "<span class='input-group-addon' id='edit' data-toggle='popover'>edit</span>" + 
+                          "<input type='text' class='form-control pop metricCheck' placeholder='Check'id='eval"+(i)+"'/>  " + //TODO: aria-describedby='basic-addon1'>
+                          "</li>").insertBefore("#addCheckButton");
+                        // $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
+                        // + "</label><input class='form-control' id='eval"+(i)+"'/><button class='btn btn-default remove-btn'>Remove</button></li>").insertBefore("#addCheckButton");
                       });
 
                       $("#createMetricBtn").on("click", function(btn) {
@@ -461,7 +467,7 @@ $(document).ready(function() {
     'json'
   );
 
-  Sortable.create(checksList, { /* options */ });
+  // Sortable.create(checksList, { /* options */ });
 });
 
 function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap) {
@@ -666,7 +672,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       var regex = /(\d+)/g;
       var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
       d3.select("rect.posHighlight").remove();
-      
+
       var detailHeat = d3.select("#heatmap svg g").append("rect")
         .classed("posHighlight", true)
         .attr("x", 0)
@@ -676,6 +682,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
     });
 
     bins.on("mouseover", function(d) {
+      d3.select(this.parentNode).selectAll("rect").style("fill", "steelblue");
       var attrY = d3.select(this).attr("y");
       var sameRows = d3.selectAll("g.metric-detail-row").filter(function(r) {
         return d3.select(this.firstChild).attr("y") === attrY;
@@ -879,37 +886,8 @@ function refillEditForm(d, colName, metricIndex) {
     $("#dataTypeCategoric").removeClass('active');
   }
 
-  if (d[0].name == "validity") {
-    $("#simpleList").append("<li class='list-group-item' id='typeDetail'><label>Detected Data Types (Placeholder)</label><table><tbody /></table></li>");
-    var dataTypes = [{type: "String", val: 20}, {type: "Numeric", val: 70}, {type: "Date/Time", val: 3}, {type: "unknown", val: 7}];
-    var tr = d3.select("#typeDetail").select("tbody").selectAll("tr")
-      .data(dataTypes)
-      .enter()
-      .append("tr");
-    tr.append("td")
-      .text(function(d) {
-        return d.type;
-      });
-    tr.append("td")
-      .append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-      .append("rect")
-      .attr("width", function(d) {
-        return (d.val/100)*71;
-      })
-      .attr("height", 12)
-      .style("fill", "steelblue");
-    // var types = d3.select("#typeDetail").append("div")
-    //   .append("g")
-    //   .selectAll("text")
-    //   .data(dataTypes)
-    //   .enter()
-    //   .append("text")
-    //   .text(function(data) { 
-    //     return data.type; 
-    //   });
-  }
+  $("#concat button").removeClass('active');
+  $("#concat" + d[0].concat).addClass('active');
 
   if (d[0].evaluables.length > 0) {
     var metric = d[0].evaluables[0];
@@ -918,33 +896,39 @@ function refillEditForm(d, colName, metricIndex) {
   }
   if (d[0].evaluables.length > 0) {
     for (var i = 0; i < d[0].evaluables.length; i++) {
-      $("<li class='input-group metricCheck' for='metricCheck" + i + "'>" + 
-        "<span class='input-group-addon' id='edit' data-toggle='popover'>edit</span>" + 
-        "<input type='text' class='form-control pop metricCheck' placeholder='Check'id='eval"+(i)+"'/>  " + //TODO: aria-describedby='basic-addon1'>
+      $("<li class='input-group metricCheck' idx='" + i + "' id='metricEvaluable" + i + "'>" + 
+        "<span class='input-group-addon' id='edit"+(i)+"' data-toggle='popover'>edit</span>" + 
+        "<input data-toggle='tooltip' type='text' class='form-control pop metricCheck' placeholder='Check' id='eval"+(i)+"'/>  " + //TODO: aria-describedby='basic-addon1'>
         "</li>").insertBefore("#addCheckButton");
       // $("<li class='list-group-item pop metricCheck' data-toggle='popover'><label for='metricCheck" + i + "'>"
       //   + "</label><input class='form-control' id='eval"+(i)+"'/></li>").insertBefore("#addCheckButton");
       $("#eval" + i).val(d[0].evaluables[i]);
+      $("#remove-eval").click(function() {
+        this.parentNode.remove();
+      });
+
+      $(".btn-disable").click(function() {
+        console.log("disable check");
+        // this.parentNode.remove();
+      });
     }
-    $(".remove-btn").click(function() {
-      this.parentNode.remove();
-    });
     $("[data-toggle=popover]").popover({
       html: 'true',
       trigger: 'manual',
       placement: 'auto top',
       animation: 'false',
       container: 'body',
-      content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger">remove</button><button type="button" class="btn">disable</button></div>'
-      //content:'<a class="alert alert-danger" href="" title="test add link">link on content</a>'
+      content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-eval">remove</button>'+
+        '<button type="button" class="btn" id="disable-eval">disable</button>'+
+        '<button type="button" class="btn btn-warning" id="comment-eval">comment</button></div>'
     }).on("click", function () {
+      selectedEditEvaluable = this.parentNode.id;
       var _this = this;
       $(this).popover("toggle");
       $(".popover").on("mouseleave", function () {
           $(_this).popover('hide');
       });
     });
-
   }
 }
 

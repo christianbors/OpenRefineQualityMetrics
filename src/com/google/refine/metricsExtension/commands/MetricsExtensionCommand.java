@@ -48,8 +48,7 @@ public class MetricsExtensionCommand extends Command {
 				for (Column col : project.columnModel.columns) {
 					List<Metric> metricList = new ArrayList<Metric>();
 					for (RegisteredMetrics rm : MetricUtils.RegisteredMetrics.values()) {
-						Metric m = new Metric(rm.toString(), rm.description(),
-								rm.datatype());
+						Metric m = new Metric(rm.toString(), rm.description(), rm.datatype());
 						m.addEvaluable(rm.evaluable());
 						metricList.add(m);
 					}

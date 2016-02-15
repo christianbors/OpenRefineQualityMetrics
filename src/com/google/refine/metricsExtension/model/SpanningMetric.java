@@ -41,6 +41,7 @@ public class SpanningMetric extends Metric {
         writer.key("measure").value(Float.toString(measure));
         writer.key("datatype").value(dataType);
         writer.key("description").value(description);
+        writer.key("concat").value(concat.toString());
 		if (!dirtyIndices.isEmpty()) {
 			writer.key("dirtyIndices");
 			writer.array();
@@ -56,7 +57,16 @@ public class SpanningMetric extends Metric {
 		}
         writer.key("evaluables").array();
         for (Evaluable e : evaluables) {
-        	writer.value(e.toString());
+        	char c[] = e.toString().toCharArray();
+        	c[0] = Character.toLowerCase(c[0]);
+        	String evalString = new String(c);
+        	writer.value(evalString);
+        }
+        writer.endArray();
+        
+        writer.key("comments").array();
+        for (String s : comments) {
+        	writer.value(s);
         }
         writer.endArray();
         

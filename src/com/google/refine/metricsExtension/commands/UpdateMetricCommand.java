@@ -12,6 +12,7 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
+import com.google.refine.metricsExtension.model.Metric.Concatenation;
 import com.google.refine.model.Project;
 
 public class UpdateMetricCommand extends Command {
@@ -25,7 +26,9 @@ public class UpdateMetricCommand extends Command {
 		String metricNameString = request.getParameter("metricName");
 		String metricDescriptionString = request.getParameter("metricDescription");
 		String metricDatatypeString = request.getParameter("metricDatatype");
+		String metricConcatenation = request.getParameter("concat");
 		String[] metricEvaluableString = request.getParameterValues("metricEvaluables[]");
+		String[] metricComments = request.getParameterValues("comments[]");
 		String column = request.getParameter("column");
 		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
 		
@@ -38,10 +41,12 @@ public class UpdateMetricCommand extends Command {
 		if (!metricDescriptionString.isEmpty()) {
 			toBeEdited.setDescription(metricDescriptionString);
 		}
+		toBeEdited.setConcat(Concatenation.valueOf(metricConcatenation));
 		toBeEdited.getEvaluables().clear();
 		for (int i = 0; i < metricEvaluableString.length; ++i) {
 			try {
 				toBeEdited.addEvaluable(MetaParser.parse(metricEvaluableString[i]));
+				toBeEdited.addComments(metricComments[i], i);
 			} catch (ParsingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

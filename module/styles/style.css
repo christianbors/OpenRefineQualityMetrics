@@ -33,6 +33,11 @@ body {
     border-color: rgb(221, 221, 221);
 }
 
+.popover-content {
+    white-space:pre;
+    max-width:none;
+}
+
 .selected {
     /*stroke-width: 3px;*/
     border: 2px solid steelblue;
@@ -44,6 +49,11 @@ body {
     max-height: 200px;
     overflow-y: scroll;
     margin-bottom: 0px;
+}
+
+input.disabled{
+    pointer-events:none;
+    opacity:0.4;
 }
 
 .floated-table {

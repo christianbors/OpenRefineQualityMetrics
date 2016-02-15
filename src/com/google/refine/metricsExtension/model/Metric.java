@@ -32,6 +32,7 @@ public class Metric implements Jsonizable {
     protected Concatenation concat;
 
     protected List<Evaluable> evaluables;
+    protected List<String> comments;
     protected Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
@@ -51,8 +52,10 @@ public class Metric implements Jsonizable {
         this.description = description;
         this.measure = measure;
         this.dataType = dataType;
+        this.concat = concat;
         this.dirtyIndices = new HashMap<Integer, List<Boolean>>();
         this.evaluables = new ArrayList<Evaluable>();
+        this.comments = new ArrayList<String>();
     }
 
     @Override
@@ -64,7 +67,7 @@ public class Metric implements Jsonizable {
         writer.key("measure").value(Float.toString(measure));
         writer.key("datatype").value(dataType);
         writer.key("description").value(description);
-        writer.key("concat").value(concat);
+        writer.key("concat").value(concat.toString());
 		if (!dirtyIndices.isEmpty()) {
 			writer.key("dirtyIndices");
 			writer.array();
@@ -80,7 +83,16 @@ public class Metric implements Jsonizable {
 		}
         writer.key("evaluables").array();
         for (Evaluable e : evaluables) {
-        	writer.value(e.toString());
+        	char c[] = e.toString().toCharArray();
+        	c[0] = Character.toLowerCase(c[0]);
+        	String evalString = new String(c);
+        	writer.value(evalString);
+        }
+        writer.endArray();
+        
+        writer.key("comments").array();
+        for (String s : comments) {
+        	writer.value(s);
         }
         writer.endArray();
 
@@ -110,9 +122,11 @@ public class Metric implements Jsonizable {
 			}
 			if (o.has("evaluables")) {
 				JSONArray evals = o.getJSONArray("evaluables");
+				JSONArray comments = o.getJSONArray("comments");
 				for (int i = 0; i < evals.length(); ++i) {
 					try {
 						m.addEvaluable(MetaParser.parse(MetricUtils.decapitalize(evals.getString(i))));
+						m.comments.add(comments.getString(i));
 					} catch (ParsingException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -129,6 +143,7 @@ public class Metric implements Jsonizable {
 	
 	public void addEvaluable(Evaluable toBeParsed) {
 		this.evaluables.add(toBeParsed);
+		this.comments.add("");
 	}
     
     public void addDirtyIndex(int index, List<Boolean> dirty) {
@@ -174,6 +189,15 @@ public class Metric implements Jsonizable {
     public List<Evaluable> getEvaluables() {
     	return evaluables;
     }
+
+	public List<String> getComments() {
+		return comments;
+	}
+
+	public void addComments(String comment, int index) {
+		this.comments.remove(index);
+		this.comments.add(index, comment);
+	}
 
 	public String getDataType() {
 		return dataType;
