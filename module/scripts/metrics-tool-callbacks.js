@@ -35,25 +35,7 @@ $(document).on("click", "#comment-eval", function() {
 
 $('#concat button').click(function() {
     $('#concat button').addClass('active').not(this).removeClass('active');
-    var val = $(this).text();
-    $.post("../../command/metric-doc/updateMetric?" + $.param(
-        { 
-          metricName: metricData[0].name, 
-          column: selectedColName[0],
-          metricIndex: selectedMetricIndex[0],
-          metricDatatype: metricData[0].datatype,
-          metricDescription: metricData[0].description,
-          metricEvaluables: metricData[0].evaluables,
-          concat: val,
-          comments: metricData[0].comments,
-          project: theProject.id 
-        }) + "&callback=?",
-      {},
-      {},
-      function(response) {
-        console.log("success");
-      }, 
-      "jsonp"
-    );
+    metricData[0].concat = $(this).text();
+    updateMetric();
     // TODO: insert whatever you want to do with $(this) here
 });

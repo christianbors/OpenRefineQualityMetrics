@@ -132,6 +132,22 @@ public class MetricUtils {
 			if (rowSize <= 0) {
 				measure = 0f;
 			} else {
+				for(Entry<Integer, List<Boolean>> resultEntry : metric.getDirtyIndices().entrySet()) {
+					boolean evaluated;
+					switch(metric.getConcat()) {
+					case AND:
+						evaluated = true;
+						for(boolean result : resultEntry.getValue()) {
+							evaluated = evaluated && result;
+						}
+						break;
+					case XOR:
+						break;
+					case OR:
+					default:
+						break;
+					}
+				}
 				measure = (rowSize - metric.getDirtyIndices().size()) / rowSize;
 			}
 			return measure;
