@@ -7,7 +7,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
@@ -139,14 +138,32 @@ public class MetricUtils {
 				for(Entry<Integer, List<Boolean>> resultEntry : metric.getDirtyIndices().entrySet()) {
 					boolean dirty = false;
 					if (metric.getConcat() == Concatenation.AND) {
-						if(!Arrays.asList(resultEntry.getValue()).contains(true)) dirty = true;
+						if(!resultEntry.getValue().contains(true)) {
+							dirty = true;
+						}
 						break;
 					} else if (metric.getConcat() == Concatenation.OR) {
-						if(Arrays.asList(resultEntry.getValue()).contains(false)) dirty = true;
+						if(resultEntry.getValue().contains(false)) {
+							dirty = true;
+						}
 					} else if (metric.getConcat() == Concatenation.XOR) {
-						dirty = BooleanUtils.xor(resultEntry.getValue().toArray(new Boolean[resultEntry.getValue().size()]));
+						if(Arrays.asList(resultEntry.getValue()).contains(false) && 
+								!Arrays.asList(resultEntry.getValue()).contains(true)) 
+							dirty = true;
+						if(Arrays.asList(resultEntry.getValue()).contains(true) && 
+								!Arrays.asList(resultEntry.getValue()).contains(false)) 
+							dirty = true;
+						boolean duplicateError = false;
+						for (boolean result : resultEntry.getValue()) {
+							if(!result && !duplicateError) {
+								duplicateError = true;
+							} else if (!result && duplicateError) {
+								dirty = true;
+								break;
+							}
+						}
 					}
-					if (dirty == false) {
+					if (dirty) {
 						++dirtyCount;
 					}
 				}

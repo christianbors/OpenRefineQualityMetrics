@@ -5,7 +5,7 @@ function addEvaluableEntry(value) {
   $("#metricEvaluable" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  "); //TODO: aria-describedby='basic-addon1'>
   $("#eval" + i).keypress(function(event){
     if (event.which == 13) {
-      metricData[0].evalTuples[parseInt(this.parentNode.attributes.idx.value)].evaluable = this.value;
+      metricData[0].evalTuples[i].evaluable = this.value;
       updateMetric();
     }
   });

@@ -159,7 +159,8 @@ $(document).ready(function() {
                       })
 
                       $("#addCheck").on("click", function(d) {
-                        addEvaluableEntry("");
+                        metricData[0].evalTuples.push({evaluable: "", comment: "", disabled: false});
+                        addEvaluableEntry();
                       });
 
                       $("#createMetricBtn").on("click", function(btn) {
