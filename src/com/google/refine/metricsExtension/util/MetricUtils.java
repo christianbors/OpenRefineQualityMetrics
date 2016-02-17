@@ -1,11 +1,13 @@
 package com.google.refine.metricsExtension.util;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
@@ -17,6 +19,7 @@ import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedRow;
 import com.google.refine.metricsExtension.expr.DateInterval;
 import com.google.refine.metricsExtension.model.Metric;
+import com.google.refine.metricsExtension.model.Metric.Concatenation;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
@@ -132,23 +135,22 @@ public class MetricUtils {
 			if (rowSize <= 0) {
 				measure = 0f;
 			} else {
+				int dirtyCount = 0;
 				for(Entry<Integer, List<Boolean>> resultEntry : metric.getDirtyIndices().entrySet()) {
-					boolean evaluated;
-					switch(metric.getConcat()) {
-					case AND:
-						evaluated = true;
-						for(boolean result : resultEntry.getValue()) {
-							evaluated = evaluated && result;
-						}
+					boolean dirty = false;
+					if (metric.getConcat() == Concatenation.AND) {
+						if(!Arrays.asList(resultEntry.getValue()).contains(true)) dirty = true;
 						break;
-					case XOR:
-						break;
-					case OR:
-					default:
-						break;
+					} else if (metric.getConcat() == Concatenation.OR) {
+						if(Arrays.asList(resultEntry.getValue()).contains(false)) dirty = true;
+					} else if (metric.getConcat() == Concatenation.XOR) {
+						dirty = BooleanUtils.xor(resultEntry.getValue().toArray(new Boolean[resultEntry.getValue().size()]));
+					}
+					if (dirty == false) {
+						++dirtyCount;
 					}
 				}
-				measure = (rowSize - metric.getDirtyIndices().size()) / rowSize;
+				measure = (rowSize - dirtyCount) / rowSize;
 			}
 			return measure;
 		} else {

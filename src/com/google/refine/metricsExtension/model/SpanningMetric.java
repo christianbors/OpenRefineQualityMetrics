@@ -14,6 +14,7 @@ import org.json.JSONWriter;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 import com.google.refine.metricsExtension.util.MetricUtils;
 
 public class SpanningMetric extends Metric {
@@ -55,12 +56,16 @@ public class SpanningMetric extends Metric {
 			}
 			writer.endArray();
 		}
-        writer.key("evaluables").array();
-        for (Evaluable e : evaluables) {
-        	char c[] = e.toString().toCharArray();
+		writer.key("evalTuples").array();
+        for (EvalTuple e : evaluables) {
+        	writer.object();
+        	char c[] = e.eval.toString().toCharArray();
         	c[0] = Character.toLowerCase(c[0]);
         	String evalString = new String(c);
-        	writer.value(evalString);
+        	writer.key("evaluable").value(evalString);
+        	writer.key("comment").value(e.comment);
+        	writer.key("disabled").value(e.disabled);
+        	writer.endObject();
         }
         writer.endArray();
         
@@ -109,9 +114,17 @@ public class SpanningMetric extends Metric {
 				}
 			}
 			if (o.has("evaluables")) {
-				JSONArray evals = o.getJSONArray("evaluables");
+				JSONArray evals = o.getJSONArray("evalTuples");
 				for (int i = 0; i < evals.length(); ++i) {
-					m.addEvaluable(MetaParser.parse(evals.getString(i)));
+					try {
+						JSONObject evalTuple = evals.getJSONObject(i);
+						m.addEvalTuple(MetaParser.parse(MetricUtils.decapitalize(evalTuple.getString("evaluable"))), 
+								evalTuple.getString("comment"), 
+								evalTuple.getBoolean("disabled"));
+					} catch (ParsingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
             return m;

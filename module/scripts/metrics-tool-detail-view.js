@@ -5,11 +5,11 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
   axisWidths.push(0);
   // initialize selected metric evaluables
 
-  for (var i = 1; i <= totalEvaluables.length; i++) {
+  for (var i = 1; i <= totalEvalTuples.length; i++) {
     axisWidths.push(detailWidths[i-1] + axisWidths[i-1]);
   }
   var ordinalScale = [];
-  for (var i = 0; i <= totalEvaluables.length; i++) ordinalScale.push(i);
+  for (var i = 0; i <= totalEvalTuples.length; i++) ordinalScale.push(i);
 
   // heatmap drawing
   var xScale = d3.scale.ordinal()
@@ -31,20 +31,22 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
   var xAxis = d3.svg.axis()
     .scale(xScale)
     .orient("bottom")
-    .ticks(totalEvaluables.length)
+    .ticks(totalEvalTuples.length)
     .tickFormat(function(d) {
-      var script = totalEvaluables[d];
-      if (script != null) {
-        var label;
-        for (var i = 0; i < metricData.length; i++) {
-          if (script.toLowerCase().indexOf(metricData[i].name) < 0) {
-            label = script;
-          } else {
-            label = metricData[i].name;
-            break;
+      if(d < totalEvalTuples.length) {
+        var script = totalEvalTuples[d].evaluable;
+        if (script != null) {
+          var label;
+          for (var i = 0; i < metricData.length; i++) {
+            if (script.toLowerCase().indexOf(metricData[i].name) < 0) {
+              label = script;
+            } else {
+              label = metricData[i].name;
+              break;
+            }
           }
+          return label;
         }
-        return label;
       }
     });
 
@@ -67,20 +69,20 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
     .call(xAxis)
   .selectAll(".tick text")
     .style("font-size", 12)
-    .call(wrap, width/totalEvaluables.length)
+    .call(wrap, width/totalEvalTuples.length)
     .style("text-anchor", "start")
     .attr("x", 6)
     .attr("y", 6);
 
 
-  detailWidth = width/totalEvaluables.length;
+  detailWidth = width/totalEvalTuples.length;
 
   var axis = d3.selectAll("g.x.axis g.tick");
 
   var drag = d3.behavior.drag().origin(Object).on("drag", detaildragresize).on("dragend", detaildragdone);
 
   dragbarbottom = axis.filter(function(d, i) {
-      return d < totalEvaluables.length;
+      return d < totalEvalTuples.length;
     })
     .append("rect")
     .attr("x", function(d) { 
@@ -89,7 +91,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       return d.y; })
     .attr("id", "dragright")
     .attr("height", dragbarw)
-    .attr("width", width/totalEvaluables.length)
+    .attr("width", width/totalEvalTuples.length)
     .attr("fill-opacity", 0)
     .attr("cursor", "ew-resize")
     .call(drag);
@@ -138,7 +140,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
             if(prevIdx >= 0) {
               for(var prevIdx = 0; prevIdx < metricIdx; prevIdx++) {
                 var emptyArray = []
-                for (var falseIdx = 0; falseIdx < metricData[prevIdx].evaluables.length; falseIdx++) {
+                for (var falseIdx = 0; falseIdx < metricData[prevIdx].evalTuples.length; falseIdx++) {
                   emptyArray.push(true);
                 }
                 dirtyEntry.dirty.push.apply(dirtyEntry.dirty, emptyArray)

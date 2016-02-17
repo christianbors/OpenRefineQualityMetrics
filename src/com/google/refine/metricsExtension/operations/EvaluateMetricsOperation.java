@@ -26,6 +26,7 @@ import com.google.refine.expr.WrappedCell;
 import com.google.refine.history.Change;
 import com.google.refine.history.HistoryEntry;
 import com.google.refine.metricsExtension.model.Metric;
+import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.metricsExtension.util.MetricUtils;
@@ -154,15 +155,18 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 								List<Boolean> evalResults = new ArrayList<Boolean>();
 								boolean entryDirty = false;
 
-								for (Evaluable eval : m.getEvaluables()) {
-									boolean evalResult;
-									Object evaluation = eval.evaluate(bindings);
-									if (evaluation.getClass() != EvalError.class) {
-										evalResult = (Boolean) evaluation;
-										if (!evalResult) {
-											entryDirty = true;
+								for (EvalTuple evalTuple : m.getEvalTuples()) {
+									if (!evalTuple.disabled) {
+										boolean evalResult;
+										Object evaluation = evalTuple.eval
+												.evaluate(bindings);
+										if (evaluation.getClass() != EvalError.class) {
+											evalResult = (Boolean) evaluation;
+											if (!evalResult) {
+												entryDirty = true;
+											}
+											evalResults.add(evalResult);
 										}
-										evalResults.add(evalResult);
 									}
 								}
 
@@ -179,9 +183,9 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 								if (spanEvalResult.getClass() != EvalError.class) {
 									evalResults.add((Boolean) spanEvalResult);
 								}
-								for (Evaluable eval : sm.getEvaluables()) {
+								for (EvalTuple evalTuple : sm.getEvalTuples()) {
 									boolean evalResult;
-									Object evaluation = eval.evaluate(bindings);
+									Object evaluation = evalTuple.eval.evaluate(bindings);
 									if (evaluation.getClass() != EvalError.class) {
 										evalResult = (Boolean) evaluation;
 										if (!evalResult) {
@@ -212,7 +216,8 @@ public class EvaluateMetricsOperation extends EngineDependentOperation {
 							float q = 1f - MetricUtils.determineQuality(bindings, m);
 							m.setMeasure(q);
 						}
-						model.getUniqueness().setMeasure(1f - MetricUtils.determineQuality(bindings, model.getUniqueness()));
+						Metric uniqueness = model.getUniqueness();
+						uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
 					}
 				}
 			}.init(bindings, model));

@@ -2,6 +2,7 @@ package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,10 +28,9 @@ public class UpdateMetricCommand extends Command {
 		String metricDescriptionString = request.getParameter("metricDescription");
 		String metricDatatypeString = request.getParameter("metricDatatype");
 		String metricConcatenation = request.getParameter("concat");
-		String[] metricEvaluableString = request.getParameterValues("metricEvaluables[]");
-		String[] metricComments = request.getParameterValues("comments[]");
 		String column = request.getParameter("column");
 		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
+		int evaluableCount = Integer.parseInt(request.getParameter("metricEvalCount"));
 		
 		List<Metric> columnMetrics = model.getMetricsForColumn(column);
 		Metric toBeEdited = columnMetrics.get(metricIndex);
@@ -42,11 +42,13 @@ public class UpdateMetricCommand extends Command {
 			toBeEdited.setDescription(metricDescriptionString);
 		}
 		toBeEdited.setConcat(Concatenation.valueOf(metricConcatenation));
-		toBeEdited.getEvaluables().clear();
-		for (int i = 0; i < metricEvaluableString.length; ++i) {
+		toBeEdited.getEvalTuples().clear();
+		for(int i = 0; i < evaluableCount; i++) {
+			String comment = request.getParameter("metricEvalTuples[" + i + "][comment]");
+			String evaluable = request.getParameter("metricEvalTuples[" + i + "][evaluable]");
+			boolean disabled = Boolean.parseBoolean(request.getParameter("metricEvalTuples[" + i + "][disabled]"));
 			try {
-				toBeEdited.addEvaluable(MetaParser.parse(metricEvaluableString[i]));
-				toBeEdited.addComments(metricComments[i], i);
+				toBeEdited.addEvalTuple(MetaParser.parse(evaluable), comment, disabled);
 			} catch (ParsingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

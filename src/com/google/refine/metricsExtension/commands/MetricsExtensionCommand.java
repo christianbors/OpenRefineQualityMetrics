@@ -49,7 +49,7 @@ public class MetricsExtensionCommand extends Command {
 					List<Metric> metricList = new ArrayList<Metric>();
 					for (RegisteredMetrics rm : MetricUtils.RegisteredMetrics.values()) {
 						Metric m = new Metric(rm.toString(), rm.description(), rm.datatype());
-						m.addEvaluable(rm.evaluable());
+						m.addEvalTuple(rm.evaluable(), "", false);
 						metricList.add(m);
 					}
 					metricsMap.put(col.getName(), metricList);

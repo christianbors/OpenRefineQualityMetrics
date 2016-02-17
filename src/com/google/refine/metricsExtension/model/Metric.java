@@ -25,13 +25,25 @@ public class Metric implements Jsonizable {
 		AND, OR, XOR;
 	}
 	
+	public class EvalTuple {
+		public Evaluable eval;
+		public String comment;
+		public boolean disabled;
+		
+		public EvalTuple(Evaluable eval, String comment, boolean disabled) {
+			this.eval = eval;
+			this.comment = comment;
+			this.disabled = disabled;
+		}
+	}
+	
     protected String name;
     protected String description;
     protected float measure;
     protected String dataType;
     protected Concatenation concat;
 
-    protected List<Evaluable> evaluables;
+    protected List<EvalTuple> evaluables;
     protected List<String> comments;
     protected Map<Integer, List<Boolean>> dirtyIndices;
 
@@ -54,7 +66,7 @@ public class Metric implements Jsonizable {
         this.dataType = dataType;
         this.concat = concat;
         this.dirtyIndices = new HashMap<Integer, List<Boolean>>();
-        this.evaluables = new ArrayList<Evaluable>();
+        this.evaluables = new ArrayList<EvalTuple>();
         this.comments = new ArrayList<String>();
     }
 
@@ -81,18 +93,16 @@ public class Metric implements Jsonizable {
 			}
 			writer.endArray();
 		}
-        writer.key("evaluables").array();
-        for (Evaluable e : evaluables) {
-        	char c[] = e.toString().toCharArray();
+        writer.key("evalTuples").array();
+        for (EvalTuple e : evaluables) {
+        	writer.object();
+        	char c[] = e.eval.toString().toCharArray();
         	c[0] = Character.toLowerCase(c[0]);
         	String evalString = new String(c);
-        	writer.value(evalString);
-        }
-        writer.endArray();
-        
-        writer.key("comments").array();
-        for (String s : comments) {
-        	writer.value(s);
+        	writer.key("evaluable").value(evalString);
+        	writer.key("comment").value(e.comment);
+        	writer.key("disabled").value(e.disabled);
+        	writer.endObject();
         }
         writer.endArray();
 
@@ -120,13 +130,14 @@ public class Metric implements Jsonizable {
 					m.dirtyIndices.put(entry.getInt("index"), dirtyBools);
 				}
 			}
-			if (o.has("evaluables")) {
-				JSONArray evals = o.getJSONArray("evaluables");
-				JSONArray comments = o.getJSONArray("comments");
+			if (o.has("evalTuples")) {
+				JSONArray evals = o.getJSONArray("evalTuples");
 				for (int i = 0; i < evals.length(); ++i) {
 					try {
-						m.addEvaluable(MetaParser.parse(MetricUtils.decapitalize(evals.getString(i))));
-						m.comments.add(comments.getString(i));
+						JSONObject evalTuple = evals.getJSONObject(i);
+						m.addEvalTuple(MetaParser.parse(MetricUtils.decapitalize(evalTuple.getString("evaluable"))), 
+								evalTuple.getString("comment"), 
+								evalTuple.getBoolean("disabled"));
 					} catch (ParsingException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -141,9 +152,16 @@ public class Metric implements Jsonizable {
         return null;
     }
 	
-	public void addEvaluable(Evaluable toBeParsed) {
-		this.evaluables.add(toBeParsed);
-		this.comments.add("");
+	public void addEvalTuple(Evaluable evaluable, String comment, boolean evalDisabled) {
+		this.evaluables.add(new EvalTuple(evaluable, comment, evalDisabled));
+	}
+	
+	public EvalTuple editEvalTuple(int listIndex, Evaluable evaluable, String comment, boolean evalDisabled) {
+		EvalTuple eval = this.evaluables.get(listIndex);
+		eval.eval = evaluable;
+		eval.comment = comment;
+		eval.disabled = evalDisabled;
+		return eval;
 	}
     
     public void addDirtyIndex(int index, List<Boolean> dirty) {
@@ -186,7 +204,7 @@ public class Metric implements Jsonizable {
         this.description = description;
     }
 
-    public List<Evaluable> getEvaluables() {
+    public List<EvalTuple> getEvalTuples() {
     	return evaluables;
     }
 

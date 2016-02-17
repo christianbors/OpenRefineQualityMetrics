@@ -8,7 +8,7 @@ var selectedMetricIndex = [0]
     selectedOverviewRect = [],
     selectedColName = [],
     metricData = [],
-    totalEvaluables = [];
+    totalEvalTuples = [];
 // coloring scale should be defined globally
 var z;
 var selectedEditEvaluable;
@@ -35,7 +35,7 @@ var tooltipOverview = d3.tip()
     if (d != null) {
       return "<span style='color:steelblue'>" + capitalizeFirstLetter(d.name) + "</span><br>" +
         "<strong>Metric Value:</strong> <span style='color:steelblue'>" + d.measure + "</span><br>" + 
-        "<strong>Number of Checks:</strong> <span style='color:steelblue'>" + d.evaluables.length + "</span><br>" + 
+        "<strong>Number of Checks:</strong> <span style='color:steelblue'>" + d.evalTuples.length + "</span><br>" + 
         "<strong>Data Type:</strong> <span style='color:steelblue'>" + d.datatype + "</span>";
     }
   });
@@ -367,9 +367,9 @@ $(document).ready(function() {
                             }
                           })[0].metrics[rowIndex]);
 
-                          totalEvaluables = [];
+                          totalEvalTuples = [];
                           for (var i = 0; i < metricData.length; i++) {
-                            totalEvaluables.push.apply(totalEvaluables, metricData[i].evaluables);
+                            totalEvalTuples.push.apply(totalEvalTuples, metricData[i].evalTuples);
                           }
                           refillEditForm(metricData, selectedColName, rowIndex);
 
@@ -381,10 +381,10 @@ $(document).ready(function() {
                           var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
                           var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
                               height = $(".dataTables_scrollBody").height();
-                          if (width > (totalEvaluables.length*100)) width = totalEvaluables.length*100;
+                          if (width > (totalEvalTuples.length*100)) width = totalEvalTuples.length*100;
                           detailWidths = [];
-                          for (var i = 0; i < totalEvaluables.length; i++) {
-                            detailWidths.push(width/totalEvaluables.length);
+                          for (var i = 0; i < totalEvalTuples.length; i++) {
+                            detailWidths.push(width/totalEvalTuples.length);
                           }
 
                           redrawDetailView(theProject, metricData, rowIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap);
@@ -402,47 +402,8 @@ $(document).ready(function() {
 
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
 
-                      // metricData = overlayModel.metricColumns.filter(function(d) {
-                      //   if (d != null) {
-                      //     return d.columnName == selectedColName;
-                      //   }
-                      // })[0].metrics[selectedMetricIndex];
-
-                      // redrawDetailView(theProject, metricData, datatablesHeader, selectedMetricIndex, selectedColName, rowModel, overlayModel);
-
                       drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel);
                       //todo: edit when selecting other metric
-
-                      $("#btnReset").click(function() {
-                        refillEditForm(metricData, selectedColName, selectedMetricIndex);
-                      });
-
-                      $("#btnSave").click(function() {
-                        metricData.name = $("#metricName").text();
-                        metricData.description = $("#metricDescription").text();
-                        // var checks = $("#metricCheck");
-                        metricData[0].evaluables = [];
-                        for (var i = 0; i < $(".metricCheck").length; ++i) {
-                          metricData[0].evaluables.push(lowercaseFirstLetter($("#eval" + (i)).val()));
-                        }
-                        $.post("../../command/metric-doc/updateMetric?" + $.param(
-                            { 
-                              metricName: metricData.name, 
-                              column: selectedColName,
-                              metricIndex: selectedMetricIndex,
-                              metricDatatype: metricData.datatype,
-                              metricDescription: metricData.description,
-                              metricEvaluables: metricData[0].evaluables,
-                              project: theProject.id 
-                            }) + "&callback=?",
-                          {},
-                          {},
-                          function(response) {
-                            console.log("success");
-                          }, 
-                          "jsonp"
-                        );
-                      });
                     }, 
                     'json'
                   );
@@ -636,14 +597,14 @@ function refillEditForm(d, colName, metricIndex) {
   $("#concat button").removeClass('active');
   $("#concat" + d[0].concat).addClass('active');
 
-  if (d[0].evaluables.length > 0) {
-    var metric = d[0].evaluables[0];
+  if (d[0].evalTuples.length > 0) {
+    var metric = d[0].evalTuples[0].evaluable;
     metric = metric.substr(0, metric.indexOf("("));
     $("#base" + metric).prop("checked", true);
   }
-  if (d[0].evaluables.length > 0) {
-    for (var i = 0; i < d[0].evaluables.length; i++) {
-      addEvaluableEntry(d[0].evaluables[i])
+  if (d[0].evalTuples.length > 0) {
+    for (var i = 0; i < d[0].evalTuples.length; i++) {
+      addEvaluableEntry(d[0].evalTuples[i].evaluable)
     }
   }
 }
@@ -767,12 +728,12 @@ function detaildragresize(d) {
 
   var axisWidths = [];
   axisWidths.push(0);
-  for (var i = 1; i <= totalEvaluables.length; i++) {
+  for (var i = 1; i <= totalEvalTuples.length; i++) {
     axisWidths.push(detailWidths[i-1] + axisWidths[i-1]);
   }
 
   var ordinalScale = [];
-  for (var i = 0; i <= totalEvaluables.length; i++) ordinalScale.push(i);
+  for (var i = 0; i <= totalEvalTuples.length; i++) ordinalScale.push(i);
 
   var xScale = d3.scale.ordinal()
     .domain(ordinalScale)
@@ -785,9 +746,9 @@ function detaildragresize(d) {
   var xAxis = d3.svg.axis()
     .scale(xScale)
     .orient("bottom")
-    .ticks(totalEvaluables.length)
+    .ticks(totalEvalTuples.length)
     .tickFormat(function(d) {
-      var script = totalEvaluables[d];
+      var script = totalEvalTuples[d].evaluable;
       if (script != null) {
         var label;
         if (script.indexOf(metricData.name) < 0) {

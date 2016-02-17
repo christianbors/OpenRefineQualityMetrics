@@ -1,15 +1,22 @@
 $(document).on("click", "#remove-eval", function() {
-  selectedEditEvaluable.remove();
+	$("#" + selectedEditEvaluable).remove();
+	$.each($(".metricInput").not(".disabled"), function(i, activeEval) {
+		metricData[0].evaluables.push(activeEval.value);
+	});
+	updateMetric();
 });
 
 $(document).on("click", "#disable-eval", function() {
-	if(selectedEditEvaluable.lastElementChild.classList.contains("disabled")) {
-		selectedEditEvaluable.lastElementChild.classList.remove("disabled");
+	var editEval = $("#" + selectedEditEvaluable);
+	if(editEval[0].lastElementChild.classList.contains("disabled")) {
+		editEval[0].lastElementChild.classList.remove("disabled");
 		this.textContent = "disable";
 	} else {
-		selectedEditEvaluable.lastElementChild.classList.add("disabled");
+		editEval[0].lastElementChild.classList.add("disabled");
 		this.textContent = "enable";
 	}
+	metricData[0].evalTuples[editEval.attr("idx")].disabled = editEval[0].lastElementChild.classList.contains("disabled");
+	updateMetric();
 });
 
 $(document).on("click", "#comment-eval", function() {
@@ -19,7 +26,7 @@ $(document).on("click", "#comment-eval", function() {
 		var text = $("#commentText").val();
 		$("#addComment").modal("hide");
 		var selection = $("#" + selectedEditEvaluable);
-		metricData[0].comments[selection.attr("idx")] = text;
+		metricData[0].evalTuples[selection.attr("idx")].comment = text;
 		var input = selection.children().last();
 		input.tooltip({'trigger': 'hover', 
 			'title': text, 
