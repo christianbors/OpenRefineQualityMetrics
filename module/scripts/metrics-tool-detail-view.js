@@ -1,4 +1,4 @@
-function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap) {
+function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel, overlayModel, height, width, marginHeatmap) {
   d3.select("#heatmap").select("svg").remove();
   
   var axisWidths = [];
@@ -170,13 +170,16 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, selectedC
       return x(i);
     }).attr("width", function (d, i) {
       return x(i + 1) - x(i);
-    }).style("fill", function(d) {
+    }).style("fill", function(d, i) {
       if (d == true) {
         return "transparent";
       } else {
-        return z(selectedMetricIndex);
+        return z(selectedColOpacity[i] * selectedMetricIndex);
       }
     });
+    // .style("opacity", function(d, i) {
+    //   return selectedColOpacity[i];
+    // })
 
     metricDetail.each(function (d) {
       var ys = d3.select(this).selectAll(".bin")

@@ -7,6 +7,7 @@ var detailWidths;
 var selectedMetricIndex = [0]
     selectedOverviewRect = [],
     selectedColName = [],
+    selectedColOpacity = [],
     metricData = [],
     totalEvalTuples = [];
 // coloring scale should be defined globally
@@ -359,6 +360,7 @@ $(document).ready(function() {
                               d3.selectAll(".selected").classed("selected", false);
                             }
                           }
+                          selectedColOpacity = []
                           selectedMetricIndex.push(rowIndex);
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
                           selectedColName.push(d.columnName);
@@ -370,15 +372,42 @@ $(document).ready(function() {
 
                           totalEvalTuples = [];
                           for (var i = 0; i < metricData.length; i++) {
-                            totalEvalTuples.push.apply(totalEvalTuples, metricData[i].evalTuples);
+                            var enabledTuples = metricData[i].evalTuples.filter(function(d) {
+                              return !d.disabled;
+                            });
+                            totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
+                            for(var j = 0; j < enabledTuples.length; j++) {
+                              selectedColOpacity.push((i+1) * (1/selectedMetricIndex.length));
+                            }
                           }
                           refillEditForm(metricData, selectedColName, rowIndex);
 
-                          $('#detailViewHeader').text("");
-                          for(var indexCount = 0; indexCount < selectedMetricIndex.length; indexCount++) {
-                            $('#detailViewHeader').text(selectedColName[indexCount] + " - " + overlayModel.availableMetrics[selectedMetricIndex[indexCount]].name + " " + $('#detailViewHeader').text());
+                          $('#detailMetricHeader').empty();
+                          $('#detailColumnHeader').text("Detail View");
+                          if(selectedMetricIndex.length == 1) {
+                            $('#detailMetricHeader').append("<h5>Selected Metric:</h5>");
+                          } else {
+                            $('#detailMetricHeader').append("<h5>Selected Metrics:</h5>");
                           }
-                          var headerHeightComp = datatablesHeader - $('#detailViewHeader').height();
+                          for(var indexCount = 0; indexCount < selectedMetricIndex.length; indexCount++) {
+                            $('#detailMetricHeader').append("<h5 class='metric'></h5>");
+                          }
+                          var mHeaders = d3.selectAll("#detailMetricHeader h5.metric");
+                          mHeaders.append("svg")
+                            .attr("marginRight", 8)
+                            .attr("height", 12)
+                            .attr("width", 16)
+                            .append("rect")
+                            .attr("height", 12)
+                            .attr("width", 12)
+                            .attr("fill", function(d, i) {
+                              return z(((i+1) * (1/selectedMetricIndex.length)) * selectedMetricIndex[i]);
+                            });
+                          mHeaders.append("text").text(function(d, i) {
+                            return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableMetrics[selectedMetricIndex[i]].name);
+                          })
+
+                          var headerHeightComp = datatablesHeader;// - $('#detailViewHeader').height();
                           var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
                           var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
                               height = $(".dataTables_scrollBody").height();
@@ -388,7 +417,7 @@ $(document).ready(function() {
                             detailWidths.push(width/totalEvalTuples.length);
                           }
 
-                          redrawDetailView(theProject, metricData, rowIndex, selectedColName, rowModel, overlayModel, height, width, marginHeatmap);
+                          redrawDetailView(theProject, metricData, rowIndex, rowModel, overlayModel, height, width, marginHeatmap);
                         }
                       });
                       td.select("svg").call(tooltipOverview);
