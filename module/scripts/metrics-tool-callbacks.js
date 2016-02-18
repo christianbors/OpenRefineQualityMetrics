@@ -20,7 +20,6 @@ $(document).on("click", "#disable-eval", function() {
 });
 
 $(document).on("click", "#comment-eval", function() {
-	metricData
 	$("#addComment").modal("show");
 	$("#addCommentBtn").on("click", function(d, i) {
 		var text = $("#commentText").val();
@@ -46,3 +45,15 @@ $('#concat button').click(function() {
     updateMetric();
     // TODO: insert whatever you want to do with $(this) here
 });
+
+
+
+$(document).on("click", "input.overview-popover", function(d) {
+	var g = $("g." + d.currentTarget.parentNode.textContent);
+	var gSelected = $(g[d.currentTarget.id]);
+	if(gSelected.css('display') != 'none') {
+		gSelected.hide();
+	} else {
+		gSelected.show();
+	}
+})

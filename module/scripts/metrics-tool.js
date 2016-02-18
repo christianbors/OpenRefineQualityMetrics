@@ -233,10 +233,9 @@ $(document).ready(function() {
                         .append('td')
                         .attr("width", function(d, i) {
                           return colWidths[i];
-                        })
-                        .text(function(col) { 
+                      }).text(function(col) { 
                           return col.name; 
-                        });
+                      }).on("click", addMetricToColumn);
 
                       var dataCols = dataSet[0];
 
@@ -434,6 +433,7 @@ $(document).ready(function() {
 
                       drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel);
                       //todo: edit when selecting other metric
+                      dataViewPopover();
                     }, 
                     'json'
                   );
@@ -508,6 +508,9 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     })
     .enter().append("g")
     .attr("class", "metrics-overlay-col")
+    .attr("class", function(d, i) {
+      return d.name;
+    })
     .attr("transform", function(d, i) {
       var offset = 0;
       if (i > 0) {

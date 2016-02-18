@@ -108,6 +108,11 @@ tbody td {
 }
 
 td { font-size: 12px;}
+
+th.popoverHeader {
+    cursor: s-resize;
+}
+
 .dataTables_wrapper { font-size: 12px }
 
 .range {

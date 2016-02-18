@@ -38,6 +38,52 @@ function addEvaluableEntry(value) {
   }
 }
 
+function dataViewPopover() {
+  var headers = $("div.dataTables_scrollHeadInner > table.dataTable > thead > tr > th.sorting_disabled");
+  headers.addClass("popoverHeader");
+  headers.attr("data-toggle", "popover");
+  headers.on("click", function(d) {
+    console.log("test:" + d.target.textContent);
+    var colIdx;
+    for (var i = 0; i < d.target.parentNode.childNodes.length; i++) {
+        if (d.target.parentNode.childNodes[i] == d.target) {
+            colIdx = i;
+            break;
+        }
+    }
+    var popoverColumn = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
+        return col.columnName == d.target.textContent;
+    })[0];
+    var popoverSnippet = '';
+    for(var i = 0; i < popoverColumn.metrics.length; i++) {
+      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='overview-popover' type='checkbox'>" + popoverColumn.metrics[i].name + "</label></div>";
+      // popoverColumn.metrics[i].name
+      if($($("g." + popoverColumn.metrics[i].name)[colIdx]).css('display') == 'none') {
+        $("input.overview-popover #" + i).prop("checked", false);
+      }
+    }
+    $(this).data("bs.popover").options.content = popoverSnippet;
+  });
+  //'</ul>';// role="group"><button type="button" class="btn btn-danger" id="remove-eval">remove</button>'+
+      //'<button type="button" class="btn" id="disable-eval">tyst[er</button>'+
+      //'<button type="button" class="btn btn-warning" id="comment-eval">comment</button></div>'
+  headers.popover({
+    html: 'true',
+    trigger: 'manual',
+    placement: 'auto top',
+    animation: 'false',
+    container: 'body',
+    title: 'Show/Hide Metric Overlay',
+    content: ''
+  }).on("click", function () {
+    var _this = this;
+    $(this).popover("toggle");
+    $(".popover").on("mouseleave", function () {
+        $(_this).popover('hide');
+    });
+  });
+}
+
 function updateMetric() {
 	$.post("../../command/metric-doc/updateMetric?" + $.param(
 	        { 
@@ -59,4 +105,8 @@ function updateMetric() {
 	      }, 
 	      "jsonp"
 	    );
+}
+
+function addMetricToColumn(data, index) {
+  console.log(data);
 }
