@@ -48,7 +48,7 @@ $('#concat button').click(function() {
 
 
 
-$(document).on("click", "input.overview-popover", function(d) {
+$(document).on("click", "input.dataview-popover", function(d) {
 	var g = $("g." + d.currentTarget.parentNode.textContent);
 	var gSelected = $(g[d.currentTarget.id]);
 	if(gSelected.css('display') != 'none') {
@@ -56,4 +56,16 @@ $(document).on("click", "input.overview-popover", function(d) {
 	} else {
 		gSelected.show();
 	}
-})
+});
+
+$(document).on("click", "input.overview-popover", function(d) {
+	var checked = $(d.currentTarget).is( ":checked" );
+	if(checked) {
+		metricToBeCreated.push(d.currentTarget.parentNode.textContent);
+	} else {
+		var index = metricToBeCreated.indexOf(d.currentTarget.parentNode.textContent);
+		if (index > -1) {
+		    array.splice(index, 1);
+		}
+	}
+});

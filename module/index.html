@@ -152,13 +152,28 @@
       </div>
       <div class="modal-body">
         <div class="row">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <label for="name">Column</label>
+          <div class="col-md-4">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <label for="name">Column</label>
+              </div>
+              <div class="panel-body">
+                <select multiple class="form-control" size="" style="height:auto;" id="columnFormMetricModal">
+                </select>
+              </div>
             </div>
-            <div class="panel-body">
-              <select multiple class="form-control" style="height:auto;" id="columnFormMetricModal">
-              </select>
+          </div>
+          <div class="col-md-8">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <label for="name">Detected Data Types</label>
+              </div>
+              <div class="panel-body" id="typeDetailModal">
+                <table>
+                  <thead><th></th></thead>
+                  <tbody />
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -171,19 +186,6 @@
               <div class="panel-body">
                 <div class="btn-group" role="group" aria-label="..." id="metricSelectMetricModal">
                 </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <label for="name">Detected Data Types</label>
-              </div>
-              <div class="panel-body" id="typeDetailModal">
-                <table>
-                  <thead><th></th></thead>
-                  <tbody />
-                </table>
               </div>
             </div>
           </div>

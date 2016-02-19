@@ -233,11 +233,11 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
     });
 
     bins.on("mouseout", function(d) {
-      d3.select(this.parentNode).selectAll("rect").style("fill", function(d) {
+      d3.select(this.parentNode).selectAll("rect").style("fill", function(d, i) {
         if (d == true) {
           return "transparent";
         } else {
-          return z(selectedMetricIndex);
+          return z(selectedColOpacity[i] * selectedMetricIndex);
         }
         
       });

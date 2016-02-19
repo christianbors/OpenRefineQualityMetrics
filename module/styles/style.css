@@ -88,7 +88,7 @@ th {
 }
 
 thead td {
-  cursor: s-resize;
+  cursor: context-menu;
 }
 
 tbody tr:first-child td {
@@ -110,7 +110,7 @@ tbody td {
 td { font-size: 12px;}
 
 th.popoverHeader {
-    cursor: s-resize;
+    cursor: context-menu;
 }
 
 .dataTables_wrapper { font-size: 12px }

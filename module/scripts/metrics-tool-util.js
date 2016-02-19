@@ -43,7 +43,6 @@ function dataViewPopover() {
   headers.addClass("popoverHeader");
   headers.attr("data-toggle", "popover");
   headers.on("click", function(d) {
-    console.log("test:" + d.target.textContent);
     var colIdx;
     for (var i = 0; i < d.target.parentNode.childNodes.length; i++) {
         if (d.target.parentNode.childNodes[i] == d.target) {
@@ -56,13 +55,14 @@ function dataViewPopover() {
     })[0];
     var popoverSnippet = '';
     for(var i = 0; i < popoverColumn.metrics.length; i++) {
-      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='overview-popover' type='checkbox'>" + popoverColumn.metrics[i].name + "</label></div>";
+      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='dataview-popover' type='checkbox'>" + popoverColumn.metrics[i].name + "</label></div>";
       // popoverColumn.metrics[i].name
       if($($("g." + popoverColumn.metrics[i].name)[colIdx]).css('display') == 'none') {
-        $("input.overview-popover #" + i).prop("checked", false);
+        $("input.dataview-popover #" + i).prop("checked", false);
       }
     }
-    $(this).data("bs.popover").options.content = popoverSnippet;
+    var popoverItem = $(this).data("bs.popover");
+    popoverItem.options.content = popoverSnippet;
   });
   //'</ul>';// role="group"><button type="button" class="btn btn-danger" id="remove-eval">remove</button>'+
       //'<button type="button" class="btn" id="disable-eval">tyst[er</button>'+
@@ -108,5 +108,54 @@ function updateMetric() {
 }
 
 function addMetricToColumn(data, index) {
-  console.log(data);
+  var cellIndex = data.cellIndex;
+  var popoverColumn = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
+      return col.columnName == data.name;
+  })[0];
+  if(columnForMetricToBeCreated == null || popoverColumn.columnName != columnForMetricToBeCreated) {
+    columnForMetricToBeCreated = popoverColumn.columnName;
+    metricToBeCreated = [];
+  }
+  $("#metricSelectMetricModal .btn").remove();
+  var popoverSnippet = '';
+  var avMetrics = theProject.overlayModels.metricsOverlayModel.availableMetrics;
+  for(var i = 0; i < avMetrics.length; i++) {
+    var cl = "btn btn-default";
+    var activeMetric = popoverColumn.metrics.filter(function(metric) {
+      return metric.name == avMetrics[i].name;
+    });
+    var checkedMetric = metricToBeCreated.filter(function(metric) {
+      return metric == avMetrics[i].name;
+    });
+    var disabled = "",
+        checked = "";
+    // if(activeMetric.length > 0) {
+    //   cl += " disabled";
+    //   disabled = " disabled";
+    // }
+    if(checkedMetric.length > 0) {
+      checked = " checked";
+    }
+    popoverSnippet += "<div class='checkbox'><label" + disabled + 
+      "><input id='"+cellIndex+"' class='overview-popover'" + disabled + checked + 
+      " type='checkbox'>" + avMetrics[i].name + "</label></div>";
+
+    $("#metricSelectMetricModal").append('<button type="button" value="' + avMetrics[i].name + '" class="' + cl + '">'+ capitalizeFirstLetter(avMetrics[i].name) + '</button>');
+    $("#metricSelectMetricModal > button").on("click", function() {
+      $("#metricSelectMetricModal").val($(this).text());
+    });
+  }
+  popoverSnippet += "<button type='button' class='btn' id='addMetricBtn'>Add Metrics</button>";
+  var bsPopover = $(this).data("bs.popover");
+  bsPopover.options.content = popoverSnippet;
+  $(document).on("click", "#addMetricBtn", function(d) {
+    var colSelected = $("#columnFormMetricModal option").filter(function(option) {
+      return this.value == columnForMetricToBeCreated;
+    }).attr("selected", true);
+    var metricsSelected = $("#metricSelectMetricModal").children().filter(function(button) {
+      return metricToBeCreated.indexOf(this.value) > -1;
+    });
+    metricsSelected.addClass("active");
+    $( "#addMetricModal" ).modal("show");
+  });
 }

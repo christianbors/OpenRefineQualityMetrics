@@ -1,4 +1,5 @@
-var theProject;
+var theProject,
+    rowModel;
 var detailWidth,
     dragbarbottom,
     dragheight = 20,
@@ -18,6 +19,10 @@ var columnStore = [];
 var colWidth = 50;
 
 var selectedMetricModal;
+
+// selection for creating a metric
+var columnForMetricToBeCreated;
+    metricToBeCreated = [];
 
 var tooltipInvalid = d3.tip()
   .attr("class", "d3-tip")
@@ -88,7 +93,7 @@ $(document).ready(function() {
                 "../../command/core/get-rows?" + $.param({ project: theProject.id, start: 0, limit: data.filtered }) + "&callback=?",
                 [],
                 function(data) {
-                  var rowModel = data;
+                  rowModel = data;
 
                   // Un-pool objects
                   var columns = theProject.columnModel.columns;
@@ -129,6 +134,7 @@ $(document).ready(function() {
                   $.each(columnStore, function(key, value){
                     $("#columnFormMetricModal").append('<option value="' + value.title + '">' + value.title + '</option>');
                   });
+                  $("#columnFormMetricModal").attr("size", columnStore.length);
 
                   // modal on click change
                   $( "#columnFormMetricModal" ).change(function() {
@@ -169,7 +175,6 @@ $(document).ready(function() {
                           project: theProject.id, 
                           metric: $("#metricSelectMetricModal").val(), 
                           columns: $("#columnFormMetricModal").val(), 
-                          description: "test", 
                           datatype: "unknown"
                         };
                         $.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
@@ -235,7 +240,22 @@ $(document).ready(function() {
                           return colWidths[i];
                       }).text(function(col) { 
                           return col.name; 
-                      }).on("click", addMetricToColumn);
+                      }).attr("data-toggle", "popover")
+                        .on("click", addMetricToColumn);
+                      $("#overviewTable thead tr td").popover({
+                        html: 'true',
+                        trigger: 'manual',
+                        placement: 'auto top',
+                        animation: 'false',
+                        container: 'body',
+                        content: ''
+                      }).on("click", function () {
+                        var _this = this;
+                        $(this).popover("toggle");
+                        $(".popover").on("mouseleave", function () {
+                            $(_this).popover('hide');
+                        });
+                      });
 
                       var dataCols = dataSet[0];
 
@@ -666,12 +686,12 @@ function fillModalAfterColumnSelection(theProject) {
           });
         if (selectedCols.length > 1) {
           d3.select("#typeDetailModal").select("thead tr")
-          .selectAll('td')
-          .data(selectedCols).enter()
-          .append('td')
-          .text(function(d) { 
-            return d; 
-          });
+            .selectAll('td')
+            .data(selectedCols).enter()
+            .append('td')
+            .text(function(d) { 
+              return d; 
+            })
         }
         for(var selectedColIdx = 0; selectedColIdx < selectedCols.length; selectedColIdx++) {
           tr.append("td")
@@ -680,10 +700,14 @@ function fillModalAfterColumnSelection(theProject) {
             .attr("height", 12)
             .append("rect")
             .attr("width", function(d) {
-              return d.val[selectedColIdx]*71;
+              return (d.val[selectedColIdx]/rowModel.filtered) *71;
             })
             .attr("height", 12)
             .style("fill", "steelblue");
+          tr.append("td")
+            .text(function(d) {
+              return d.val[selectedColIdx];
+            })
         }
     });
   if(selectedCols.length == 1) {
