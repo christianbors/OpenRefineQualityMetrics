@@ -143,8 +143,31 @@ public class MetricsOverlayModel implements OverlayModel {
     	}
     }
     
+    public boolean deleteMetric(String columnName, String metricName) {
+    	for(Metric m : this.metricsMap.get(columnName)) {
+    		if(m.name.equals(metricName)) {
+    			this.metricsMap.get(columnName).remove(m);
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
     public void addSpanningMetric(SpanningMetric spanningMetric) {
     	this.spanMetricsList.add(spanningMetric);
+    }
+    
+    public boolean deleteSpanningMetric(String metricName, String[] colNames) {
+    	for(SpanningMetric sm : this.spanMetricsList) {
+			if(!sm.getSpanningColumns().containsAll(Arrays.asList(colNames))) {
+				return false;
+			}
+    		if(sm.name.equals(metricName)) {
+    			this.spanMetricsList.remove(sm);
+    			return true;
+    		}
+    	}
+    	return false;
     }
     
     public void addMetrics(String columnName, List<Metric> metrics) {

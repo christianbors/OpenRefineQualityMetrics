@@ -39,14 +39,59 @@ $(document).on("click", "#comment-eval", function() {
 	// var id = selectedEditEvaluable.attributes.add(data-toggle="tooltip" data-placement="right" data-html="true" title="1st line of text <br> 2nd line of text");
 });
 
+$(document).on("click", "#remove-metric", function(d) {
+	var popover = $("div.popover-content");
+	if(selectedColName.length <= 1) {
+		$.post("../../command/metric-doc/deleteMetric?" + $.param(
+	        { 
+	          metricName: contextMetric.name, 
+	          column: contextColumn,
+	          project: theProject.id
+	        }) + "&callback=?",
+			{},
+	      	function(response) {
+	        	console.log("success");
+	      	}, 
+	      	"jsonp"
+    	);
+	} else {
+		$.post("../../command/metric-doc/deleteMetric?" + $.param(
+	        { 
+	          metricName: contextMetric.name, 
+	          columnNames: selectedColName,
+	          project: theProject.id
+	        }) + "&callback=?",
+	      function(response) {
+	        console.log("success");
+	      }, 
+	      "jsonp"
+	    );
+	}
+	d3.selectAll("#overviewTable tbody tr").filter(function(d) {
+		return d.name == contextMetric.name;
+	}).selectAll("td svg rect")
+	.filter(function(d) {
+		return d.columnName === contextColumn;
+	}).remove();
+	var gs = d3.selectAll("g.metrics-overlay").filter(function(d) {
+		return d.columnName === contextColumn;
+	}).select("g." + contextMetric.name).remove();
+});
+
+$(document).on("click", "#merge-metric", function() {
+	console.log("merge");
+});
+
+$(document).on("click", "#duplicate-metric", function() {
+	console.log("duplicate");
+});
+
 $('#concat button').click(function() {
     $('#concat button').addClass('active').not(this).removeClass('active');
     metricData[0].concat = $(this).text();
     updateMetric();
     // TODO: insert whatever you want to do with $(this) here
 });
-
-
 
 $(document).on("click", "input.dataview-popover", function(d) {
 	var g = $("g." + d.currentTarget.parentNode.textContent);
@@ -65,7 +110,7 @@ $(document).on("click", "input.overview-popover", function(d) {
 	} else {
 		var index = metricToBeCreated.indexOf(d.currentTarget.parentNode.textContent);
 		if (index > -1) {
-		    array.splice(index, 1);
+		    metricToBeCreated.splice(index, 1);
 		}
 	}
 });

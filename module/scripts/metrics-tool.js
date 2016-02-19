@@ -11,6 +11,9 @@ var selectedMetricIndex = [0]
     selectedColOpacity = [],
     metricData = [],
     totalEvalTuples = [];
+//context menu
+var contextMetric,
+    contextColumn;
 // coloring scale should be defined globally
 var z;
 var selectedEditEvaluable;
@@ -264,6 +267,8 @@ $(document).ready(function() {
                           return colWidths[i];
                         })
                         .attr("height", 12)
+                        .classed("overview-svg", true)
+                        .attr("data-toggle", "popover")
                       .append("rect")
                         .attr("height", 12)
                         .attr("width", function(d, i) {
@@ -274,8 +279,6 @@ $(document).ready(function() {
                             });
                             if (metricCurrent.length > 0) {
                               return metricCurrent[0].measure * colWidths[i];
-                            } else {
-                              return 0;
                             }
                           }
                         })
@@ -287,18 +290,6 @@ $(document).ready(function() {
                             });
                             var idx = d.metrics.indexOf(metricCurrent[0]);
                             return z(d.metrics.indexOf(metricCurrent[0]));
-                          }
-                        })
-                        .append("svg:title")
-                        .text(function(d) {
-                          if (d != null) {
-                            var metricName = this.parentNode.parentNode.parentNode.parentNode.__data__;
-                            var metricCurrent = d.metrics.filter(function(m) {
-                              return m.name == metricName.name;
-                            });
-                            if(metricCurrent[0] != null) {
-                              return (100 * metricCurrent[0].measure) + "%";
-                            }
                           }
                         });
 
@@ -333,12 +324,7 @@ $(document).ready(function() {
                           })
                           .style("fill", function(d, i) {
                             return z(overlayModel.availableMetrics.length);
-                          })
-                          .append("svg:title")
-                            .text(function(d) { 
-                              return (100 * d.measure) + "%"; 
-                            }
-                          );
+                          });
                       });
                       // spanningTable.append("thead").append("th");
 
@@ -370,6 +356,7 @@ $(document).ready(function() {
                         if (d != null) {
                           var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
                           if (d3.event.shiftKey) {
+                            contextColumn = null;
                           } else {
                             if (selectedOverviewRect != null) {
                               selectedMetricIndex = [];
@@ -447,6 +434,27 @@ $(document).ready(function() {
                         };
                       }).on("mouseout", function(d) {
                         tooltipOverview.hide();
+                      });
+                      td.select("svg").on("contextmenu", function(d, i) {
+                        d3.event.preventDefault();
+                        var rowIndex = this.parentNode.parentNode.sectionRowIndex;
+                        contextMetric = d.metrics[rowIndex];
+                        contextColumn = d.columnName;
+                        var _this = this;
+                        $(this).popover("toggle");
+                        $(".popover").on("mouseleave", function () {
+                            $(_this).popover('hide');
+                        });
+                      });
+                      $("svg.overview-svg").popover({
+                        html: 'true',
+                        trigger: 'manual',
+                        placement: 'auto top',
+                        animation: 'false',
+                        container: 'body',
+                        content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                          '<button type="button" class="btn" id="merge-metric">Merge</button>'+
+                          '<button type="button" class="btn btn-warning" id="duplicate-metric">Duplicate</button></div>'
                       });
 
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});

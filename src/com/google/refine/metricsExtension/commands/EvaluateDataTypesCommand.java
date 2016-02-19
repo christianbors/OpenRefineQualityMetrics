@@ -138,7 +138,7 @@ public class EvaluateDataTypesCommand extends Command {
 				writer.key("type").value(entry.getKey());
 				writer.key("val").array();
 				for(int count : entry.getValue()) {
-					writer.value((float) count/(float) rowCount);
+					writer.value(count);
 				}
 				writer.endArray().endObject();
 			}

@@ -55,14 +55,13 @@ function dataViewPopover() {
     })[0];
     var popoverSnippet = '';
     for(var i = 0; i < popoverColumn.metrics.length; i++) {
-      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='dataview-popover' type='checkbox'>" + popoverColumn.metrics[i].name + "</label></div>";
-      // popoverColumn.metrics[i].name
+      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='dataview-popover' type='checkbox'>" + 
+        popoverColumn.metrics[i].name + "</label></div>";
       if($($("g." + popoverColumn.metrics[i].name)[colIdx]).css('display') == 'none') {
         $("input.dataview-popover #" + i).prop("checked", false);
       }
     }
-    var popoverItem = $(this).data("bs.popover");
-    popoverItem.options.content = popoverSnippet;
+    $(this).data("bs.popover").options.content = popoverSnippet;
   });
   //'</ul>';// role="group"><button type="button" class="btn btn-danger" id="remove-eval">remove</button>'+
       //'<button type="button" class="btn" id="disable-eval">tyst[er</button>'+
@@ -96,7 +95,7 @@ function updateMetric() {
             metricEvalCount: metricData[0].evalTuples.length,
 	          concat: metricData[0].concat,
 	          comments: metricData[0].comments,
-	          project: theProject.id 
+	          project: theProject.id
 	        }) + "&callback=?",
 	      {},
 	      {},
@@ -129,14 +128,14 @@ function addMetricToColumn(data, index) {
     });
     var disabled = "",
         checked = "";
-    // if(activeMetric.length > 0) {
-    //   cl += " disabled";
-    //   disabled = " disabled";
-    // }
+    if(activeMetric.length > 0) {
+      cl += " disabled";
+      disabled = " disabled";
+    }
     if(checkedMetric.length > 0) {
       checked = " checked";
     }
-    popoverSnippet += "<div class='checkbox'><label" + disabled + 
+    popoverSnippet += "<div" + disabled + " class='checkbox'><label for='" + cellIndex + "'" +
       "><input id='"+cellIndex+"' class='overview-popover'" + disabled + checked + 
       " type='checkbox'>" + avMetrics[i].name + "</label></div>";
 
