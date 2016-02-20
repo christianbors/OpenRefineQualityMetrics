@@ -1,3 +1,16 @@
+$("#filtering").on("click", function() {
+    if($("#overlay").is( ":visible" )) {
+        $("#dataset").DataTable().draw();
+		$("#overlay").hide();
+		var button = this.firstChild.textContent = "Show all Entries";
+    } else {
+    	$.fn.dataTableExt.search = [];
+        $("#dataset").DataTable().draw();
+        $("#overlay").show();
+		var button = this.firstChild.textContent = "Only show dirty Entries";
+    }
+})
+
 $(document).on("click", "#remove-eval", function() {
 	$("#" + selectedEditEvaluable).remove();
 	$.each($(".metricInput").not(".disabled"), function(i, activeEval) {
@@ -32,11 +45,6 @@ $(document).on("click", "#comment-eval", function() {
 			placement: 'bottom'
 		});
 	});
-		// input.attr("data-toggle", "tooltip")
-		// .attr("data-placement", "right")
-		// .attr("data-html", "true")
-		// .attr("title", "1st line of text <br> 2nd line of text");
-	// var id = selectedEditEvaluable.attributes.add(data-toggle="tooltip" data-placement="right" data-html="true" title="1st line of text <br> 2nd line of text");
 });
 
 $(document).on("click", "#remove-metric", function(d) {
@@ -79,11 +87,43 @@ $(document).on("click", "#remove-metric", function(d) {
 });
 
 $(document).on("click", "#merge-metric", function() {
-	console.log("merge");
+	$.post("../../command/metric-doc/mergeMetric?" + $.param(
+		{ 
+			metricIndices: selectedMetricIndex, 
+			columnNames: selectedColName,
+			project: theProject.id
+		}) + "&callback=?",
+		function(response) {
+			console.log("success");
+		}, 
+		"jsonp"
+	);
 });
 
 $(document).on("click", "#duplicate-metric", function() {
-	console.log("duplicate");
+	if(selectedColName.length == 0) {
+		alert("please select a metric to duplicate first");
+	} else {
+		$( "#duplicateMetricModal" ).modal("show");
+	}
+});
+
+$("#duplicateMetricBtn").on("click", function(btn) {
+
+	$.post("../../command/metric-doc/duplicateMetric?" + $.param(
+		{ 
+			metricIndex: selectedMetricIndex[0],
+			column: selectedColName[0],
+			targetColumn: $("#columnDuplicateModal").val()[0],
+			project: theProject.id
+		}) + "&callback=?",
+		function(response) {
+			console.log("success");
+		}, 
+		"jsonp"
+	);
+	$("#addMetricModal").modal("hide");
+
 });
 
 $('#concat button').click(function() {

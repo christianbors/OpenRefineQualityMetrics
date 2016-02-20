@@ -23,12 +23,12 @@ public class SpanningMetric extends Metric {
 	private Evaluable spanningEvaluable;
 
 	public SpanningMetric(String name, String description, Evaluable spanningEvaluable, List<String> columns) {
-		this(name, description, 0f, "none", Concatenation.OR, spanningEvaluable, columns);
+		this(name, description, "none", Concatenation.OR, spanningEvaluable, columns);
 	}
 	
-	public SpanningMetric(String name, String description, float measure,
-			String dataType, Concatenation concat, Evaluable spanningEvaluable, List<String> columns) {
-		super(name, description, measure, dataType, concat);
+	public SpanningMetric(String name, String description, String dataType, Concatenation concat, 
+			Evaluable spanningEvaluable, List<String> columns) {
+		super(name, description, dataType, concat);
 		this.spanningColumns = columns;
 		this.spanningEvaluable = spanningEvaluable;
 	}
@@ -90,11 +90,11 @@ public class SpanningMetric extends Metric {
         try {
         	SpanningMetric m = new SpanningMetric(o.getString("name"), 
         			o.getString("description"), 
-        			new Float(o.getString("measure")), 
         			o.getString("datatype"),
         			Concatenation.valueOf(o.getString("concat")),
         			MetaParser.parse(MetricUtils.decapitalize(o.getString("spanningEvaluable"))), 
         			new ArrayList<String>());
+        	m.setMeasure(new Float(o.getString("measure")));
         	JSONArray colNameArray = o.getJSONArray("spanningColumns");
         	for (int spanningIdx = 0; spanningIdx < colNameArray.length(); ++spanningIdx) {
         		m.spanningColumns.add(colNameArray.getString(spanningIdx));

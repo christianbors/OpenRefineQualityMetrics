@@ -131,12 +131,15 @@ $(document).ready(function() {
                     "paging": true,
                     "scroller": true,
                     "bSort": false,
+                    "bFilter": true,
                     "dom": 'rt<"bottom"i><"clear">'
                   });
 
                   $.each(columnStore, function(key, value){
                     $("#columnFormMetricModal").append('<option value="' + value.title + '">' + value.title + '</option>');
+                    $("#columnDuplicateModal").append('<option value="' + value.title + '">' + value.title + '</option>');
                   });
+
                   $("#columnFormMetricModal").attr("size", columnStore.length);
 
                   // modal on click change
@@ -413,7 +416,7 @@ $(document).ready(function() {
                             return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableMetrics[selectedMetricIndex[i]].name);
                           })
 
-                          var headerHeightComp = datatablesHeader;// - $('#detailViewHeader').height();
+                          var headerHeightComp = datatablesHeader - $("#filtering").outerHeight();// - $('#detailViewHeader').height();
                           var marginHeatmap = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
                           var width = parseInt(d3.select("#heatmap").style("width")) - marginHeatmap.left - marginHeatmap.right,
                               height = $(".dataTables_scrollBody").height();
@@ -422,7 +425,15 @@ $(document).ready(function() {
                           for (var i = 0; i < totalEvalTuples.length; i++) {
                             detailWidths.push(width/totalEvalTuples.length);
                           }
-
+                          $.fn.dataTableExt.search = [];
+                          $.fn.dataTableExt.search.push(
+                            function (oSettings, aData, iDataIndex) {
+                              var gs = d3.selectAll("g.metric-detail-row").filter(function(d, i) {
+                                return d.index === iDataIndex;
+                              });
+                            return gs[0].length > 0;
+                            }
+                          );
                           redrawDetailView(theProject, metricData, rowIndex, rowModel, overlayModel, height, width, marginHeatmap);
                         }
                       });
@@ -441,7 +452,16 @@ $(document).ready(function() {
                         contextMetric = d.metrics[rowIndex];
                         contextColumn = d.columnName;
                         var _this = this;
+                        if(selectedColName.length > 1) {
+                          $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                          '<button type="button" class="btn btn-default" id="merge-metric">Merge</button>'+
+                          '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+                        } else {
+                          $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                          '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+                        }
                         $(this).popover("toggle");
+
                         $(".popover").on("mouseleave", function () {
                             $(_this).popover('hide');
                         });
@@ -453,8 +473,7 @@ $(document).ready(function() {
                         animation: 'false',
                         container: 'body',
                         content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
-                          '<button type="button" class="btn" id="merge-metric">Merge</button>'+
-                          '<button type="button" class="btn btn-warning" id="duplicate-metric">Duplicate</button></div>'
+                          '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>'
                       });
 
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
@@ -813,15 +832,17 @@ function detaildragresize(d) {
     .orient("bottom")
     .ticks(totalEvalTuples.length)
     .tickFormat(function(d) {
-      var script = totalEvalTuples[d].evaluable;
-      if (script != null) {
-        var label;
-        if (script.indexOf(metricData.name) < 0) {
-          label = script.substr(3, script.indexOf(",")-3);
-        } else {
-          label = script;
+      if(d < totalEvalTuples.length) {
+        var script = totalEvalTuples[d].evaluable;
+        if (script != null) {
+          var label;
+          if (script.indexOf(metricData.name) < 0) {
+            label = script.substr(3, script.indexOf(",")-3);
+          } else {
+            label = script;
+          }
+          return label;
         }
-        return label;
       }
     });
 

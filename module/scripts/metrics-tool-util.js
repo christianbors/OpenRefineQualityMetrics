@@ -22,8 +22,8 @@ function addEvaluableEntry(value) {
     animation: 'false',
     container: 'body',
     content: '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-eval">remove</button>'+
-      '<button type="button" class="btn" id="disable-eval">' + disableButtonClass + '</button>'+
-      '<button type="button" class="btn btn-warning" id="comment-eval">comment</button></div>'
+      '<button type="button" class="btn btn-default" id="disable-eval">' + disableButtonClass + '</button>'+
+      '<button type="button" class="btn btn-default" id="comment-eval">comment</button></div>'
   }).on("click", function () {
     selectedEditEvaluable = this.parentNode.id;
     var _this = this;

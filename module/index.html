@@ -132,6 +132,7 @@
         <!-- <button type="button" id="clearSort">Reset Sorting</button> -->
       </div>
       <div class="col-md-3">
+        <div hidden id="filtering"><button type="button" class="btn btn-xs btn-default">Only show dirty Entries</button></div>
         <div id="heatmap"></div>
       </div>
     </div>
@@ -142,6 +143,32 @@
       </div>
     </div>
   </div>
+
+<div id="duplicateMetricModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="gridSystemModalLabel">Select Target Column</h4>
+      </div>
+      <div class="modal-body">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <label for="name">Column</label>
+          </div>
+          <div class="panel-body">
+            <select multiple class="form-control" size="" style="height:auto;" id="columnDuplicateModal">
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="duplicateMetricBtn">Duplicate</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="addMetricModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
   <div class="modal-dialog" role="document">

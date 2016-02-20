@@ -48,21 +48,17 @@ public class Metric implements Jsonizable {
     protected Map<Integer, List<Boolean>> dirtyIndices;
 
     public Metric(String name, String description) {
-        this(name, description, 0f, "unknown", Concatenation.OR);
+        this(name, description, "unknown", Concatenation.OR);
     }
     
     public Metric(String name, String description, String dataType) {
-    	this(name, description, 0f, dataType, Concatenation.OR);
+    	this(name, description, dataType, Concatenation.OR);
     }
     
     public Metric(String name, String description, String dataType, Concatenation concat) {
-    	this(name, description, 0f, dataType, concat);
-    }
-    
-    public Metric(String name, String description, float measure, String dataType, Concatenation concat) {
     	this.name = name;
         this.description = description;
-        this.measure = measure;
+        this.measure = 0f;
         this.dataType = dataType;
         this.concat = concat;
         this.dirtyIndices = new HashMap<Integer, List<Boolean>>();
@@ -112,10 +108,10 @@ public class Metric implements Jsonizable {
 	public static Metric load(JSONObject o) {
         try {
         	Metric m = new Metric(o.getString("name"), 
-        			o.getString("description"), 
-        			new Float(o.getString("measure")), 
+        			o.getString("description"),  
         			o.getString("datatype"), 
         			Concatenation.valueOf(o.getString("concat")));
+        	m.setMeasure(new Float(o.getString("measure")));
 			if (o.has("dirtyIndices")) {
 				JSONArray di = o.getJSONArray("dirtyIndices");
 				m.dirtyIndices = new HashMap<Integer, List<Boolean>>();
@@ -154,6 +150,10 @@ public class Metric implements Jsonizable {
 	
 	public void addEvalTuple(Evaluable evaluable, String comment, boolean evalDisabled) {
 		this.evaluables.add(new EvalTuple(evaluable, comment, evalDisabled));
+	}
+	
+	public void addEvalTuple(EvalTuple evalTuple) {
+		this.evaluables.add(evalTuple);
 	}
 	
 	public EvalTuple editEvalTuple(int listIndex, Evaluable evaluable, String comment, boolean evalDisabled) {

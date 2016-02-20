@@ -1,5 +1,6 @@
 function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel, overlayModel, height, width, marginHeatmap) {
   d3.select("#heatmap").select("svg").remove();
+  $("#filtering").show();
   
   var axisWidths = [];
   axisWidths.push(0);
@@ -203,16 +204,20 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
 
     $('.dataTables_scrollBody').on('scroll', function() {
       var regex = /(\d+)/g;
+      var ratio = this.scrollTop/this.scrollHeight;
       var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+      var total = nums[nums.length-1];
+      var pos = ratio * total;
       d3.select("rect.posHighlight").remove();
 
       var detailHeat = d3.select("#heatmap svg g").append("rect")
         .classed("posHighlight", true)
         .attr("x", 0)
-        .attr("y", y(nums[0]))
+        .attr("y", y(pos))
         .attr("width", width)
         .attr("height", y(nums[1]) - y(nums[0]));
     });
+
 
     bins.on("mouseover", function(d) {
       d3.select(this.parentNode).selectAll("rect").style("fill", "steelblue");
