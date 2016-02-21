@@ -1,4 +1,4 @@
-function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel, overlayModel, height, width, marginHeatmap) {
+function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel, overlayModel) {
   d3.select("#heatmap").select("svg").remove();
   $("#filtering").show();
   
@@ -18,7 +18,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
     .range(axisWidths);
 
   var yScale = d3.scale.linear()
-    .range([height, 0])
+    .range([detailViewHeight, 0])
     .nice();
 
   var x = d3.scale.ordinal( )
@@ -27,7 +27,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
 
   var y = d3.scale.linear()
     .domain([rowModel.filtered, 0])
-    .rangeRound([height, 0]);
+    .rangeRound([detailViewHeight, 0]);
 
   var xAxis = d3.svg.axis()
     .scale(xScale)
@@ -57,26 +57,26 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
     .tickFormat(d3.format("d"));
 
   var svg = d3.select("#heatmap").append("svg")
-    .attr("width", width + marginHeatmap.left + marginHeatmap.right)
-    .attr("height", height + marginHeatmap.top + marginHeatmap.bottom)
+    .attr("width", detailViewWidth + detailViewMargin.left + detailViewMargin.right)
+    .attr("height", detailViewHeight + detailViewMargin.top + detailViewMargin.bottom)
     .append("g")
-    .attr("transform", "translate(" + marginHeatmap.left + "," + marginHeatmap.top + ")");
+    .attr("transform", "translate(" + detailViewMargin.left + "," + detailViewMargin.top + ")");
   
   svg.append("g")
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + (height) + ")")
-    .attr("x", height)
+    .attr("transform", "translate(0," + (detailViewHeight) + ")")
+    .attr("x", detailViewHeight)
     .attr("y", 0)
     .call(xAxis)
   .selectAll(".tick text")
     .style("font-size", 12)
-    .call(wrap, width/totalEvalTuples.length)
+    .call(wrap, detailViewWidth/totalEvalTuples.length)
     .style("text-anchor", "start")
     .attr("x", 6)
     .attr("y", 6);
 
 
-  detailWidth = width/totalEvalTuples.length;
+  detailWidth = detailViewWidth/totalEvalTuples.length;
 
   var axis = d3.selectAll("g.x.axis g.tick");
 
@@ -92,7 +92,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
       return d.y; })
     .attr("id", "dragright")
     .attr("height", dragbarw)
-    .attr("width", width/totalEvalTuples.length)
+    .attr("width", detailViewWidth/totalEvalTuples.length)
     .attr("fill-opacity", 0)
     .attr("cursor", "ew-resize")
     .call(drag);
@@ -190,7 +190,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
         .classed("posHighlight", true)
         .attr("x", 0)
         .attr("y", y(pos))
-        .attr("width", width)
+        .attr("width", detailViewWidth)
         .attr("height", y(nums[1]) - y(nums[0]));
     });
 

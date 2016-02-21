@@ -105,6 +105,89 @@ function updateMetric() {
 	      }, 
 	      "jsonp"
 	    );
+  var param = {
+    project: theProject.id, 
+    metricIndex: selectedMetricIndex[0],
+    columnName: selectedColName[0]
+  };
+  $.post("../../command/metric-doc/evaluateSelectedMetric?" + $.param(param), null, function(data) {
+    metricData[0] = data;
+    overlayModel.metricColumns.filter(function(col) {
+      return col.columnName == selectedColName[0];
+    })[0].metrics[selectedMetricIndex[0]] = data;
+    var overviewTd = d3.select("#overviewTable tbody tr td.selected rect").attr("width", function(d, i) {
+      if (d != null) {
+        var metricName = this.parentNode.parentNode.parentNode.__data__;
+        var metricCurrent = d.metrics.filter(function(m) {
+          return m.name == metricName.name;
+        });
+        if (metricCurrent.length > 0) {
+          return metricCurrent[0].measure * colWidths[i];
+        }
+      }
+    });
+    
+    var col = d3.selectAll("#overlay g.metrics-overlay").filter(function(d, i){
+      return d.columnName == selectedColName[0];
+    });
+    col.selectAll("g").remove();
+    var newGroups = col.selectAll("g")
+      .data(function(d) {
+        if (d != null) {
+          return d.metrics;
+        } else {
+          return [];
+        }
+      }).enter()
+      .append("g")
+      .attr("class", "metrics-overlay-col")
+      .attr("class", function(d, i) {
+        return d.name;
+      })
+      .attr("transform", function(d, i) {
+        var offset = 0;
+        if (i > 0) {
+          var attr = this.parentNode.children[i-1].attributes["transform"];
+          var transl = attr.value.match(/\d+/);
+          offset = offset + parseInt(transl[0]);
+        }
+        if(d.dirtyIndices != null) {
+          offset = offset + 12;
+        }
+        return "translate(-" + offset + ",0)";
+      });
+    // col = d3.select("#overlay").selectAll(".metrics-overlay");
+
+    var bins = newGroups.selectAll("rect.metrics-bin")
+      .data(function(d) {
+        if (d.dirtyIndices != null) {
+          return d.dirtyIndices; 
+        } else {
+          return [];
+        }
+      }).enter()
+      .append("rect")
+      .attr("class", "metrics-bin")
+      .attr("width", function (d, i) {
+        return  12; 
+      })
+      .attr("height", 1)
+      // .attr("y", function(d) { return overlayY(d.index); })
+      .style("fill", function(d, i) {
+        var metricsCol = this.parentNode.parentNode.__data__;
+        var current = this.parentNode.__data__;
+        return z(metricsCol.metrics.indexOf(current));
+      });
+
+    bins.each(function (d) {
+      var y = overlayY(d.index);
+      var ys = d3.select(this)
+        .attr("y", y);
+    });
+
+    redrawDetailView(theProject, metricData, selectedMetricIndex[0], rowModel, overlayModel);
+  },
+  "json");
 }
 
 function addMetricToColumn(data, index) {
@@ -193,4 +276,95 @@ function wrap(text, widths) {
       }
     }
   });
+}
+
+function detaildragresize(d) {
+  //Max x on the left is x - width 
+  //Max x on the right is width of screen + (dragbarw/2)
+  // var dragx = Math.max(d.x + (dragbarw/2), Math.min(detailWidth, d.x + dragbarw + d3.event.dx));
+  // console.log(d.x+10 + ", max of(" + detailWidth + ", " + (d.x + 20 + d3.event.dx));
+  //recalculate width
+  var selectedIdx = this.__data__;
+  detailWidth = detailWidths[selectedIdx] + d3.event.dx;
+  console.log(detailWidth);
+
+  detailWidths[selectedIdx] = detailWidth;
+
+  var bins = d3.selectAll("g.metric-detail-row");
+  bins.selectAll("rect")
+    .filter(function(d, i) { return i === selectedIdx; })
+    .attr("width", detailWidth);
+  bins.selectAll("rect")
+    .filter(function(d, i) { return i > selectedIdx; })
+    .attr("x", function(d, i) {
+      return parseInt(this.attributes.x.value) + d3.event.dx;
+    });
+
+  //move the right drag handle
+  dragbarbottom.filter(function(d, i) { return i === selectedIdx; })
+    .attr("width", detailWidth)
+    .attr("border", 1);
+
+  var axisWidths = [];
+  axisWidths.push(0);
+  for (var i = 1; i <= totalEvalTuples.length; i++) {
+    axisWidths.push(detailWidths[i-1] + axisWidths[i-1]);
+  }
+
+  var ordinalScale = [];
+  for (var i = 0; i <= totalEvalTuples.length; i++) ordinalScale.push(i);
+
+  var xScale = d3.scale.ordinal()
+    .domain(ordinalScale)
+    .range(axisWidths);
+
+  var x = d3.scale.ordinal( )
+    .domain(ordinalScale)
+    .range(axisWidths);
+
+  var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient("bottom")
+    .ticks(totalEvalTuples.length)
+    .tickFormat(function(d) {
+      if(d < totalEvalTuples.length) {
+        var script = totalEvalTuples[d].evaluable;
+        if (script != null) {
+          var label;
+          for (var i = 0; i < metricData.length; i++) {
+            if (script.toLowerCase().indexOf(metricData[i].name) < 0) {
+              label = script;
+            } else {
+              label = metricData[i].name;
+              break;
+            }
+          }
+          return label;
+        }
+      }
+    });
+
+  d3.select("g.x.axis").call(xAxis);
+  var heatAxis = d3.select("g.x.axis");
+  heatAxis
+    .selectAll(".tick text")
+    .style("font-size", 12)
+    .call(wrap, detailWidths)
+    .style("text-anchor", "start")
+    .attr("x", 6)
+    .attr("y", 6);
+  //resize the drag rectangle
+  //as we are only resizing from the right, the x coordinate does not need to change
+}
+
+function detaildragdone(d) {
+  var axis = d3.selectAll("g.metric-detail-row g");
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function lowercaseFirstLetter(string) {
+    return string.charAt(0).toLowerCase() + string.slice(1);
 }

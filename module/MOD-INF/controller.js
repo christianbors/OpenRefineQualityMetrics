@@ -39,6 +39,7 @@ function init() {
 
   RS.registerCommand(module, "metricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
   RS.registerCommand(module, "evaluateMetrics", new Packages.com.google.refine.metricsExtension.commands.EvaluateMetricsCommand);
+  RS.registerCommand(module, "evaluateSelectedMetric", new Packages.com.google.refine.metricsExtension.commands.EvaluateSelectedMetricCommand);
   RS.registerCommand(module, "evaluateDataTypes", new Packages.com.google.refine.metricsExtension.commands.EvaluateDataTypesCommand);
   RS.registerCommand(module, "persistMetrics", new Packages.com.google.refine.metricsExtension.commands.PersistMetricsCommand);
   RS.registerCommand(module, "getMetricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.GetMetricsOverlayModelCommand);
