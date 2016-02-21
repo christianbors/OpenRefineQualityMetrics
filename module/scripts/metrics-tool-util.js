@@ -42,27 +42,6 @@ function dataViewPopover() {
   var headers = $("div.dataTables_scrollHeadInner > table.dataTable > thead > tr > th.sorting_disabled");
   headers.addClass("popoverHeader");
   headers.attr("data-toggle", "popover");
-  headers.on("click", function(d) {
-    var colIdx;
-    for (var i = 0; i < d.target.parentNode.childNodes.length; i++) {
-        if (d.target.parentNode.childNodes[i] == d.target) {
-            colIdx = i;
-            break;
-        }
-    }
-    var popoverColumn = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
-        return col.columnName == d.target.textContent;
-    })[0];
-    var popoverSnippet = '';
-    for(var i = 0; i < popoverColumn.metrics.length; i++) {
-      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='dataview-popover' type='checkbox'>" + 
-        popoverColumn.metrics[i].name + "</label></div>";
-      if($($("g." + popoverColumn.metrics[i].name)[colIdx]).css('display') == 'none') {
-        $("input.dataview-popover #" + i).prop("checked", false);
-      }
-    }
-    $(this).data("bs.popover").options.content = popoverSnippet;
-  });
   //'</ul>';// role="group"><button type="button" class="btn btn-danger" id="remove-eval">remove</button>'+
       //'<button type="button" class="btn" id="disable-eval">tyst[er</button>'+
       //'<button type="button" class="btn btn-warning" id="comment-eval">comment</button></div>'
@@ -74,8 +53,30 @@ function dataViewPopover() {
     container: 'body',
     title: 'Show/Hide Metric Overlay',
     content: ''
-  }).on("click", function () {
+  });
+  d3.selectAll("th.sorting_disabled").on("contextmenu", function () {
+    d3.event.preventDefault();
     var _this = this;
+    var colIdx;
+    for (var i = 0; i < _this.parentNode.childNodes.length; i++) {
+        if (this.parentNode.childNodes[i] == _this) {
+            colIdx = i;
+            break;
+        }
+    }
+    var popoverColumn = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
+        return col.columnName == _this.textContent;
+    })[0];
+    var popoverSnippet = '';
+    for(var i = 0; i < popoverColumn.metrics.length; i++) {
+      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='dataview-popover' type='checkbox'>" + 
+        popoverColumn.metrics[i].name + "</label></div>";
+      if($($("g." + popoverColumn.metrics[i].name)[colIdx]).css('display') == 'none') {
+        $("input.dataview-popover #" + i).prop("checked", false);
+      }
+    }
+    $(this).data("bs.popover").options.content = popoverSnippet;
+
     $(this).popover("toggle");
     $(".popover").on("mouseleave", function () {
         $(_this).popover('hide');
@@ -107,6 +108,7 @@ function updateMetric() {
 }
 
 function addMetricToColumn(data, index) {
+  d3.event.preventDefault();
   var cellIndex = data.cellIndex;
   var popoverColumn = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
       return col.columnName == data.name;
@@ -156,5 +158,39 @@ function addMetricToColumn(data, index) {
     });
     metricsSelected.addClass("active");
     $( "#addMetricModal" ).modal("show");
+  });
+
+  var _this = this;
+  $(this).popover("toggle");
+  $(".popover").on("mouseleave", function () {
+      $(_this).popover('hide');
+  });
+}
+
+function wrap(text, widths) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em"),
+        width;
+    if(widths.length == 1) width = widths[0];
+    else width = widths[this.__data__];
+
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+      }
+    }
   });
 }

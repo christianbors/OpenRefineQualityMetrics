@@ -91,6 +91,10 @@ thead td {
   cursor: context-menu;
 }
 
+.overview-svg {
+  cursor: context-menu;
+}
+
 tbody tr:first-child td {
   padding-top: 2px;
 }

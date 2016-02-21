@@ -247,7 +247,8 @@ $(document).ready(function() {
                       }).text(function(col) { 
                           return col.name; 
                       }).attr("data-toggle", "popover")
-                        .on("click", addMetricToColumn);
+                        .on("contextmenu", addMetricToColumn);
+
                       $("#overviewTable thead tr td").popover({
                         html: 'true',
                         trigger: 'manual',
@@ -255,12 +256,6 @@ $(document).ready(function() {
                         animation: 'false',
                         container: 'body',
                         content: ''
-                      }).on("click", function () {
-                        var _this = this;
-                        $(this).popover("toggle");
-                        $(".popover").on("mouseleave", function () {
-                            $(_this).popover('hide');
-                        });
                       });
 
                       var dataCols = dataSet[0];
@@ -448,6 +443,7 @@ $(document).ready(function() {
                       });
                       td.select("svg").on("contextmenu", function(d, i) {
                         d3.event.preventDefault();
+                        tooltipOverview.hide();
                         var rowIndex = this.parentNode.parentNode.sectionRowIndex;
                         contextMetric = d.metrics[rowIndex];
                         contextColumn = d.columnName;
@@ -786,13 +782,13 @@ function fillModalAfterColumnSelection(theProject) {
 function detaildragresize(d) {
   //Max x on the left is x - width 
   //Max x on the right is width of screen + (dragbarw/2)
-  var dragx = Math.max(d.x + (dragbarw/2), Math.min(detailWidth, d.x + dragbarw + d3.event.dx));
+  // var dragx = Math.max(d.x + (dragbarw/2), Math.min(detailWidth, d.x + dragbarw + d3.event.dx));
   // console.log(d.x+10 + ", max of(" + detailWidth + ", " + (d.x + 20 + d3.event.dx));
   //recalculate width
-  detailWidth = detailWidth + d3.event.dx;
+  var selectedIdx = this.__data__;
+  detailWidth = detailWidths[selectedIdx] + d3.event.dx;
   console.log(detailWidth);
 
-  var selectedIdx = this.__data__;
   detailWidths[selectedIdx] = detailWidth;
 
   var bins = d3.selectAll("g.metric-detail-row");
@@ -836,10 +832,13 @@ function detaildragresize(d) {
         var script = totalEvalTuples[d].evaluable;
         if (script != null) {
           var label;
-          if (script.indexOf(metricData.name) < 0) {
-            label = script.substr(3, script.indexOf(",")-3);
-          } else {
-            label = script;
+          for (var i = 0; i < metricData.length; i++) {
+            if (script.toLowerCase().indexOf(metricData[i].name) < 0) {
+              label = script;
+            } else {
+              label = metricData[i].name;
+              break;
+            }
           }
           return label;
         }
@@ -847,6 +846,14 @@ function detaildragresize(d) {
     });
 
   d3.select("g.x.axis").call(xAxis);
+  var heatAxis = d3.select("g.x.axis");
+  heatAxis
+    .selectAll(".tick text")
+    .style("font-size", 12)
+    .call(wrap, detailWidths)
+    .style("text-anchor", "start")
+    .attr("x", 6)
+    .attr("y", 6);
   //resize the drag rectangle
   //as we are only resizing from the right, the x coordinate does not need to change
 }
