@@ -13,6 +13,7 @@ import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
+import com.google.refine.metricsExtension.util.MetricUtils;
 import com.google.refine.metricsExtension.util.MetricUtils.RegisteredSpanningMetrics;
 import com.google.refine.model.Project;
 
@@ -35,7 +36,7 @@ public class CreateMetricCommand extends Command {
 				metricsOverlayModel.addSpanningMetric(new SpanningMetric(
 						metricName,
 						description,
-						RegisteredSpanningMetrics.valueOf(metricName.toLowerCase()).evaluable(columnNames[0], columnNames[1]), 
+						RegisteredSpanningMetrics.valueOf(MetricUtils.decapitalize(metricName)).evaluable(columnNames[0], columnNames[1]), 
 						Arrays.asList(columnNames)));
 			} catch (ParsingException e) {
 				// TODO Auto-generated catch block

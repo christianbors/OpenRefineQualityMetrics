@@ -30,8 +30,8 @@ body {
 
 #overviewTable {
     position: absolute;
-    border-color: rgb(221, 221, 221);
 }
+    /*border-color: rgb(221, 221, 221);*/
 
 .popover-content {
     white-space:pre;
@@ -41,6 +41,11 @@ body {
 .selected {
     /*stroke-width: 3px;*/
     border: 2px solid steelblue;
+}
+
+.absolute-wrapper {
+    position: absolute;
+    width:75%;
 }
 
 .fixed-panel {

@@ -51,10 +51,14 @@ var tooltipOverview = d3.tip()
   .offset([-10, 0])
   .html(function(d) {
     if (d != null) {
-      return "<span style='color:steelblue'>" + capitalizeFirstLetter(d.name) + "</span><br>" +
+      var text = "<span style='color:steelblue'>" + capitalizeFirstLetter(d.name) + "</span><br>" +
         "<strong>Metric Value:</strong> <span style='color:steelblue'>" + d.measure + "</span><br>" + 
-        "<strong>Number of Checks:</strong> <span style='color:steelblue'>" + d.evalTuples.length + "</span><br>" + 
-        "<strong>Data Type:</strong> <span style='color:steelblue'>" + d.datatype + "</span>";
+        "<strong>Number of Checks:</strong> <span style='color:steelblue'>" + d.evalTuples.length + "</span><br>";
+      if(d.dirtyIndices != null) {
+        text += "<strong>Erroneous Entries:</strong> <span style='color:steelblue'>" + d.dirtyIndices.length + "</span><br>";
+      }
+      text += "<strong>Data Type:</strong> <span style='color:steelblue'>" + d.datatype + "</span>";
+      return text;
     }
   });
 
@@ -141,6 +145,7 @@ $(document).ready(function() {
                     "scroller": true,
                     "bSort": false,
                     "bFilter": true,
+                    "autowidth": false,
                     "dom": 'rt<"bottom"i><"clear">'
                   });
 
@@ -165,38 +170,6 @@ $(document).ready(function() {
 
                       $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
 
-                      $("#recalculate").on("click", function(d) {
-                        // recalculate
-                        $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
-                        function(data) {
-                          window.location.reload(false);
-                        }, "json");
-                      });
-
-                      $("#persist").on("click", function(d) {
-                        $.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }), null, 
-                          function(data) {}, 
-                          "json");
-                      })
-
-                      $("#addCheck").on("click", function(d) {
-                        metricData[0].evalTuples.push({evaluable: "", comment: "", disabled: false});
-                        addEvaluableEntry();
-                      });
-
-                      $("#createMetricBtn").on("click", function(btn) {
-                        var params = { 
-                          project: theProject.id, 
-                          metric: $("#metricSelectMetricModal").val(), 
-                          columns: $("#columnFormMetricModal").val(), 
-                          datatype: "unknown"
-                        };
-                        $.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
-                          function(data) {
-                            $("#addMetricModal").modal("hide");
-                          });
-                      });
-
                       var datatablesHeader = $(".dataTables_scrollHead").height();
                       var rawDataHeight = $('#raw-data-container').height();
 
@@ -218,7 +191,8 @@ $(document).ready(function() {
 
                       var tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
                       tr.append("th").text(function(d) { return d.name; });
-                      var td = tr.selectAll("tr").data(overlayModel.metricColumns).enter().append("td");
+                      var td = tr.selectAll("td").data(overlayModel.metricColumns).enter().append("td");
+
 
                       var minScale = 3;
                       if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
@@ -235,8 +209,8 @@ $(document).ready(function() {
                       // $('#dataset').DataTable().columns().header().draw();
 
                       colWidths = [];
-                        $.each($("#dataset > thead > tr > th"), function(i, header) {
-                          colWidths.push(header.offsetWidth-1);
+                        $.each($("#dataset > tbody > tr")[0].children, function(i, header) {
+                          colWidths.push(header.offsetWidth);
                         });
 
 
@@ -294,8 +268,13 @@ $(document).ready(function() {
                             var metricCurrent = d.metrics.filter(function(m) {
                               return m.name == metricName.name;
                             });
-                            var idx = d.metrics.indexOf(metricCurrent[0]);
-                            return z(d.metrics.indexOf(metricCurrent[0]));
+                            if(metricCurrent.length > 0) {
+                              for(var idx = 0; idx < overlayModel.availableMetrics.length; idx++) {
+                                if(overlayModel.availableMetrics[idx].name === metricCurrent[0].name) {
+                                  return z(idx);
+                                }
+                              }
+                            }
                           }
                         });
 
@@ -361,6 +340,7 @@ $(document).ready(function() {
                       td.on("click", function(d) {
                         if (d != null) {
                           var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
+                          var rowMetric = this.parentNode.__data__;
                           if (d3.event.shiftKey) {
                             contextColumn = null;
                           } else {
@@ -376,11 +356,16 @@ $(document).ready(function() {
                           selectedMetricIndex.push(rowIndex);
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
                           selectedColName.push(d.columnName);
-                          metricData.push(overlayModel.metricColumns.filter(function(d) {
+                          var col = overlayModel.metricColumns.filter(function(d) {
                             if (d != null) {
                               return selectedColName[selectedColName.length-1].indexOf(d.columnName) >= 0;
                             }
-                          })[0].metrics[rowIndex]);
+                          })[0];
+                          for(var rowIdx = 0; rowIdx < col.metrics.length; rowIdx++) {
+                            if(col.metrics[rowIdx].name == rowMetric.name) {
+                              metricData.push(col.metrics[rowIdx]);
+                            }
+                          }
 
                           totalEvalTuples = [];
                           for (var i = 0; i < metricData.length; i++) {
@@ -443,8 +428,10 @@ $(document).ready(function() {
                       td.select("svg").call(tooltipOverview);
                       td.select("svg").on("mouseover", function(d) {
                         if (d != null) {
-                          var rowIndex = this.parentNode.parentNode.sectionRowIndex;
-                          tooltipOverview.show(d.metrics[rowIndex]);
+                          var rowData = this.parentNode.parentNode.__data__;
+                          for(var i = 0; i < d.metrics.length; i++) {
+                            if(d.metrics[i].name === rowData.name) tooltipOverview.show(d.metrics[i]);
+                          }
                         };
                       }).on("mouseout", function(d) {
                         tooltipOverview.hide();
@@ -505,16 +492,21 @@ $(document).ready(function() {
 
 function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel) {
   var tablePos = $(".dataTables_scrollBody").position();
+  var bodyWidth = $(".dataTables_scrollBody").width();
+  var bodyHeight = $(".dataTables_scrollBody").height();
   $("#overlay").css({top: tablePos.top, 
     left: tablePos.left,
-    position:'absolute', 
-    width: $(".dataTables_scrollBody").width(), 
-    height: $(".dataTables_scrollBody").height()
+    position:'absolute',
+    width: bodyWidth,
+    height: bodyHeight
   });
-
-  var colWidths = [];
-  $.each($("#dataset > thead > tr > th"), function(i, header) {
-    colWidths.push(header.offsetWidth);
+  $(".dataTables_scrollBody").css({
+    position: 'absolute',
+    width: bodyWidth
+  });
+  var divBottom = $("div.bottom").css({
+    position: 'absolute',
+    top: tablePos.top + bodyHeight
   });
 
   //this determines the width offset of the overlay
@@ -532,6 +524,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   var minScale = 3;
   if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
 
+  // d3.select("#overlay").attr("transform", "translate(0, -" + $("#dataset_wrapper")[0].clientHeight + ")");
   var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
     .data(overlayModel.metricColumns)
     .enter().append("g")
@@ -590,7 +583,11 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   }).style("fill", function(d, i) {
     var metricsCol = this.parentNode.parentNode.__data__;
     var current = this.parentNode.__data__;
-    return z(metricsCol.metrics.indexOf(current));
+    for(var idx = 0; idx < overlayModel.availableMetrics.length; idx++) {
+      if(overlayModel.availableMetrics[idx].name === current.name) {
+        return z(idx);
+      }
+    }
   });
 
   bins.call(tooltipInvalid);

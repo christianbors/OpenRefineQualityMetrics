@@ -1,3 +1,35 @@
+$("#recalculate").on("click", function(d) {
+// recalculate
+$.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
+	function(data) {
+	  window.location.reload(false);
+	}, "json");
+});
+
+$("#persist").on("click", function(d) {
+	$.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }), null, 
+	  function(data) {}, 
+	  "json");
+});
+
+$("#addCheck").on("click", function(d) {
+	metricData[0].evalTuples.push({evaluable: "", comment: "", disabled: false});
+	addEvaluableEntry();
+});
+
+$("#createMetricBtn").on("click", function(btn) {
+	var params = { 
+		project: theProject.id, 
+		metric: $("#metricSelectMetricModal").val(), 
+		columns: $("#columnFormMetricModal").val(), 
+		datatype: "unknown"
+	};
+	$.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
+		function(data) {
+		$("#addMetricModal").modal("hide");
+	});
+});
+
 $("#filtering").on("click", function() {
     if($("#overlay").is( ":visible" )) {
         $("#dataset").DataTable().draw();

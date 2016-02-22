@@ -63,7 +63,6 @@ public class EvaluateSelectedMetricCommand extends Command {
 					WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
 					if (ct != null) {
 						Cell c = ((WrappedCell )ct).cell;
-						List<SpanningMetric> spanMetrics = model.getSpanMetricsList();
 
 						ExpressionUtils.bind(bindings, row, rowIndex,
 								columnName, c);

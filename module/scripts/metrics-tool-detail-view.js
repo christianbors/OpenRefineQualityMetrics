@@ -1,6 +1,10 @@
 function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel, overlayModel) {
   d3.select("#heatmap").select("svg").remove();
   $("#filtering").show();
+
+  $(".detail-view-wrapper").css({
+    left: $("#overviewPanel").width() + $("#detailColumnHeader").position().left
+  });
   
   var axisWidths = [];
   axisWidths.push(0);
