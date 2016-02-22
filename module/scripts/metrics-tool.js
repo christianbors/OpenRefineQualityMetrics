@@ -145,7 +145,6 @@ $(document).ready(function() {
                     "scroller": true,
                     "bSort": false,
                     "bFilter": true,
-                    "autowidth": false,
                     "dom": 'rt<"bottom"i><"clear">'
                   });
 
@@ -194,8 +193,8 @@ $(document).ready(function() {
                       var td = tr.selectAll("td").data(overlayModel.metricColumns).enter().append("td");
 
 
-                      var minScale = 3;
-                      if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
+                      var minScale = 6;
+                      // if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
                         
                       z = d3.scale.ordinal()
                         .range(colorbrewer.Reds[minScale])
@@ -250,6 +249,7 @@ $(document).ready(function() {
                         .classed("overview-svg", true)
                         .attr("data-toggle", "popover")
                       .append("rect")
+                        .classed("metric", true)
                         .attr("height", 12)
                         .attr("width", function(d, i) {
                           if (d != null) {
@@ -258,7 +258,7 @@ $(document).ready(function() {
                               return m.name == metricName.name;
                             });
                             if (metricCurrent.length > 0) {
-                              return metricCurrent[0].measure * colWidths[i];
+                              return metricCurrent[0].measure * (colWidths[i]-1);
                             }
                           }
                         })
@@ -288,54 +288,55 @@ $(document).ready(function() {
 
                       // var utr = d3.select("#uniquenessTable").select("tbody").selectAll("tr").data(uniquenessArray).enter().append("tr");
                       var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(spanningArray).enter().append("table").each(function(d, i) {
-                        var table = d3.select(this);
-                        var hrow = table.append("thead").append("tr");
+                        var table = d3.select(this).attr("table-layout", "fixed").attr("width", $("#overviewTable").width()).style("margin-bottom", 10);
+                        var hrow = table.append("tfoot").append("tr");
                         hrow.append("th");
-                        hrow.selectAll("td").data(d.spanningColumns).enter().append("td").text(function(d) { return d;});
+                        var spanColsCurrent = d.spanningColumns;
+                        // hrow.selectAll("td").data(d.spanningColumns).enter().append("td").text(function(d) { return d; });
+                        hrow.selectAll("td").data(columns).enter().append("td").text(function(d) { 
+                          if(spanColsCurrent.indexOf(d.name) >= 0) {
+                            return d.name; 
+                          }
+                        }).attr("width", function(d, i) { 
+                          return colWidths[i]
+                        }).style("border", function(d, i) {
+                          if(spanColsCurrent.indexOf(d.name) >= 0) {
+                            return "1px solid lightgrey"; 
+                          }
+                        });
 
                         var trow = table.append("tbody").append("tr");
                         trow.append("th").text(function(d) { return d.name; })
                           .attr("width", function(d, i) { return $("#overviewTable > thead > tr > th").outerWidth(); });
 
-                        trow.append("svg")
+                        trow.append("td").attr("colspan", columns.length).style("border-bottom", "1px solid lightgrey");
+                        trow.selectAll("td").append("svg")
                           .attr("width", function(d, i) {
-                            return ($("#dataset").width()/dataCols.length) * d.spanningColumns.length;
+                            return $("#dataset").width();
                           })
-                          .attr("height", 12)
+                          .attr("height", 6)
                           .append("rect")
-                          .attr("height", 12)
+                          .attr("height", 6)
                           .attr("width", function(d, i) {
-                            return d.measure * (($("#dataset").width()/dataCols.length) * d.spanningColumns.length);
+                            return d.measure * $("#dataset").width();
                           })
                           .style("fill", function(d, i) {
                             return z(overlayModel.availableMetrics.length);
                           });
-                      });
-                      // spanningTable.append("thead").append("th");
 
-                      // utr.append("th").text(function(d) { 
-                      //   return d.name; })
-                      //   .attr("width", function(d, i) {
-                      //     return $("#overviewTable > thead > tr > th").outerWidth();
-                      //   });
-                      // utr.append("svg")
-                      //   .attr("width", function(d, i) {
-                      //     return ($("#dataset").width()/dataCols.length) * overlayModel.duplicateDependencies.length;
-                      //   })
-                      //   .attr("height", 12)
-                      //   .append("rect")
-                      //   .attr("height", 12)
-                      //   .attr("width", function(d, i) {
-                      //     return d.measure * (($("#dataset").width()/dataCols.length) * overlayModel.duplicateDependencies.length);
-                      //   })
-                      //   .style("fill", function(d, i) {
-                      //     return z(overlayModel.availableMetrics.length);
-                      //   })
-                      //   .append("svg:title")
-                      //     .text(function(d) { 
-                      //       return (100 * d.measure) + "%"; 
-                      //     }
-                      //   );
+                        trow.select("td").select("svg").on("click", function(d) {
+                          selectedMetricIndex = [];
+                          selectedOverviewRect = [];
+                          selectedColName = [];
+                          metricData = [];
+                        }).on("mouseover", function(d) {
+                          if (d != null) {
+                              tooltipOverview.show(d);
+                          };
+                        }).on("mouseout", function(d) {
+                          tooltipOverview.hide();
+                        });
+                      });
 
                       td.on("click", function(d) {
                         if (d != null) {

@@ -73,7 +73,7 @@ public class EvaluateMetricsCommand extends Command {
 							}
 						}
 						List<Boolean> errors = new ArrayList<Boolean>();
-						errors.add(true);
+						errors.add(false);
 						model.getUniqueness().addDirtyIndex(rowIndex, new ArrayList<Boolean>(errors));
 						foundDuplicate = true;
 					}
@@ -125,6 +125,9 @@ public class EvaluateMetricsCommand extends Command {
 							Object spanEvalResult = sm.getSpanningEvaluable().evaluate(bindings);
 							if (spanEvalResult.getClass() != EvalError.class) {
 								evalResults.add((Boolean) spanEvalResult);
+								if(!(boolean) spanEvalResult) {
+									entryDirty = true;
+								}
 							}
 							for (EvalTuple evalTuple : sm.getEvalTuples()) {
 								boolean evalResult;
@@ -161,6 +164,9 @@ public class EvaluateMetricsCommand extends Command {
 					}
 					Metric uniqueness = model.getUniqueness();
 					uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
+				}
+				for (SpanningMetric sm : model.getSpanMetricsList()) {
+					sm.setMeasure(1f - MetricUtils.determineQuality(bindings, sm));
 				}
 				try {
 					respondJSON(response, model);
