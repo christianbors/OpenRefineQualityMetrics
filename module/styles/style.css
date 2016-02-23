@@ -73,8 +73,8 @@ input.disabled{
 }
 
 rect.posHighlight {
-    color: black;
-    opacity: 0.1;
+    color: steelblue;
+    opacity: 0.5;
 }
 
 td.highlight {

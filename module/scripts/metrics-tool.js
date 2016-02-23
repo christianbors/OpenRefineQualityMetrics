@@ -193,11 +193,11 @@ $(document).ready(function() {
                       var td = tr.selectAll("td").data(overlayModel.metricColumns).enter().append("td");
 
 
-                      var minScale = 6;
-                      // if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
+                      var minScale = 3;
+                      if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
                         
                       z = d3.scale.ordinal()
-                        .range(colorbrewer.Reds[minScale])
+                        .range(colorbrewer.YlOrRd[minScale])
                         .domain([0, overlayModel.availableMetrics]);
 
                       $("#raw-data-container").css({marginLeft: $("#overviewTable > thead > tr > th").outerWidth()});
@@ -289,27 +289,21 @@ $(document).ready(function() {
                       // var utr = d3.select("#uniquenessTable").select("tbody").selectAll("tr").data(uniquenessArray).enter().append("tr");
                       var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(spanningArray).enter().append("table").each(function(d, i) {
                         var table = d3.select(this).attr("table-layout", "fixed").attr("width", $("#overviewTable").width()).style("margin-bottom", 10);
-                        var hrow = table.append("tfoot").append("tr");
+                        var hrow = table.append("thead").append("tr");
                         hrow.append("th");
                         var spanColsCurrent = d.spanningColumns;
                         // hrow.selectAll("td").data(d.spanningColumns).enter().append("td").text(function(d) { return d; });
-                        hrow.selectAll("td").data(columns).enter().append("td").text(function(d) { 
-                          if(spanColsCurrent.indexOf(d.name) >= 0) {
-                            return d.name; 
-                          }
+                        hrow.selectAll("td").data(d.spanningColumns).enter().append("td").text(function(d) { 
+                            return d; 
                         }).attr("width", function(d, i) { 
-                          return colWidths[i]
-                        }).style("border", function(d, i) {
-                          if(spanColsCurrent.indexOf(d.name) >= 0) {
-                            return "1px solid lightgrey"; 
-                          }
-                        });
+                          return $("#overviewTable").width()/spanColsCurrent.length;
+                        }).style("border", "1px solid lightgrey");
 
                         var trow = table.append("tbody").append("tr");
                         trow.append("th").text(function(d) { return d.name; })
                           .attr("width", function(d, i) { return $("#overviewTable > thead > tr > th").outerWidth(); });
 
-                        trow.append("td").attr("colspan", columns.length).style("border-bottom", "1px solid lightgrey");
+                        trow.append("td").attr("colspan", columns.length).style("border", "1px solid lightgrey");
                         trow.selectAll("td").append("svg")
                           .attr("width", function(d, i) {
                             return $("#dataset").width();
