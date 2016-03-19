@@ -393,7 +393,7 @@ $(document).ready(function() {
                             .attr("height", 12)
                             .attr("width", 12)
                             .attr("fill", function(d, i) {
-                              return z(((i+1) * (1/selectedMetricIndex.length)) * selectedMetricIndex[i]);
+                              return z(selectedMetricIndex[i]);
                             });
                           mHeaders.append("text").text(function(d, i) {
                             return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableMetrics[selectedMetricIndex[i]].name);
@@ -645,6 +645,7 @@ function refillEditForm(d, colName, metricIndex) {
   $("#metricInfoDetailHeader").text("Metric Detail - " + capitalizeFirstLetter(d[0].name) + " - " + selectedColName[0]);
   $("#metricName").text(d[0].name);
   $("#metricDescription").text(d[0].description);
+  $("#checksHeaderText").text("Checks (" + d[0].evalTuples.length + ")");
 
   $(".metricCheck").remove();
   $("#typeDetail").remove();

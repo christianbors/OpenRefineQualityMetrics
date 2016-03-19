@@ -155,7 +155,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
       if (d == true) {
         return "transparent";
       } else {
-        return z(selectedColOpacity[i] * selectedMetricIndex);
+        return z(selectedMetricIndex);
       }
     });
     // .style("opacity", function(d, i) {
@@ -222,7 +222,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
         if (d == true) {
           return "transparent";
         } else {
-          return z(selectedColOpacity[i] * selectedMetricIndex);
+          return z(selectedMetricIndex);
         }
         
       });
