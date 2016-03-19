@@ -1,4 +1,4 @@
-function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel, overlayModel) {
+function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
   d3.select("#heatmap").select("svg").remove();
   $("#filtering").show();
   
@@ -120,7 +120,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
       if (d == true) {
         return "white";
       } else {
-        return z(selectedMetricIndex);
+        return z(selectedChecksIndex[i]);
       }
     });
 
@@ -260,7 +260,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
         if (d == true) {
           return "white";
         } else {
-          return z(selectedMetricIndex);
+          return z(selectedChecksIndex[i]);
         }
         
       });

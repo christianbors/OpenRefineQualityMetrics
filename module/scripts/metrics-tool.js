@@ -6,7 +6,8 @@ var detailWidth,
     dragheight = 20,
     dragbarw = 20;
 var detailWidths;
-var selectedMetricIndex = [0]
+var selectedMetricIndex = [0],
+    selectedChecksIndex = [],
     selectedOverviewRect = [],
     selectedColName = [],
     selectedColOpacity = [],
@@ -339,15 +340,15 @@ $(document).ready(function() {
                           } else {
                             if (selectedOverviewRect != null) {
                               selectedMetricIndex = [];
+                              selectedChecksIndex = [];
                               selectedOverviewRect = [];
                               selectedColName = [];
                               metricData = [];
                               d3.selectAll(".selected").classed("selected", false);
                             }
                           }
-                          selectedColOpacity = []
-                          selectedMetricIndex.push(rowIndex);
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
+                          selectedMetricIndex.push(rowIndex)
                           selectedColName.push(d.columnName);
                           var col = overlayModel.metricColumns.filter(function(d) {
                             if (d != null) {
@@ -367,7 +368,7 @@ $(document).ready(function() {
                             });
                             totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
                             for(var j = 0; j < enabledTuples.length; j++) {
-                              selectedColOpacity.push((i+1) * (1/selectedMetricIndex.length));
+                              selectedChecksIndex.push(rowIndex);
                             }
                           }
                           refillEditForm(metricData, selectedColName, rowIndex);
@@ -375,12 +376,12 @@ $(document).ready(function() {
                           $('#detailMetricHeader').empty();
                           $('#detailColumnHeader').text("Detail View")
                             .append(' <button type="button" class="btn btn-info btn-xs">Info</button>');
-                          if(selectedMetricIndex.length == 1) {
+                          if(metricData.length == 1) {
                             $('#detailMetricHeader').append("<h5>Selected Metric:</h5>");
                           } else {
                             $('#detailMetricHeader').append("<h5>Selected Metrics:</h5>");
                           }
-                          for(var indexCount = 0; indexCount < selectedMetricIndex.length; indexCount++) {
+                          for(var indexCount = 0; indexCount < metricData.length; indexCount++) {
                             $('#detailMetricHeader').append("<h5 class='metric'></h5>");
                           }
                           var mHeaders = d3.selectAll("#detailMetricHeader h5.metric");
@@ -416,7 +417,7 @@ $(document).ready(function() {
                             return gs[0].length > 0;
                             }
                           );
-                          redrawDetailView(theProject, metricData, rowIndex, rowModel, overlayModel);
+                          redrawDetailView(theProject, metricData, rowModel, overlayModel);
                         }
                       });
                       td.select("svg").call(tooltipOverview);
