@@ -80,6 +80,7 @@ rect.posHighlight {
 td.highlight {
     font-weight: bold;
     color: steelblue;
+    /*border: 2px solid grey;*/
 }
 
 tr.hover {

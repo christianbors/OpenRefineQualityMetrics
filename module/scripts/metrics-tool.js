@@ -556,6 +556,17 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
       return "translate(-" + offset + ",0)";
     });
 
+  cols.append("rect")
+    .attr("height", $(".dataTables_scrollBody").height())
+    .attr("width", 12)
+    .attr("fill", function(d) {
+      if (d.dirtyIndices != null) {
+        return "white";
+      } else {
+        return "transparent";
+      }
+    });
+
   var bins = cols.selectAll(".metrics-bin")
   .data(function(d) {
     if (d.dirtyIndices != null) {
@@ -629,6 +640,33 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     });
     tooltipInvalid.hide();
   });
+
+  overlay.append("line")
+    .attr("x1", function(d) {
+      var attr = this.previousSibling.attributes["transform"];
+      var transl = attr.value.match(/\d+/);
+      var offset = parseInt(transl[0]);
+      return "-" + (offset+1);
+    })
+    .attr("x2", function(d) {
+      var attr = this.previousSibling.attributes["transform"];
+      var transl = attr.value.match(/\d+/);
+      var offset = parseInt(transl[0]);
+      return "-" + (offset+1);
+    })
+    .attr("y1", 0)
+    .attr("y2", $(".dataTables_scrollBody").height())
+    .attr("stroke", "#ddd")
+    .attr("stroke-width", "2")
+
+  overlay.append("line")
+    .attr("x1", 0)
+    .attr("x2", 0)
+    .attr("y1", 0)
+    .attr("y2", $(".dataTables_scrollBody").height())
+    .attr("stroke", "#ddd")
+    .attr("stroke-width", "2")
+
   // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
   // var svg = headers.insert("svg", "#dataset")
   //   .attr("class", "overlay")

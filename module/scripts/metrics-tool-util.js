@@ -131,6 +131,8 @@ function updateMetric() {
       return d.columnName == selectedColName[0];
     });
     col.selectAll("g").remove();
+    col.selectAll("line").remove();
+    col.selectAll("rect").remove();
     var newGroups = col.selectAll("g")
       .data(function(d) {
         if (d != null) {
@@ -156,7 +158,17 @@ function updateMetric() {
         }
         return "translate(-" + offset + ",0)";
       });
-    // col = d3.select("#overlay").selectAll(".metrics-overlay");
+
+    col.selectAll("g").append("rect")
+      .attr("height", $(".dataTables_scrollBody").height())
+      .attr("width", 12)
+      .attr("fill", function(d) {
+        if (d.dirtyIndices != null) {
+          return "white";
+        } else {
+          return "transparent";
+        }
+      });
 
     var bins = newGroups.selectAll("rect.metrics-bin")
       .data(function(d) {
@@ -185,7 +197,50 @@ function updateMetric() {
         .attr("y", y);
     });
 
-    redrawDetailView(theProject, metricData, selectedMetricIndex[0], rowModel, overlayModel);
+    // var overlay = d3.select("#overlay").selectAll(".metrics-overlay");
+    col.append("line")
+      .attr("x1", function(d) {
+        var attr = 0;
+        for(var i = 0; i < this.parentNode.children.length; i++) {
+          var transf = this.parentNode.children[i].attributes["transform"];
+          if (transf != null) {
+            var transl = transf.value.match(/\d+/);
+            var offset = parseInt(transl[0]);
+            if(offset > attr) {
+              attr = offset;
+            }
+          }
+        }
+        return "-" + (attr+1);
+      })
+      .attr("x2", function(d) {
+        var attr = 0;
+        for(var i = 0; i < this.parentNode.children.length; i++) {
+          var transf = this.parentNode.children[i].attributes["transform"];
+          if (transf != null) {
+            var transl = transf.value.match(/\d+/);
+            var offset = parseInt(transl[0]);
+            if(offset > attr) {
+              attr = offset;
+            }
+          }
+        }
+        return "-" + (attr+1);
+      })
+      .attr("y1", 0)
+      .attr("y2", $(".dataTables_scrollBody").height())
+      .attr("stroke", "#ddd")
+      .attr("stroke-width", "2")
+
+    col.append("line")
+      .attr("x1", 0)
+      .attr("x2", 0)
+      .attr("y1", 0)
+      .attr("y2", $(".dataTables_scrollBody").height())
+      .attr("stroke", "#ddd")
+      .attr("stroke-width", "2")
+
+    redrawDetailView(theProject, metricData, rowModel, overlayModel);
   },
   "json");
 }
