@@ -139,13 +139,15 @@ $(document).ready(function() {
                   $('#dataset').dataTable( {
                     "data": dataSet,
                     "columns": columnStore,
-                    "scrollY": "500",
+                    // "scrollY": "500",
+                    "sScrollY": "400px",
                     "scrollCollapse": true,
                     "paging": true,
                     "scroller": true,
                     "bSort": false,
                     "bFilter": true,
-                    "dom": 'rt<"bottom"i><"clear">'
+                    "dom": 'rt<"bottom"i><"clear">',
+                    "bAutoWidth": true
                   });
 
                   $.each(columnStore, function(key, value){
@@ -205,19 +207,17 @@ $(document).ready(function() {
                         .css('marginBottom', 0 + 'px');
 
                       $('#dataset').DataTable().columns.adjust().draw();
-                      // $('#dataset').DataTable().columns().header().draw();
-
-                      colWidths = [];
-                        $.each($("#dataset > tbody > tr")[0].children, function(i, header) {
-                          colWidths.push(header.offsetWidth);
-                        });
-
-
                       var columns = theProject.columnModel.columns;
                       for (var col = 0; col < columns.length; col++) {
                         var column = columns[col];
                         columnStore[column.cellIndex] = {"title": column.name};
                       }
+                      $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
+                      
+                      colWidths = [];
+                      $.each($("#dataset > tbody > tr")[0].children, function(i, header) {
+                        colWidths.push(header.offsetWidth);
+                      });
 
                       var overviewTable = d3.select("#overviewTable").select("thead tr")
                         .selectAll('td')
@@ -239,11 +239,9 @@ $(document).ready(function() {
                         content: ''
                       });
 
-                      var dataCols = dataSet[0];
-
                       td.append("svg")
                         .attr("width", function(d, i) {
-                          return colWidths[i];
+                          return (colWidths[i]-1);
                         })
                         .attr("height", 12)
                         .classed("overview-svg", true)
@@ -463,8 +461,6 @@ $(document).ready(function() {
                           '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>'
                       });
 
-                      $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
-
                       drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel);
                       //todo: edit when selecting other metric
                       dataViewPopover();
@@ -488,21 +484,16 @@ $(document).ready(function() {
 
 function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel) {
   var tablePos = $(".dataTables_scrollBody").position();
-  var bodyWidth = $(".dataTables_scrollBody").width();
-  var bodyHeight = $(".dataTables_scrollBody").height();
   $("#overlay").css({top: tablePos.top, 
     left: tablePos.left,
-    position:'absolute',
-    width: bodyWidth,
-    height: bodyHeight
+    position:'absolute', 
+    width: $(".dataTables_scrollBody").width(), 
+    height: $(".dataTables_scrollBody").height()
   });
-  $(".dataTables_scrollBody").css({
-    position: 'absolute',
-    width: bodyWidth
-  });
-  var divBottom = $("div.bottom").css({
-    position: 'absolute',
-    top: tablePos.top + bodyHeight
+
+  var colWidths = [];
+  $.each($("#dataset > thead > tr > th"), function(i, header) {
+    colWidths.push(header.offsetWidth);
   });
 
   //this determines the width offset of the overlay
