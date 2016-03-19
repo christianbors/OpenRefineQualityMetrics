@@ -158,6 +158,37 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
         return z(selectedMetricIndex);
       }
     });
+
+    var separatorPos = [];
+    var separatorIdx = 0;
+    for (var m = 0; m < metricData.length-1; m++) {
+      var curM = metricData[m];
+      var separatorWidth = 0;
+      if(m > 0) {
+        separatorWidth += separatorPos[m-1];
+      }
+      for (var i = 0; i < curM.evalTuples.length; i++) {
+        separatorWidth += detailWidths[separatorIdx];
+        separatorIdx++;
+      }
+      separatorPos.push(separatorWidth);
+    }
+
+    // svg.selectAll(".separator")
+    svg.selectAll(".separator")
+        .data(separatorPos)
+        .enter().append("line")
+        .attr("y1", 0)
+        .attr("y2", detailViewHeight + 6)
+        .attr("x1", function(d, i) {
+          return separatorPos[i];
+        })
+        .attr("x2", function(d, i) {
+          return separatorPos[i];
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", "2")
+        .attr("class", "separator");
     // .style("opacity", function(d, i) {
     //   return selectedColOpacity[i];
     // })

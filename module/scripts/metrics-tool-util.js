@@ -353,6 +353,28 @@ function detaildragresize(d) {
     .style("text-anchor", "start")
     .attr("x", 6)
     .attr("y", 6);
+
+  var separatorPos = [];
+  var separatorIdx = 0;
+  for (var m = 0; m < metricData.length-1; m++) {
+    var curM = metricData[m];
+    var separatorWidth = 0;
+    if(m > 0) {
+      separatorWidth += separatorPos[m-1];
+    }
+    for (var i = 0; i < curM.evalTuples.length; i++) {
+      separatorWidth += detailWidths[separatorIdx];
+      separatorIdx++;
+    }
+    separatorPos.push(separatorWidth);
+  }
+  var lines = d3.selectAll("line.separator")
+    .attr("x1", function(d, i) {
+      return separatorPos[i];
+    })
+    .attr("x2", function(d, i) {
+      return separatorPos[i];
+    });
   //resize the drag rectangle
   //as we are only resizing from the right, the x coordinate does not need to change
 }
