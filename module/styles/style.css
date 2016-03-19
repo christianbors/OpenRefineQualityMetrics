@@ -82,6 +82,10 @@ td.highlight {
     color: steelblue;
 }
 
+tr.hover {
+    background-color: #F5F5F5;
+}
+
 .panel-footer {
     overflow: hidden;
     padding-top: 20px;

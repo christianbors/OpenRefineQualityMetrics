@@ -66,44 +66,13 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
     .append("g")
     .attr("transform", "translate(" + detailViewMargin.left + "," + detailViewMargin.top + ")");
   
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + (detailViewHeight) + ")")
-    .attr("x", detailViewHeight)
+  svg.append("rect")
+    .attr("x", 0)
     .attr("y", 0)
-    .call(xAxis)
-  .selectAll(".tick text")
-    .style("font-size", 12)
-    .call(wrap, detailViewWidth/totalEvalTuples.length)
-    .style("text-anchor", "start")
-    .attr("x", 6)
-    .attr("y", 6);
-
-
-  detailWidth = detailViewWidth/totalEvalTuples.length;
-
-  var axis = d3.selectAll("g.x.axis g.tick");
-
-  var drag = d3.behavior.drag().origin(Object).on("drag", detaildragresize).on("dragend", detaildragdone);
-
-  dragbarbottom = axis.filter(function(d, i) {
-      return d < totalEvalTuples.length;
-    })
-    .append("rect")
-    .attr("x", function(d) { 
-      return d.x; })
-    .attr("y", function(d) { 
-      return d.y; })
-    .attr("id", "dragright")
-    .attr("height", dragbarw)
-    .attr("width", detailViewWidth/totalEvalTuples.length)
-    .attr("fill-opacity", 0)
-    .attr("cursor", "ew-resize")
-    .call(drag);
-
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
+    .attr("height", detailViewHeight)
+    .attr("width", detailViewWidth)
+    .attr("class", "rect-disabled")
+    .attr("fill", "transparent");
   //TODO: create arrays that contain all dirty indices
   var dirtyArray = []
   for (var dirtyIdx = 0; dirtyIdx < rowModel.filtered; dirtyIdx++) {
@@ -153,7 +122,7 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
       return x(i + 1) - x(i);
     }).style("fill", function(d, i) {
       if (d == true) {
-        return "transparent";
+        return "white";
       } else {
         return z(selectedMetricIndex);
       }
@@ -192,6 +161,44 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
     // .style("opacity", function(d, i) {
     //   return selectedColOpacity[i];
     // })
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (detailViewHeight) + ")")
+      .attr("x", detailViewHeight)
+      .attr("y", 0)
+      .call(xAxis)
+    .selectAll(".tick text")
+      .style("font-size", 12)
+      .call(wrap, detailViewWidth/totalEvalTuples.length)
+      .style("text-anchor", "start")
+      .attr("x", 6)
+      .attr("y", 6);
+
+
+    detailWidth = detailViewWidth/totalEvalTuples.length;
+
+    var axis = d3.selectAll("g.x.axis g.tick");
+
+    var drag = d3.behavior.drag().origin(Object).on("drag", detaildragresize).on("dragend", detaildragdone);
+
+    dragbarbottom = axis.filter(function(d, i) {
+        return d < totalEvalTuples.length;
+      })
+      .append("rect")
+      .attr("x", function(d) { 
+        return d.x; })
+      .attr("y", function(d) { 
+        return d.y; })
+      .attr("id", "dragright")
+      .attr("height", dragbarw)
+      .attr("width", detailViewWidth/totalEvalTuples.length)
+      .attr("fill-opacity", 0)
+      .attr("cursor", "ew-resize")
+      .call(drag);
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
 
     metricDetail.each(function (d) {
       var ys = d3.select(this).selectAll(".bin")
@@ -245,19 +252,23 @@ function redrawDetailView(theProject, metricData, selectedMetricIndex, rowModel,
       } else {
         tooltipInvalid.show(this.parentNode.__data__.index);
       }
+      $.each(sameRows, function(i, rowCurrent) {
+        $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
+      });
       // d3.select(this.parentNode).style("fill", "black");
     });
 
     bins.on("mouseout", function(d) {
+      $("#dataset tr").removeClass("hover");
       d3.select(this.parentNode).selectAll("rect").style("fill", function(d, i) {
         if (d == true) {
-          return "transparent";
+          return "white";
         } else {
           return z(selectedMetricIndex);
         }
         
       });
-      d3.select(this.parentNode).style("fill", "transparent");
+      d3.select(this.parentNode).style("fill", "white");
       tooltipInvalid.hide();
     });
   }

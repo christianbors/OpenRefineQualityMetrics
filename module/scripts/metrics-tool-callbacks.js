@@ -34,11 +34,15 @@ $("#filtering").on("click", function() {
     if($("#overlay").is( ":visible" )) {
         $("#dataset").DataTable().draw();
 		$("#overlay").hide();
+        var svg = d3.select("rect.rect-disabled")
+	    	.attr("fill", "gainsboro");
 		var button = this.firstChild.textContent = "Show all Entries";
     } else {
     	$.fn.dataTableExt.search = [];
         $("#dataset").DataTable().draw();
         $("#overlay").show();
+        var svg = d3.select("rect.rect-disabled")
+	    	.attr("fill", "transparent");
 		var button = this.firstChild.textContent = "Only show dirty Entries";
     }
 })

@@ -375,7 +375,8 @@ $(document).ready(function() {
                           refillEditForm(metricData, selectedColName, rowIndex);
 
                           $('#detailMetricHeader').empty();
-                          $('#detailColumnHeader').text("Detail View");
+                          $('#detailColumnHeader').text("Detail View")
+                            .append(' <button type="button" class="btn btn-info btn-xs">Info</button>');
                           if(selectedMetricIndex.length == 1) {
                             $('#detailMetricHeader').append("<h5>Selected Metric:</h5>");
                           } else {
@@ -622,16 +623,20 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     } else {
       tooltipInvalid.show(d.index)
     }
+    $.each(sameRows, function(i, rowCurrent) {
+      $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
+    });
   });
 
   bins.on("mouseout", function(d) {
-      d3.select(this).style("fill", function(d, i) {
-        var metricsCol = this.parentNode.parentNode.__data__;
-        var current = this.parentNode.__data__;
-        return z(metricsCol.metrics.indexOf(current));
-      });
-      tooltipInvalid.hide();
+    $("#dataset tr").removeClass("hover");
+    d3.select(this).style("fill", function(d, i) {
+      var metricsCol = this.parentNode.parentNode.__data__;
+      var current = this.parentNode.__data__;
+      return z(metricsCol.metrics.indexOf(current));
     });
+    tooltipInvalid.hide();
+  });
   // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
   // var svg = headers.insert("svg", "#dataset")
   //   .attr("class", "overlay")
