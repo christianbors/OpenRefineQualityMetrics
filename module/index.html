@@ -75,24 +75,31 @@
           </div>
         </div>
       </div>
-      <div aria-hidden="true" class="col-md-4">
+      <div aria-hidden="true" class="col-md-8">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
             <a class="collapsed" id="checksHeaderText" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseChecks" aria-expanded="false" aria-controls="collapseChecks">Checks</a>
           </div>
           <div id="collapseChecks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-            <ul id="checksList" class="list-group fixed-panel">
-              <li class="list-group-item" id="addCheckButton"><label class="btn btn-sm btn-default" id="addCheck">Add Check</label></li>
+            <ul id="checksList" class="list-group list-group-horizontal fixed-panel">
+              <!-- <li class="list-group-item" id="addCheckButton"></li> -->
+              <li class="col-lg-12 list-group-item" id="addCheckButton">
+                Check Concatenation: 
+                <div id="concat" class="btn-group btn-group-sm">
+                  <button type="button" id="concatAND" class="btn btn-default active">AND</button>
+                  <button type="button" id="concatOR" class="btn btn-default" >OR</button>
+                  <button type="button" id="concatXOR" class="btn btn-default" >XOR</button>
+                </div>
+                <label class="btn btn-sm btn-primary" id="addCheck">Add Check</label>
+              </li>
             </ul>
-            <div class="panel-footer clearfix">
-              Check Concatenation
-              <div id="concat" class="btn-group btn-group-sm pull-right">
-                <button type="button" id="concatAND" class="btn btn-default active">AND</button>
-                <button type="button" id="concatOR" class="btn btn-default" >OR</button>
-                <button type="button" id="concatXOR" class="btn btn-default" >XOR</button>
-              </div>
-            </div>
           </div>
+        </div>
+      </div>
+      <div class="col-md-12">
+        <div class="alert alert-info alert-dismissible" hidden role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <strong>Warning!</strong> Better check yourself, you're not looking too good.
         </div>
       </div>
     </div>

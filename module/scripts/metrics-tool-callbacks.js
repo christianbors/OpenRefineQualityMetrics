@@ -48,14 +48,15 @@ $("#filtering").on("click", function() {
 })
 
 $(document).on("click", "#remove-eval", function() {
+	$(editButton).popover("toggle");
+	var idx = parseInt(editButton.parentNode.attributes["idx"].value);
 	$("#" + selectedEditEvaluable).remove();
-	$.each($(".metricInput").not(".disabled"), function(i, activeEval) {
-		metricData[0].evaluables.push(activeEval.value);
-	});
+	metricData[0].evalTuples.splice(idx, 1)
 	updateMetric();
 });
 
 $(document).on("click", "#disable-eval", function() {
+	$(editButton).popover("toggle");
 	var editEval = $("#" + selectedEditEvaluable);
 	if(editEval[0].lastElementChild.classList.contains("disabled")) {
 		editEval[0].lastElementChild.classList.remove("disabled");

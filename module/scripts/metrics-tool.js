@@ -141,7 +141,7 @@ $(document).ready(function() {
                     "data": dataSet,
                     "columns": columnStore,
                     // "scrollY": "500",
-                    "sScrollY": "400px",
+                    "sScrollY": "350px",
                     "scrollCollapse": true,
                     "paging": true,
                     "scroller": true,

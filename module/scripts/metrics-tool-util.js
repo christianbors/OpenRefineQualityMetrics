@@ -1,8 +1,11 @@
+var editButton;
+
 function addEvaluableEntry(value) {
 	var i = $(".metricCheck").length;
-	$("<li class='input-group metricCheck' idx='" + i + "' id='metricEvaluable" + i + "'></li>").insertBefore("#addCheckButton");
-  $("#metricEvaluable" + i).append("<span class='input-group-addon' id='edit"+ i +"' data-toggle='popover'>edit</span>");
-  $("#metricEvaluable" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  "); //TODO: aria-describedby='basic-addon1'>
+	$("<li class='col-lg-6 list-group-item metricCheck' id='metricEvaluable" + i + "'><div class='input-group' idx='" + i + "' id='container" + i + "'></div></li>")
+    .insertBefore("#addCheckButton");
+  $("#container" + i).append("<span class='input-group-addon' id='edit"+ i +"' data-toggle='popover'>edit</span>");
+  $("#container" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  ");
   $("#eval" + i).keypress(function(event){
     if (event.which == 13) {
       metricData[0].evalTuples[i].evaluable = this.value;
@@ -25,11 +28,11 @@ function addEvaluableEntry(value) {
       '<button type="button" class="btn btn-default" id="disable-eval">' + disableButtonClass + '</button>'+
       '<button type="button" class="btn btn-default" id="comment-eval">comment</button></div>'
   }).on("click", function () {
-    selectedEditEvaluable = this.parentNode.id;
-    var _this = this;
+    selectedEditEvaluable = this.parentNode.parentNode.id;
+    editButton = this;
     $(this).popover("toggle");
     $(".popover").on("mouseleave", function () {
-        $(_this).popover('hide');
+        $(editButton).popover('hide');
     });
   });
 
@@ -191,10 +194,42 @@ function updateMetric() {
         return z(metricsCol.metrics.indexOf(current));
       });
 
+    bins.call(tooltipInvalid);
+
     bins.each(function (d) {
       var y = overlayY(d.index);
       var ys = d3.select(this)
         .attr("y", y);
+    });
+    
+    bins.on("mouseover", function(d) {
+      d3.select(this).style("fill", "steelblue");
+      var selThis = this;
+      var sameRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
+        return d3.select(this).attr("y") === d3.select(selThis).attr("y");
+      })[0];
+      if(sameRows.length > 1) {
+        var indices = {
+          first: sameRows[0].__data__.index,
+          last: sameRows[sameRows.length-1].__data__.index
+        };
+        tooltipInvalid.show(indices);
+      } else {
+        tooltipInvalid.show(d.index)
+      }
+      $.each(sameRows, function(i, rowCurrent) {
+        $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
+      });
+    });
+
+    bins.on("mouseout", function(d) {
+      $("#dataset tr").removeClass("hover");
+      d3.select(this).style("fill", function(d, i) {
+        var metricsCol = this.parentNode.parentNode.__data__;
+        var current = this.parentNode.__data__;
+        return z(metricsCol.metrics.indexOf(current));
+      });
+      tooltipInvalid.hide();
     });
 
     // var overlay = d3.select("#overlay").selectAll(".metrics-overlay");
