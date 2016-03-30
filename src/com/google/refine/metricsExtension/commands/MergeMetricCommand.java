@@ -56,8 +56,8 @@ public class MergeMetricCommand extends Command {
 										+ ")");
 						SpanningMetric sm = new SpanningMetric("MergedMetric",
 									"Metric merged from " + m1.getName() + " and " + m2.getName(), 
-									eval,
 									Arrays.asList(columnNames));
+						sm.addSpanningEvalTuple(eval, "", false);
 						if(m1.getDataType().equals(m2.getDataType())) {
 							sm.setDataType(m1.getDataType());
 						}

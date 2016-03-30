@@ -5,7 +5,16 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
   var axisWidths = [];
   axisWidths.push(0);
   // initialize selected metric evaluables
+  var headerHeightComp = datatablesHeader - $("#filtering").outerHeight();// - $('#detailViewHeader').height();
+  detailViewMargin = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
+  detailViewWidth = parseInt(d3.select("#heatmap").style("width")) - detailViewMargin.left - detailViewMargin.right,
+  detailViewHeight = $(".dataTables_scrollBody").height();
+  if (detailViewWidth > (totalEvalTuples.length*100)) detailViewWidth = totalEvalTuples.length*100;
+  detailWidths = [];
 
+  for (var i = 0; i < totalEvalTuples.length; i++) {
+    detailWidths.push(detailViewWidth/totalEvalTuples.length);
+  }
   for (var i = 1; i <= totalEvalTuples.length; i++) {
     axisWidths.push(detailWidths[i-1] + axisWidths[i-1]);
   }
@@ -120,7 +129,8 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
       if (d == true) {
         return "white";
       } else {
-        return z(selectedChecksIndex[i]);
+        var idxCheck = selectedChecksIndex[i];
+        return z(idxCheck);
       }
     });
 

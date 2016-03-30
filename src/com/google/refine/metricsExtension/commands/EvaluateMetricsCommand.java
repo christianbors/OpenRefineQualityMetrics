@@ -45,6 +45,7 @@ public class EvaluateMetricsCommand extends Command {
 			private HttpServletResponse response;
 			private MetricsOverlayModel model;
 			private Set<Cell[]> uniquesSet = new LinkedHashSet<Cell[]>();
+			private SpanningMetric uniqueness;
 
 			public RowVisitor init(Properties bindings, HttpServletResponse response, MetricsOverlayModel model) {
 				this.bindings = bindings;
@@ -57,7 +58,6 @@ public class EvaluateMetricsCommand extends Command {
 			public boolean visit(Project project, int rowIndex, Row row) {
 				// compute duplicates
 				if (model.isComputeDuplicates()) {
-					SpanningMetric uniqueness = model.getUniqueness();
 					Cell[] cells = new Cell[uniqueness.getSpanningColumns().size()];
 					for (int i = 0; i < uniqueness.getSpanningColumns().size(); ++i) {
 						String columnName = uniqueness.getSpanningColumns().get(i);
@@ -67,15 +67,18 @@ public class EvaluateMetricsCommand extends Command {
 					// evaluate here
 					boolean foundDuplicate = false;
 					for (Cell[] toBeChecked : uniquesSet) {
+						foundDuplicate = true;
 						for (int i = 0; i < toBeChecked.length; ++i) {
 							if(!toBeChecked[i].value.equals(cells[i].value)) {
+								foundDuplicate = false;
 								break;
 							}
 						}
-						List<Boolean> errors = new ArrayList<Boolean>();
-						errors.add(false);
-						model.getUniqueness().addDirtyIndex(rowIndex, new ArrayList<Boolean>(errors));
-						foundDuplicate = true;
+						if (foundDuplicate) {
+							List<Boolean> errors = new ArrayList<Boolean>();
+							errors.add(false);
+							uniqueness.addDirtyIndex(rowIndex, new ArrayList<Boolean>(errors));
+						}
 					}
 					if (!foundDuplicate) {
 						// after that add the data
@@ -122,7 +125,7 @@ public class EvaluateMetricsCommand extends Command {
 							List<Boolean> evalResults = new ArrayList<Boolean>();
 							boolean entryDirty = false;
 							
-							Object spanEvalResult = sm.getSpanningEvaluable().evaluate(bindings);
+							Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
 							if (spanEvalResult.getClass() != EvalError.class) {
 								evalResults.add((Boolean) spanEvalResult);
 								if(!(boolean) spanEvalResult) {
@@ -152,18 +155,20 @@ public class EvaluateMetricsCommand extends Command {
 
 			@Override
 			public void start(Project project) {
+				uniqueness = model.getUniqueness();
+				uniqueness.getDirtyIndices().clear();
 			}
 
 			@Override
 			public void end(Project project) {
 				// TODO: add AND/OR/XOR
+				Metric uniqueness = model.getUniqueness();
+				uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
 				for (String columnName : model.getMetricColumnNames()) {
 					for (Metric m : model.getMetricsForColumn(columnName)) {
 						float q = 1f - MetricUtils.determineQuality(bindings, m);
 						m.setMeasure(q);
 					}
-					Metric uniqueness = model.getUniqueness();
-					uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
 				}
 				for (SpanningMetric sm : model.getSpanMetricsList()) {
 					sm.setMeasure(1f - MetricUtils.determineQuality(bindings, sm));

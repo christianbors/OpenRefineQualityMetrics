@@ -63,7 +63,16 @@ body {
     border: 1px solid lightgrey;
 }
 
+.spanningOverviewTable td {
+    border: 1px solid lightgrey;
+}
+
 #overviewTable td.selected {
+    stroke-width: 3px;
+    border: 2px solid steelblue;
+}
+
+.spanningOverviewTable td.selected {
     stroke-width: 3px;
     border: 2px solid steelblue;
 }
@@ -92,7 +101,8 @@ input.disabled{
 
 rect.posHighlight {
     color: steelblue;
-    opacity: 0.5;
+    opacity: 0.2;
+    pointer-events: none;
 }
 
 td.highlight {

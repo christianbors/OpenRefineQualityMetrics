@@ -7,9 +7,6 @@ import java.util.Properties;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
-import com.google.refine.expr.Evaluable;
-import com.google.refine.expr.MetaParser;
-import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
 
 public class DateInterval implements Function {
@@ -19,7 +16,7 @@ public class DateInterval implements Function {
 			throws JSONException {
         writer.object();
         writer.key("description"); writer.value("Determine if an interval is negative");
-        writer.key("params"); writer.value("date start, date end");
+        writer.key("params"); writer.value("date start, date end, int value, string timeunit");
         writer.key("returns"); writer.value("boolean");
         writer.endObject();
 	}

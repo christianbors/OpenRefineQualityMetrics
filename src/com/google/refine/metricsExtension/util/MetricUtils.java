@@ -141,7 +141,6 @@ public class MetricUtils {
 						if(!resultEntry.getValue().contains(true)) {
 							dirty = true;
 						}
-						break;
 					} else if (metric.getConcat() == Concatenation.OR) {
 						if(resultEntry.getValue().contains(false)) {
 							dirty = true;

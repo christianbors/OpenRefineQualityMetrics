@@ -13,16 +13,17 @@ $("#persist").on("click", function(d) {
 });
 
 $("#addCheck").on("click", function(d) {
-	metricData[0].evalTuples.push({evaluable: "", comment: "", disabled: false});
-	addEvaluableEntry();
+	var newEvaluable = {evaluable: "", comment: "", disabled: false};
+	metricData[0].evalTuples.push(newEvaluable);
+	addEvaluableEntry(newEvaluable);
 });
 
 $("#createMetricBtn").on("click", function(btn) {
 	var params = { 
 		project: theProject.id, 
-		metric: $("#metricSelectMetricModal").val(), 
+		metric: lowercaseFirstLetter($("#metricSelectMetricModal").val()),
 		columns: $("#columnFormMetricModal").val(), 
-		datatype: "unknown"
+		dataType: "numeric"
 	};
 	$.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
 		function(data) {
@@ -49,24 +50,26 @@ $("#filtering").on("click", function() {
 
 $(document).on("click", "#remove-eval", function() {
 	$(editButton).popover("toggle");
-	var idx = parseInt(editButton.parentNode.attributes["idx"].value);
-	$("#" + selectedEditEvaluable).remove();
-	metricData[0].evalTuples.splice(idx, 1)
+	$("#metricEvaluable" + selectedEditEvaluable).remove();
+	metricData[0].evalTuples.splice(selectedEditEvaluable, 1);
+	metricChange = "removeEval";
 	updateMetric();
 });
 
 $(document).on("click", "#disable-eval", function() {
-	$(editButton).popover("toggle");
-	var editEval = $("#" + selectedEditEvaluable);
-	if(editEval[0].lastElementChild.classList.contains("disabled")) {
-		editEval[0].lastElementChild.classList.remove("disabled");
+	var editEval = $("#metricEvaluable" + selectedEditEvaluable);
+	if(editEval[0].firstElementChild.lastElementChild.classList.contains("disabled")) {
+		editEval[0].firstElementChild.lastElementChild.classList.remove("disabled");
 		this.textContent = "disable";
 	} else {
-		editEval[0].lastElementChild.classList.add("disabled");
+		editEval[0].firstElementChild.lastElementChild.classList.add("disabled");
 		this.textContent = "enable";
 	}
-	metricData[0].evalTuples[editEval.attr("idx")].disabled = editEval[0].lastElementChild.classList.contains("disabled");
+	var idx = $(editEval[0]).val();
+	metricData[0].evalTuples[selectedEditEvaluable].disabled = editEval[0].firstElementChild.lastElementChild.classList.contains("disabled");
+	metricChange = "disableEval";
 	updateMetric();
+	$(editButton).popover("toggle");
 });
 
 $(document).on("click", "#comment-eval", function() {
@@ -74,13 +77,16 @@ $(document).on("click", "#comment-eval", function() {
 	$("#addCommentBtn").on("click", function(d, i) {
 		var text = $("#commentText").val();
 		$("#addComment").modal("hide");
-		var selection = $("#" + selectedEditEvaluable);
-		metricData[0].evalTuples[selection.attr("idx")].comment = text;
+		var selection = $("#metricEvaluable" + selectedEditEvaluable);
+		var selIdx = $(selection[0]).val();
+		metricData[0].evalTuples[selIdx].comment = text;
 		var input = selection.children().last();
 		input.tooltip({'trigger': 'hover', 
 			'title': text, 
 			placement: 'bottom'
 		});
+		metricChange("none");
+		updateMetric();
 	});
 });
 
@@ -165,6 +171,7 @@ $("#duplicateMetricBtn").on("click", function(btn) {
 
 $('#concat button').click(function() {
     $('#concat button').addClass('active').not(this).removeClass('active');
+    metricChange = "concat";
     metricData[0].concat = $(this).text();
     updateMetric();
     // TODO: insert whatever you want to do with $(this) here
@@ -191,3 +198,39 @@ $(document).on("click", "input.overview-popover", function(d) {
 		}
 	}
 });
+
+$("#exportMetrics").on("click", function(d) {
+	var model = JSON.stringify(overlayModel);
+	var blob = new Blob([model], {type: "text/plain;charset=utf-8"});
+  	saveAs(blob, "metricsOverlayModel.json");
+});
+
+$("#importMetrics").on("click", function(d) {
+	$.getJSON(
+    	"../../command/core/get-all-project-metadata",
+    	null,
+    	function(d) {
+    		$.each(d.projects, function(proj) {
+    			$.getJSON(
+                    "../../command/metric-doc/getMetricsOverlayModel?" + $.param({ project: proj }), 
+                    null,
+                    function(d) {
+                    	if(d != null) {
+                    		console.log("we have an overlay model");
+                    	}
+                    },
+                    "json"
+                );
+    		})
+    	},
+    	"json"
+    	);
+})
+
+$('input[type=radio][name=datatype]').change(function() {
+	metricData[0].datatype = this.value;
+});
+
+$("#alertMetricUpdateClose").on("click", function(d) {
+	$("#alertMetricUpdate").hide();
+})

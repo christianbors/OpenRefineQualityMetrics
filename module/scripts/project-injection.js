@@ -62,7 +62,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
       "metricsOverlayModel",
       {
         computeDuplicates: true,
-        duplicateDependencies: [column.name]
+        duplicateDependencies: ["ID", "Von", "Bis"]
       },
       body,
       updateOptions,

@@ -10,6 +10,7 @@ var selectedMetricIndex = [0],
     selectedChecksIndex = [],
     selectedOverviewRect = [],
     selectedColName = [],
+    selectedCol = [],
     selectedColOpacity = [],
     metricData = [],
     totalEvalTuples = [];
@@ -29,7 +30,11 @@ var z;
 var selectedEditEvaluable;
 var dataSet = [];
 var columnStore = [];
+var columnsStore = [];
 var colWidth = 50;
+
+var datatablesHeader,
+    rawDataHeight;
 
 var selectedMetricModal;
 
@@ -172,8 +177,8 @@ $(document).ready(function() {
 
                       $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
 
-                      var datatablesHeader = $(".dataTables_scrollHead").height();
-                      var rawDataHeight = $('#raw-data-container').height();
+                      datatablesHeader = $(".dataTables_scrollHead").height();
+                      rawDataHeight = $('#raw-data-container').height();
 
                       //this reorders the metrics to be in line with the actual displayed columns
                       var sortedMetrics = new Array();
@@ -196,12 +201,11 @@ $(document).ready(function() {
                       var td = tr.selectAll("td").data(overlayModel.metricColumns).enter().append("td");
 
 
-                      var minScale = 3;
-                      if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
+                      var minScale = overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.length;
                         
                       z = d3.scale.ordinal()
-                        .range(colorbrewer.YlOrRd[minScale])
-                        .domain([0, overlayModel.availableMetrics]);
+                        .range(colorbrewer.YlOrRd[minScale+1])
+                        .domain([minScale, 0]);
 
                       $("#raw-data-container").css({marginLeft: $("#overviewTable > thead > tr > th").outerWidth()});
                       $('#detailViewHeader').css('marginTop', 0 + 'px')
@@ -212,6 +216,7 @@ $(document).ready(function() {
                       for (var col = 0; col < columns.length; col++) {
                         var column = columns[col];
                         columnStore[column.cellIndex] = {"title": column.name};
+                        columnsStore.push(column.name);
                       }
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
                       
@@ -287,7 +292,10 @@ $(document).ready(function() {
 
                       // var utr = d3.select("#uniquenessTable").select("tbody").selectAll("tr").data(uniquenessArray).enter().append("tr");
                       var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(spanningArray).enter().append("table").each(function(d, i) {
-                        var table = d3.select(this).attr("table-layout", "fixed").attr("width", $("#overviewTable").width()).style("margin-bottom", 10);
+                        var table = d3.select(this).attr("table-layout", "fixed")
+                          .attr("width", $("#overviewTable").width())
+                          .attr("class", "spanningOverviewTable")
+                          .style("margin-bottom", 10);
                         var hrow = table.append("thead").append("tr");
                         hrow.append("th");
                         var spanColsCurrent = d.spanningColumns;
@@ -296,14 +304,15 @@ $(document).ready(function() {
                             return d; 
                         }).attr("width", function(d, i) { 
                           return $("#overviewTable").width()/spanColsCurrent.length;
-                        }).style("border", "1px solid lightgrey");
+                        });
 
                         var trow = table.append("tbody").append("tr");
                         trow.append("th").text(function(d) { return d.name; })
                           .attr("width", function(d, i) { return $("#overviewTable > thead > tr > th").outerWidth(); });
 
-                        trow.append("td").attr("colspan", columns.length).style("border", "1px solid lightgrey");
+                        trow.append("td").attr("colspan", columns.length);
                         trow.selectAll("td").append("svg")
+                          .classed("overview-svg", true)
                           .attr("width", function(d, i) {
                             return $("#dataset").width();
                           })
@@ -311,23 +320,92 @@ $(document).ready(function() {
                           .append("rect")
                           .attr("height", 6)
                           .attr("width", function(d, i) {
-                            return d.measure * $("#dataset").width();
+                            var width = d3.select(this.parentNode).node().clientWidth;
+                            return d.measure * width;
                           })
                           .style("fill", function(d, i) {
-                            return z(overlayModel.availableMetrics.length);
+                            for(var idx = 0; idx < overlayModel.availableSpanningMetrics.length; idx++) {
+                                if(overlayModel.availableSpanningMetrics[idx].name === lowercaseFirstLetter(d.name)) {
+                                  return z(overlayModel.availableMetrics.length + idx);
+                                }
+                              }
+                            var idxSM = overlayModel.availableMetrics.length + 1;
+                            return z(idxSM);
                           });
 
-                        trow.select("td").select("svg").on("click", function(d) {
-                          selectedMetricIndex = [];
-                          selectedOverviewRect = [];
-                          selectedColName = [];
-                          metricData = [];
-                        }).on("mouseover", function(d) {
+                        trow.select("td").select("svg").call(tooltipOverview);
+                        trow.select("td").select("svg").on("mouseover", function(d) {
                           if (d != null) {
                               tooltipOverview.show(d);
                           };
                         }).on("mouseout", function(d) {
                           tooltipOverview.hide();
+                        });
+                        trow.select("td").on("click", function(d) {
+                          if (d3.event.shiftKey) {
+                            contextColumn = null;
+                          } else {
+                            if (selectedOverviewRect != null) {
+                              selectedMetricIndex = [];
+                              selectedChecksIndex = [];
+                              selectedOverviewRect = [];
+                              selectedColName = [];
+                              metricData = [];
+                              d3.selectAll(".selected").classed("selected", false);
+                            }
+                          }
+                          var spanColIdx = -1;
+                          for(var idx = 0; idx < overlayModel.availableSpanningMetrics.length; idx++) {
+                            if(overlayModel.availableSpanningMetrics[idx].name === lowercaseFirstLetter(d.name)) {
+                              spanColIdx = overlayModel.availableMetrics.length + idx;
+                            }
+                          }
+                          if(spanColIdx == -1) spanColIdx = overlayModel.availableMetrics.length + 1;
+
+                          metricData.push(d);
+                          selectedMetricIndex.push(spanColIdx);
+                          selectedColName.push(d.spanningColumns);
+                          selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
+
+                          totalEvalTuples = [];
+                          for (var i = 0; i < metricData.length; i++) {
+                            var enabledTuples = metricData[i].evalTuples.filter(function(d) {
+                              return !d.disabled;
+                            });
+                            if(metricData[i].spanningEvaluable != null) {
+                              totalEvalTuples.push(metricData[i].spanningEvaluable);
+                              selectedChecksIndex.push(spanColIdx);
+                            }
+                            totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
+                            for(var j = 0; j < enabledTuples.length; j++) {
+                              selectedChecksIndex.push(spanColIdx);
+                            }
+                          }
+
+                          refillEditForm(metricData, selectedColName, 0);
+                          fillLegend();
+                          redrawDetailView(theProject, metricData, rowModel, overlayModel);
+                        });
+                        trow.select("td").select("svg").on("contextmenu", function(d, i) {
+                          d3.event.preventDefault();
+                          tooltipOverview.hide();
+                          var rowIndex = this.parentNode.parentNode.sectionRowIndex;
+                          contextMetric = d;
+                          contextColumn = d.columnName;
+                          var _this = this;
+                          if(selectedColName.length > 1) {
+                            $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                            '<button type="button" class="btn btn-default" id="merge-metric">Merge</button>'+
+                            '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+                          } else {
+                            $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                            '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+                          }
+                          $(this).popover("toggle");
+
+                          $(".popover").on("mouseleave", function () {
+                              $(_this).popover('hide');
+                          });
                         });
                       });
 
@@ -344,12 +422,14 @@ $(document).ready(function() {
                               selectedOverviewRect = [];
                               selectedColName = [];
                               metricData = [];
+                              selectedColIdx = [];
                               d3.selectAll(".selected").classed("selected", false);
                             }
                           }
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
                           selectedMetricIndex.push(rowIndex)
                           selectedColName.push(d.columnName);
+                          selectedColIdx.push(columnsStore.indexOf(d.columnName));
                           var col = overlayModel.metricColumns.filter(function(d) {
                             if (d != null) {
                               return selectedColName[selectedColName.length-1].indexOf(d.columnName) >= 0;
@@ -366,48 +446,18 @@ $(document).ready(function() {
                             var enabledTuples = metricData[i].evalTuples.filter(function(d) {
                               return !d.disabled;
                             });
+                            if(metricData[i].spanningEvaluable != null) {
+                              totalEvalTuples.push(metricData[i].spanningEvaluable);
+                              selectedChecksIndex.push(rowIndex);
+                            }
                             totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
                             for(var j = 0; j < enabledTuples.length; j++) {
                               selectedChecksIndex.push(rowIndex);
                             }
                           }
                           refillEditForm(metricData, selectedColName, rowIndex);
+                          fillLegend();
 
-                          $('#detailMetricHeader').empty();
-                          $('#detailColumnHeader').text("Detail View")
-                            .append(' <button type="button" class="btn btn-info btn-xs">Info</button>');
-                          if(metricData.length == 1) {
-                            $('#detailMetricHeader').append("<h5>Selected Metric:</h5>");
-                          } else {
-                            $('#detailMetricHeader').append("<h5>Selected Metrics:</h5>");
-                          }
-                          for(var indexCount = 0; indexCount < metricData.length; indexCount++) {
-                            $('#detailMetricHeader').append("<h5 class='metric'></h5>");
-                          }
-                          var mHeaders = d3.selectAll("#detailMetricHeader h5.metric");
-                          mHeaders.append("svg")
-                            .attr("marginRight", 8)
-                            .attr("height", 12)
-                            .attr("width", 16)
-                            .append("rect")
-                            .attr("height", 12)
-                            .attr("width", 12)
-                            .attr("fill", function(d, i) {
-                              return z(selectedMetricIndex[i]);
-                            });
-                          mHeaders.append("text").text(function(d, i) {
-                            return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableMetrics[selectedMetricIndex[i]].name);
-                          })
-
-                          var headerHeightComp = datatablesHeader - $("#filtering").outerHeight();// - $('#detailViewHeader').height();
-                          detailViewMargin = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
-                          detailViewWidth = parseInt(d3.select("#heatmap").style("width")) - detailViewMargin.left - detailViewMargin.right,
-                          detailViewHeight = $(".dataTables_scrollBody").height();
-                          if (detailViewWidth > (totalEvalTuples.length*100)) detailViewWidth = totalEvalTuples.length*100;
-                          detailWidths = [];
-                          for (var i = 0; i < totalEvalTuples.length; i++) {
-                            detailWidths.push(detailViewWidth/totalEvalTuples.length);
-                          }
                           $.fn.dataTableExt.search = [];
                           $.fn.dataTableExt.search.push(
                             function (oSettings, aData, iDataIndex) {
@@ -597,19 +647,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
       .attr("height", 1);
   });
 
-  bins.on("click", function(d) {
-    $("#dataset td").removeClass("highlight");
-    var selThis = this;
-    var selectedRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
-      return d3.select(this).attr("y") === d3.select(selThis).attr("y");
-    })[0];
-    $("#dataset").DataTable().row(selectedRows[0].__data__.index).scrollTo();
-    $.each(selectedRows, function(i, rowCurrent) {
-      $.each($("#dataset").DataTable().row(rowCurrent.__data__.index).node().children, function(i, td) {
-        td.classList.add("highlight");
-      });
-    });
-  });
+  bins.on("click", selectRow);
 
   bins.on("mouseover", function(d) {
     d3.select(this).style("fill", "steelblue");
@@ -680,30 +718,34 @@ function refillEditForm(d, colName, metricIndex) {
   $("#metricInfoDetailHeader").text("Metric Detail - " + capitalizeFirstLetter(d[0].name) + " - " + selectedColName[0]);
   $("#metricName").text(d[0].name);
   $("#metricDescription").text(d[0].description);
-  $("#checksHeaderText").text("Checks (" + d[0].evalTuples.length + ")");
+  var evalLength = d[0].evalTuples.length;
+  if(d[0].spanningEvaluable != null) {
+    evalLength += 1;
+  }
+  $("#checksHeaderText").text("Checks (" + evalLength + ")");
 
   $(".metricCheck").remove();
   $("#typeDetail").remove();
   
   if (d[0].datatype.indexOf("numeric") > -1) {
-    $("#dataTypeNumeric").addClass('active');
+    $("#dataTypeNumeric").prop('checked', true);
   } else {
-    $("#dataTypeNumeric").removeClass('active');
+    $("#dataTypeNumeric").prop('checked', false);
   }
   if (d[0].datatype.indexOf("string") > -1) {
-    $("#dataTypeString").addClass('active');
+    $("#dataTypeString").prop('checked', true);
   } else {
-    $("#dataTypeString").removeClass('active');
+    $("#dataTypeString").prop('checked', false);
   }
   if (d[0].datatype.indexOf("datetime") > -1) {
-    $("#dataTypeDateTime").addClass('active');
+    $("#dataTypeDateTime").prop('checked', true);
   } else {
-    $("#dataTypeDateTime").removeClass('active');
+    $("#dataTypeDateTime").prop('checked', false);
   }
   if (d[0].datatype.indexOf("categoric") > -1) {
-    $("#dataTypeCategoric").addClass('active');
+    $("#dataTypeCategoric").prop('checked', true);
   } else {
-    $("#dataTypeCategoric").removeClass('active');
+    $("#dataTypeCategoric").prop('checked', false);
   }
 
   $("#concat button").removeClass('active');
@@ -714,11 +756,50 @@ function refillEditForm(d, colName, metricIndex) {
     metric = metric.substr(0, metric.indexOf("("));
     $("#base" + metric).prop("checked", true);
   }
+  if (d[0].spanningEvaluable != null) {
+    addEvaluableEntry(d[0].spanningEvaluable);
+  }
   if (d[0].evalTuples.length > 0) {
     for (var i = 0; i < d[0].evalTuples.length; i++) {
-      addEvaluableEntry(d[0].evalTuples[i].evaluable)
+      addEvaluableEntry(d[0].evalTuples[i]);
     }
   }
+}
+
+function fillLegend() {
+  $('#detailMetricHeader').empty();
+  $('#detailColumnHeader').text("Detail View")
+    .append(' <button type="button" class="btn btn-info btn-xs">Info</button>');
+  if(metricData.length == 1) {
+    $('#detailMetricHeader').append("<h5>Selected Metric:</h5>");
+  } else {
+    $('#detailMetricHeader').append("<h5>Selected Metrics:</h5>");
+  }
+  for(var indexCount = 0; indexCount < metricData.length; indexCount++) {
+    $('#detailMetricHeader').append("<h5 class='metric'></h5>");
+  }
+  var mHeaders = d3.selectAll("#detailMetricHeader h5.metric");
+  mHeaders.append("svg")
+    .attr("marginRight", 8)
+    .attr("height", 12)
+    .attr("width", 16)
+    .append("rect")
+    .attr("height", 12)
+    .attr("width", 12)
+    .attr("fill", function(d, i) {
+      return z(selectedMetricIndex[i]);
+    });
+  mHeaders.append("text").text(function(d, i) {
+    if(selectedMetricIndex[i] < overlayModel.availableMetrics.length) {
+      return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableMetrics[selectedMetricIndex[i]].name);
+    } else {
+      if((selectedMetricIndex[i] - overlayModel.availableMetrics.length) < overlayModel.availableSpanningMetrics.length) {
+        return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableSpanningMetrics[selectedMetricIndex[i] - overlayModel.availableMetrics.length].name);
+      } else {
+        return selectedColName[i] + " - Uniqueness";
+      }
+    }
+  })
 }
 
 function fillModalAfterColumnSelection(theProject) {

@@ -1,10 +1,10 @@
 var editButton;
 
-function addEvaluableEntry(value) {
+function addEvaluableEntry(evalTuple) {
 	var i = $(".metricCheck").length;
-	$("<li class='col-lg-6 list-group-item metricCheck' id='metricEvaluable" + i + "'><div class='input-group' idx='" + i + "' id='container" + i + "'></div></li>")
+	$("<li class='col-lg-6 list-group-item metricCheck' id='metricEvaluable" + i + "'><div class='input-group' value='" + i + "' id='container" + i + "'></div></li>")
     .insertBefore("#addCheckButton");
-  $("#container" + i).append("<span class='input-group-addon' id='edit"+ i +"' data-toggle='popover'>edit</span>");
+  $("#container" + i).append("<span class='input-group-addon' value='" + i + "' id='edit"+ i +"' data-toggle='popover'>edit</span>");
   $("#container" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  ");
   $("#eval" + i).keypress(function(event){
     if (event.which == 13) {
@@ -13,7 +13,7 @@ function addEvaluableEntry(value) {
     }
   });
   var disableButtonClass = "disable";
-  if(metricData[0].evalTuples[i].disabled) {
+  if(evalTuple.disabled) {
     $("#eval" + i).addClass("disabled");
     disableButtonClass = "enable";
   }
@@ -28,7 +28,7 @@ function addEvaluableEntry(value) {
       '<button type="button" class="btn btn-default" id="disable-eval">' + disableButtonClass + '</button>'+
       '<button type="button" class="btn btn-default" id="comment-eval">comment</button></div>'
   }).on("click", function () {
-    selectedEditEvaluable = this.parentNode.parentNode.id;
+    selectedEditEvaluable = $(this).attr("value");
     editButton = this;
     $(this).popover("toggle");
     $(".popover").on("mouseleave", function () {
@@ -36,8 +36,8 @@ function addEvaluableEntry(value) {
     });
   });
 
-  if (value != "") {
-      $("#eval" + i).val(value);
+  if (evalTuple != "") {
+      $("#eval" + i).val(evalTuple.evaluable);
   }
 }
 
@@ -87,6 +87,7 @@ function dataViewPopover() {
   });
 }
 
+var metricChange = "none";
 function updateMetric() {
 	$.post("../../command/metric-doc/updateMetric?" + $.param(
 	        { 
@@ -114,18 +115,58 @@ function updateMetric() {
     columnName: selectedColName[0]
   };
   $.post("../../command/metric-doc/evaluateSelectedMetric?" + $.param(param), null, function(data) {
+    var oldMetric = metricData[0];
     metricData[0] = data;
+    var infoText = "";
+    if(metricChange === "concat") {
+      infoText += "Concatenation changed to: " + data.concat + ", metric value changed to <strong>" + data.measure + "</strong>";
+      $("#alertText").html(infoText);
+      $("#alertMetricUpdate").show(); //prop("hidden", false)
+    } else if (metricChange = "disableEval") {
+      infoText += "Check disabled: metric value changed to <strong>" + data.measure + "</strong>.";
+      $("#alertText").html(infoText);
+      $("#alertMetricUpdate").show(); //prop("hidden", false)
+    } else if (metricChange = "removeEval") {
+      infoText += "Check removed: metric value changed to <strong>" + data.measure + "</strong>";
+      $("#alertText").html(infoText);
+      $("#alertMetricUpdate").show(); //prop("hidden", false)
+    } else if (metricChange = "edit") {
+      if(oldMetric.dirtyIndices != null && data.dirtyIndices != null) {
+        if(oldMetric.dirtyIndices == null || oldMetric.dirtyIndices.length < data.dirtyIndices.length) {
+          infoText += "<strong>" + data.dirtyIndices.length + " new</strong> dirty entries have been found";
+        } else if (oldMetric.dirtyIndices.length < data.dirtyIndices.length) {
+          infoText += "<strong>" + (data.dirtyIndices.length - oldMetric.dirtyIndices.length) + " new</strong> dirty entries have been found";
+        } else if (oldMetric.dirtyIndices.length > data.dirtyIndices.length) {
+          infoText += "<strong>" + (oldMetric.dirtyIndices.length - data.dirtyIndices.length) + " less</strong> dirty entries have been found";
+        }
+        if (oldMetric.evalTuples.length < data.evalTuples.length) {
+          infoText += " by " + (data.evalTuples.length - oldMetric.evalTuples.length) + " new quality check(s).";
+        } else if (oldMetric.evalTuples.length == data.evalTuples.length) {
+          infoText += " by editing the existing quality checks.";
+        } else if (oldMetric.evalTuples.length > data.evalTuples.length) {
+          infoText += " by removing " + (oldMetric.evalTuples.length - data.evalTuples.length) + " quality check(s).";
+        }
+      } else if (data.dirtyIndices == null) {
+        infoText += "Quality checks have been updated: <strong>" + oldMetric.dirtyIndices.length + " less</strong> dirty entries have been found";
+      } else if(oldMetric.dirtyIndices == null) {
+        infoText += "Quality checks have been updated: <strong>" + data.dirtyIndices.length + " new</strong> dirty entries have been found";
+      }
+      $("#alertText").html(infoText);
+      $("#alertMetricUpdate").show(); //prop("hidden", false)
+    }
+    metricChange = "none";
+
     overlayModel.metricColumns.filter(function(col) {
       return col.columnName == selectedColName[0];
     })[0].metrics[selectedMetricIndex[0]] = data;
-    var overviewTd = d3.select("#overviewTable tbody tr td.selected rect").attr("width", function(d, i) {
+    var overviewTd = d3.select("#overviewTable tbody tr td.selected rect").attr("width", function(d) {
       if (d != null) {
         var metricName = this.parentNode.parentNode.parentNode.__data__;
         var metricCurrent = d.metrics.filter(function(m) {
           return m.name == metricName.name;
         });
         if (metricCurrent.length > 0) {
-          return metricCurrent[0].measure * colWidths[i];
+          return metricCurrent[0].measure * colWidths[selectedColIdx[0]];
         }
       }
     });
@@ -201,6 +242,8 @@ function updateMetric() {
       var ys = d3.select(this)
         .attr("y", y);
     });
+
+    bins.on("click", selectRow);
     
     bins.on("mouseover", function(d) {
       d3.select(this).style("fill", "steelblue");
@@ -479,4 +522,18 @@ function capitalizeFirstLetter(string) {
 
 function lowercaseFirstLetter(string) {
     return string.charAt(0).toLowerCase() + string.slice(1);
+}
+
+function selectRow(d) {
+  $("#dataset td").removeClass("highlight");
+  var selThis = this;
+  var selectedRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
+    return d3.select(this).attr("y") === d3.select(selThis).attr("y");
+  })[0];
+  $("#dataset").DataTable().row(selectedRows[0].__data__.index).scrollTo();
+  $.each(selectedRows, function(i, rowCurrent) {
+    $.each($("#dataset").DataTable().row(rowCurrent.__data__.index).node().children, function(i, td) {
+      td.classList.add("highlight");
+    });
+  });
 }

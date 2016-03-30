@@ -61,12 +61,21 @@ public class MetricsExtensionCommand extends Command {
 					boolean computeDuplicates = Boolean.parseBoolean(request.getParameter("computeDuplicates"));
 					if (computeDuplicates) {
 						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies[]");
+						SpanningMetric uniqueness = new SpanningMetric("uniqueness",
+								"Determines if duplicate rows exist",
+								Arrays.asList(duplicateDependencies));
+						String uniq = "uniqueness(";
+						for(String s : duplicateDependencies) {
+							uniq += s;
+							if(!duplicateDependencies[duplicateDependencies.length-1].equals(s)) {
+								uniq += ", ";
+							}
+						}
+						uniq += ")";
+						uniqueness.addSpanningEvalTuple(MetaParser.parse(uniq), "", false);
 						metricsOverlayModel = new MetricsOverlayModel(
-								metricsMap, spanningMetrics,
-								new SpanningMetric("uniqueness",
-										"Determines if duplicate rows exist",
-										MetaParser.parse("uniqueness()"),
-										Arrays.asList(duplicateDependencies)));
+								metricsMap, spanningMetrics, uniqueness);
+								
 					} else {
 						metricsOverlayModel = new MetricsOverlayModel(metricsMap, spanningMetrics);
 					}

@@ -10,12 +10,11 @@
     <link href="bower_components/datatables.net-bs/css/dataTables.bootstrap.css" rel="stylesheet">
     <link href="styles/style.css" rel="stylesheet" type="text/css">
     <link href="styles/d3-tip.css" rel="stylesheet" type="text/css">
-    <link href="bower_components/colorbrewer/colorbrewer.css" rel="stylesheet">
+    <link href="bower_components/colorbrewer/colorbrewer.css" rel="stylesheet" type="text/css">
     <link href="bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.woff" type="application/x-font-woff">
     <link href="bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.ttf" type="application/x-font-ttf">
 
     <script src="http://d3js.org/d3.v3.min.js"></script>
-
 
     <script src="bower_components/d3/d3.js"></script>
     <script src="bower_components/colorbrewer/colorbrewer.js"></script>
@@ -43,6 +42,20 @@
               <li>
                 <a href="#" id="recalculate">Recalculate Metrics</a>
               </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Export <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" id="exportQuality">Export Quality Values</a></li>
+                  <li><a href="#" id="exportMetrics">Export Quality Metrics</a></li>
+                </ul>
+              </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Import Metrics from Project<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" id="importMetrics">Import Metrics</a></li>
+                  <li><a href="#" id="importProject">Import Project Settings</a></li>
+                </ul>
+              </li>
             </ul>
           </div>
         </nav>
@@ -57,7 +70,7 @@
               Metric Details
             </a>
           </div>
-          <div id="collapseDetails" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div id="collapseDetails" class="panel-collapse collapse fixed-panel" role="tabpanel" aria-labelledby="headingThree">
             <ul id="simpleList" class="list-group fixed-panel">
               <li class="list-group-item">
                 <label for="metricName">
@@ -70,6 +83,19 @@
                   Description: 
                 </label>
                 <div id="metricDescription" />
+              </li>
+              <li class="list-group-item">
+                <div class="form-group" id="metricDatatype">
+                  <label for="metricType" class="control-label">Data Type: </label>
+                  <label class="radio-inline">
+                    <input type="radio" id="dataTypeString" value="string" name="datatype"> String</label>
+                  <label class="radio-inline">
+                    <input type="radio" id="dataTypeNumeric" value="numeric" name="datatype"> Numeric</label>
+                  <label class="radio-inline">
+                    <input type="radio" id="dataTypeDateTime" value="datetime" name="datatype"> Date/Time</label>
+                  <label class="radio-inline">
+                    <input type="radio" id="dataTypeCategoric" value="categoric" name="datatype"> Categoric</label>
+                </div>
               </li>
             </ul>
           </div>
@@ -90,30 +116,25 @@
                   <button type="button" id="concatOR" class="btn btn-default" >OR</button>
                   <button type="button" id="concatXOR" class="btn btn-default" >XOR</button>
                 </div>
-                <label class="btn btn-sm btn-primary" id="addCheck">Add Check</label>
+                <label class="btn btn-sm btn-primary pull-right" id="addCheck">Add Check</label>
               </li>
             </ul>
           </div>
         </div>
       </div>
       <div class="col-md-12">
-        <div class="alert alert-info alert-dismissible" hidden role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <strong>Warning!</strong> Better check yourself, you're not looking too good.
+        <div class="alert alert-info alert-dismissible" id="alertMetricUpdate" hidden="true" role="alert">
+          <button type="button" id="alertMetricUpdateClose" class="close"><span aria-hidden="true">&times;</span></button>
+          <div id="alertText"><strong>Warning!</strong> Better check yourself, you're not looking too good.</div>
         </div>
       </div>
     </div>
     <div class="row">
-      <div class="col-md-9">
-        <div><h5>Cross Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
+      <div class="col-md-9" style="border-top: 2px solid #ccc;">
+        <div><h5>Multiple-Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
         <div id="spanningMetricPanel">
         </div>
-        <div><h5>Single Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
-        <div id="uniquenessPanel">
-          <table class="floated-table" id="uniquenessTable" style="margin-left=100px">
-            <tbody></tbody>
-          </table>
-        </div>
+        <div><h5>Single-Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
         <div id="overviewPanel" style="height:150px;">
           <table class="floated-table" id="overviewTable" style="margin-left=100px">
             <thead><th></th></thead>
@@ -121,7 +142,7 @@
           </table>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3"style="padding-right:20px; border-top: 2px solid #ccc;">
         <h4 id="detailColumnHeader"></h4>
         <div id="detailMetricHeader"></div>
         <div id="selectedMetricsHeader"></div>
@@ -176,17 +197,17 @@
   </div>
 </div>
 
-<div id="addMetricModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
-  <div class="modal-dialog" role="document">
+<div id="addMetricModal" class="modal fade"tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title" id="gridSystemModalLabel">Add Metric</h4>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="height:220px;">
         <div class="row">
-          <div class="col-md-4">
-            <div class="panel panel-default">
+          <div class="col-md-3">
+            <div class="panel panel-default" style="height:200px;">
               <div class="panel-heading">
                 <label for="name">Column</label>
               </div>
@@ -196,8 +217,8 @@
               </div>
             </div>
           </div>
-          <div class="col-md-8">
-            <div class="panel panel-default">
+          <div class="col-md-5">
+            <div class="panel panel-default" style="height:200px;">
               <div class="panel-heading">
                 <label for="name">Detected Data Types</label>
               </div>
@@ -209,10 +230,8 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="panel panel-default">
+          <div class="col-md-4">
+            <div class="panel panel-default" style="height:200px;">
               <div class="panel-heading">
                 <label for="name">Metric</label>
               </div>
@@ -255,7 +274,6 @@
 </div>
 
     <!-- libraries -->
-    <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="bower_components/datatables.net/js/jquery.dataTables.js"></script>
     <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.js"></script>
