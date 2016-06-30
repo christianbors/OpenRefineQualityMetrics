@@ -85,7 +85,7 @@ body {
 .fixed-panel {
     width: 100%;
     min-height: 75px;
-    max-height: 200px;
+    max-height: 150px;
     overflow-y: scroll;
     margin-bottom: 0px;
 }
@@ -117,7 +117,7 @@ tr.hover {
 
 .panel-footer {
     overflow: hidden;
-    padding-top: 20px;
+    padding-top: 10px;
 }
 
 .panel-footer .btn-group {

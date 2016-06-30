@@ -51,8 +51,6 @@ function init() {
 
   var OR = Packages.com.google.refine.operations.OperationRegistry;
   OR.registerOperation(module, "metricsExtension", Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation);
-  OR.registerOperation(module, "evaluateMetrics", Packages.com.google.refine.metricsExtension.operations.EvaluateMetricsOperation);
-  OR.registerOperation(module, "evaluateDataTypes", Packages.com.google.refine.metricsExtension.operations.EvaluateDataTypesOperation);
   OR.registerOperation(module, "persistMetrics", Packages.com.google.refine.metricsExtension.operations.PersistMetricsOperation);
 
   var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;

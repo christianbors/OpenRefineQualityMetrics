@@ -145,7 +145,7 @@ $(document).ready(function() {
                   $('#dataset').dataTable( {
                     "data": dataSet,
                     "columns": columnStore,
-                    // "scrollY": "500",
+                    // "scrollX": true,
                     "sScrollY": "350px",
                     "scrollCollapse": true,
                     "paging": true,
@@ -715,6 +715,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
 }
 
 function refillEditForm(d, colName, metricIndex) {
+  $("#addCheckFooter").show();
   $("#metricInfoDetailHeader").text("Metric Detail - " + capitalizeFirstLetter(d[0].name) + " - " + selectedColName[0]);
   $("#metricName").text(d[0].name);
   $("#metricDescription").text(d[0].description);

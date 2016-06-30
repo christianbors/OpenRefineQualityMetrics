@@ -1,12 +1,16 @@
 package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONException;
+import org.json.JSONWriter;
 
 import com.google.refine.commands.Command;
 import com.google.refine.expr.MetaParser;
@@ -19,8 +23,13 @@ import com.google.refine.model.Project;
 public class UpdateMetricCommand extends Command {
 
 	@Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response)
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		internalRespond(request, response);
+	}
+	
+	protected void internalRespond(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	{
 		Project project = getProject(request);
 		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 		
@@ -58,6 +67,33 @@ public class UpdateMetricCommand extends Command {
 		toBeEdited.setMeasure(0f);
 		
 		columnMetrics.add(metricIndex, toBeEdited);
-	}
+		try {
+			respondJSON(response, toBeEdited);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+//		String callback = request.getParameter("callback");
+//		
+//		PrintWriter writer = response.getWriter();
+//        if (callback != null) {
+//            writer.write(callback);
+//            writer.write("(");
+//        }
+//
+//        try {
+//			JSONWriter jsonWriter = new JSONWriter(writer);
+//			jsonWriter.object();
+//			
+//			jsonWriter.key("metric").value(toBeEdited);
+//			
+//			jsonWriter.endObject();
+//			if (callback != null) {
+//                writer.write(")");
+//            }
+//		} catch (Exception e) {
+//			respondException(response, e);
+//		}
+	}
 }
