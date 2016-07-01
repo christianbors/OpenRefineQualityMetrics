@@ -33,12 +33,28 @@ public class EvaluateSelectedMetricCommand extends Command {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Project project = getProject(request);
-		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
-		String columnName = request.getParameter("columnName");
-		Metric metric = overlayModel.getMetricsColumn(columnName).get(metricIndex);
 		Properties bindings = ExpressionUtils.createBindings(project);
 		Engine engine = new Engine(project);
+		
+		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
+		String column = request.getParameter("column");
+		String metricNameString = request.getParameter("metric[name]");
+		
+		Metric metric = null;
+		SpanningMetric spanningMetric = null;
+		if(metricNameString.equals("uniqueness")) {
+			spanningMetric = overlayModel.getUniqueness();
+		} else if(column == null) {
+			for(SpanningMetric spanMetric : overlayModel.getSpanMetricsList()) {
+				if (spanMetric.getName().equals(metricNameString)) {
+					spanningMetric = spanMetric;
+					break;
+				}
+			}
+		} else {
+			metric = overlayModel.getMetricsColumn(column).get(metricIndex);
+		}
 		
 		FilteredRows filteredRows = engine.getAllFilteredRows();
         filteredRows.accept(project, new RowVisitor() {
@@ -46,49 +62,81 @@ public class EvaluateSelectedMetricCommand extends Command {
 			private HttpServletResponse response;
 			private MetricsOverlayModel model;
 			private Metric metric;
-			private String columnName;
+			private SpanningMetric spanningMetric;
+			private String column;
 			
-			public RowVisitor init(Properties bindings, HttpServletResponse response, MetricsOverlayModel model, Metric metric, String columnName) {
+			public RowVisitor init(Properties bindings, HttpServletResponse response, MetricsOverlayModel model, Metric metric, SpanningMetric spanningMetric, String column) {
 				this.bindings = bindings;
 				this.response = response;
 				this.model = model;
 				this.metric = metric;
-				this.columnName = columnName;
+				this.spanningMetric = spanningMetric;
+				this.column = column;
 				return this;
 			}
 
 			@Override
 			public boolean visit(Project project, int rowIndex, Row row) {
 				// evaluate metrics
-					WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
-					if (ct != null) {
-						Cell c = ((WrappedCell )ct).cell;
-
-						ExpressionUtils.bind(bindings, row, rowIndex,
-								columnName, c);
-
-						List<Boolean> evalResults = new ArrayList<Boolean>();
-						boolean entryDirty = false;
-
-						for (EvalTuple evalTuple : metric.getEvalTuples()) {
-							if (!evalTuple.disabled) {
-								boolean evalResult;
-								Object evaluation = evalTuple.eval
-										.evaluate(bindings);
-								if (evaluation.getClass() != EvalError.class) {
-									evalResult = (Boolean) evaluation;
-									if (!evalResult) {
-										entryDirty = true;
+				WrappedCell ct;
+				if(metric != null) {
+					ct = (WrappedCell) row.getCellTuple(project).getField(column, bindings);
+				} else {
+					ct = (WrappedCell) row.getCellTuple(project).getField(spanningMetric.getSpanningColumns().get(0), bindings);
+				}
+				if (ct != null) {
+					Cell c = ((WrappedCell )ct).cell;
+					ExpressionUtils.bind(bindings, row, rowIndex, column, c);
+					if(metric != null) {
+							List<Boolean> evalResults = new ArrayList<Boolean>();
+							boolean entryDirty = false;
+	
+							for (EvalTuple evalTuple : metric.getEvalTuples()) {
+								if (!evalTuple.disabled) {
+									boolean evalResult;
+									Object evaluation = evalTuple.eval
+											.evaluate(bindings);
+									if (evaluation.getClass() != EvalError.class) {
+										evalResult = (Boolean) evaluation;
+										if (!evalResult) {
+											entryDirty = true;
+										}
+										evalResults.add(evalResult);
 									}
-									evalResults.add(evalResult);
 								}
 							}
+	
+							if (entryDirty) {
+								metric.addDirtyIndex(rowIndex, evalResults);
+							}
+					} else {
+						List<Boolean> evalResults = new ArrayList<Boolean>();
+						boolean entryDirty = false;
+						
+						Object spanEvalResult = spanningMetric.getSpanningEvaluable().eval.evaluate(bindings);
+						if (spanEvalResult.getClass() != EvalError.class) {
+							evalResults.add((Boolean) spanEvalResult);
+							if(!(boolean) spanEvalResult) {
+								entryDirty = true;
+							}
 						}
-
+						for (EvalTuple evalTuple : spanningMetric.getEvalTuples()) {
+							boolean evalResult;
+							Object evaluation = evalTuple.eval.evaluate(bindings);
+							if (evaluation.getClass() != EvalError.class) {
+								evalResult = (Boolean) evaluation;
+								if (!evalResult) {
+									entryDirty = true;
+								}
+								evalResults.add(evalResult);
+							}
+						}
+	
 						if (entryDirty) {
-							metric.addDirtyIndex(rowIndex, evalResults);
+							spanningMetric.addDirtyIndex(rowIndex, evalResults);
 						}
 					}
+				}
 				return false;
 			}
 
@@ -99,24 +147,30 @@ public class EvaluateSelectedMetricCommand extends Command {
 			@Override
 			public void end(Project project) {
 				// TODO: add AND/OR/XOR
-				for (String columnName : model.getMetricColumnNames()) {
-					for (Metric m : model.getMetricsForColumn(columnName)) {
-						float q = 1f - MetricUtils.determineQuality(bindings, m);
-						m.setMeasure(q);
+				if(metric != null) {
+					metric.setMeasure(1f - MetricUtils.determineQuality(bindings, metric));
+					try {
+						respondJSON(response, metric);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					Metric uniqueness = model.getUniqueness();
-					uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
-				}
-				try {
-					respondJSON(response, metric);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				} else {
+					spanningMetric.setMeasure(1f - MetricUtils.determineQuality(bindings, spanningMetric));
+					try {
+						respondJSON(response, spanningMetric);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
-		}.init(bindings, response, overlayModel, metric, columnName));
+		}.init(bindings, response, overlayModel, metric, spanningMetric, column));
 	}
 }

@@ -7,7 +7,12 @@ function addEvaluableEntry(evalTuple) {
   $("#container" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  ");
   $("#eval" + i).keypress(function(event){
     if (event.which == 13) {
-      metricData[0].evalTuples[i].evaluable = this.value;
+      if(metricData[0].spanningEvaluable != null) {
+        if(i == 0) metricData[0].spanningEvaluable.evaluable = this.value;
+        else metricData[0].evalTuples[i-1].evaluable = this.value;
+      } else {
+        metricData[0].evalTuples[i].evaluable = this.value;
+      }
       updateMetric();
     }
   });
@@ -101,13 +106,14 @@ function updateMetric() {
 	          concat: metricData[0].concat,
 	          comments: metricData[0].comments,
 	          project: theProject.id
-	        }) + "&callback=?",
+	        }),
 	      {},
 	      function(response) {
 	        var param = {
             project: theProject.id, 
             metricIndex: selectedMetricIndex[0],
-            columnName: selectedColName[0]
+            column: selectedColName[0],
+            metric: response
           };
           $.post("../../command/metric-doc/evaluateSelectedMetric?" + $.param(param), null, function(data) {
             var oldMetric = metricData[0];
@@ -151,21 +157,36 @@ function updateMetric() {
             }
             metricChange = "none";
 
-            overlayModel.metricColumns.filter(function(col) {
-              return col.columnName == selectedColName[0];
-            })[0].metrics[selectedMetricIndex[0]] = data;
-            var overviewTd = d3.select("#overviewTable tbody tr td.selected rect").attr("width", function(d) {
+            if(metricType[0] === "single") {
+              overlayModel.metricColumns.filter(function(col) {
+                return col.columnName == selectedColName[0];
+              })[0].metrics[selectedMetricIndex[0]] = data;
+            } else if (metricType[0] === "spanning") {
+              overlayModel.spanningMetrics[selectedMetricIndex[0]] = data;
+            }
+
+            if(metricType[0] === "single") {
+              var overviewTd = d3.select("#overviewTable tbody tr td.selected rect");
+            } else {
+              var overviewTd = d3.select("#spanningOverviewTable tbody tr td.selected svg rect");
+            }
+
+            overviewTd.attr("width", function(d) {
               if (d != null) {
-                var metricName = this.parentNode.parentNode.parentNode.__data__;
-                var metricCurrent = d.metrics.filter(function(m) {
-                  return m.name == metricName.name;
-                });
-                if (metricCurrent.length > 0) {
-                  return metricCurrent[0].measure * colWidths[selectedColIdx[0]];
+                if (d.spanningEvaluable == null) {
+                  var metricName = this.parentNode.parentNode.parentNode.__data__;
+                  var metricCurrent = d.metrics.filter(function(m) {
+                    return m.name == metricName.name;
+                  });
+                  if (metricCurrent.length > 0) {
+                    return metricCurrent[0].measure * colWidths[selectedColIdx[0]];
+                  }
+                } else {
+                  return d.measure * this.parentNode.scrollWidth;
                 }
               }
             });
-            
+
             var col = d3.selectAll("#overlay g.metrics-overlay").filter(function(d, i){
               return d.columnName == selectedColName[0];
             });

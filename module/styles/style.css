@@ -63,7 +63,7 @@ body {
     border: 1px solid lightgrey;
 }
 
-.spanningOverviewTable td {
+#spanningOverviewTable td {
     border: 1px solid lightgrey;
 }
 
@@ -72,7 +72,7 @@ body {
     border: 2px solid steelblue;
 }
 
-.spanningOverviewTable td.selected {
+#spanningOverviewTable td.selected {
     stroke-width: 3px;
     border: 2px solid steelblue;
 }

@@ -28,6 +28,12 @@ public class UpdateMetricCommand extends Command {
 		internalRespond(request, response);
 	}
 	
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		internalRespond(request, response);
+	}
+	
 	protected void internalRespond(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		Project project = getProject(request);
@@ -41,9 +47,24 @@ public class UpdateMetricCommand extends Command {
 		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
 		int evaluableCount = Integer.parseInt(request.getParameter("metricEvalCount"));
 		
-		List<Metric> columnMetrics = model.getMetricsForColumn(column);
-		Metric toBeEdited = columnMetrics.get(metricIndex);
-		columnMetrics.remove(metricIndex);
+		Metric toBeEdited;
+		if (column != null) {
+			List<Metric> columnMetrics = model.getMetricsForColumn(column);
+			toBeEdited = columnMetrics.get(metricIndex);
+			columnMetrics.remove(metricIndex);
+		} else {
+			if(metricNameString.equals("uniqueness")) {
+				toBeEdited = model.getUniqueness();
+			} else {
+				toBeEdited = null;
+				for(Metric spanMetric : model.getSpanMetricsList()) {
+					if (spanMetric.getName().equals(metricNameString)) {
+						toBeEdited = spanMetric;
+						break;
+					}
+				}
+			}
+		}
 		
 		toBeEdited.setDataType(metricDatatypeString);
 		toBeEdited.setName(metricNameString);
@@ -66,34 +87,14 @@ public class UpdateMetricCommand extends Command {
 		toBeEdited.getDirtyIndices().clear();
 		toBeEdited.setMeasure(0f);
 		
-		columnMetrics.add(metricIndex, toBeEdited);
+		if (column != null) {
+			List<Metric> columnMetrics = model.getMetricsForColumn(column);
+			columnMetrics.add(metricIndex, toBeEdited);
+		}
 		try {
 			respondJSON(response, toBeEdited);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-//		String callback = request.getParameter("callback");
-//		
-//		PrintWriter writer = response.getWriter();
-//        if (callback != null) {
-//            writer.write(callback);
-//            writer.write("(");
-//        }
-//
-//        try {
-//			JSONWriter jsonWriter = new JSONWriter(writer);
-//			jsonWriter.object();
-//			
-//			jsonWriter.key("metric").value(toBeEdited);
-//			
-//			jsonWriter.endObject();
-//			if (callback != null) {
-//                writer.write(")");
-//            }
-//		} catch (Exception e) {
-//			respondException(response, e);
-//		}
 	}
 }

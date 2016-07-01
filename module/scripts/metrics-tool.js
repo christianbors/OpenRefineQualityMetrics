@@ -7,6 +7,7 @@ var detailWidth,
     dragbarw = 20;
 var detailWidths;
 var selectedMetricIndex = [0],
+    metricType = [],
     selectedChecksIndex = [],
     selectedOverviewRect = [],
     selectedColName = [],
@@ -294,7 +295,8 @@ $(document).ready(function() {
                       var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(spanningArray).enter().append("table").each(function(d, i) {
                         var table = d3.select(this).attr("table-layout", "fixed")
                           .attr("width", $("#overviewTable").width())
-                          .attr("class", "spanningOverviewTable")
+                          .attr("id", "spanningOverviewTable")
+                          .attr("class", "overviewTable")
                           .style("margin-bottom", 10);
                         var hrow = table.append("thead").append("tr");
                         hrow.append("th");
@@ -347,6 +349,7 @@ $(document).ready(function() {
                           } else {
                             if (selectedOverviewRect != null) {
                               selectedMetricIndex = [];
+                              metricType = [];
                               selectedChecksIndex = [];
                               selectedOverviewRect = [];
                               selectedColName = [];
@@ -357,13 +360,14 @@ $(document).ready(function() {
                           var spanColIdx = -1;
                           for(var idx = 0; idx < overlayModel.availableSpanningMetrics.length; idx++) {
                             if(overlayModel.availableSpanningMetrics[idx].name === lowercaseFirstLetter(d.name)) {
-                              spanColIdx = overlayModel.availableMetrics.length + idx;
+                              spanColIdx = idx;
                             }
                           }
-                          if(spanColIdx == -1) spanColIdx = overlayModel.availableMetrics.length + 1;
+                          if(spanColIdx == -1) spanColIdx = overlayModel.availableSpanningMetrics.length + 1;
 
                           metricData.push(d);
                           selectedMetricIndex.push(spanColIdx);
+                          metricType.push("spanning");
                           selectedColName.push(d.spanningColumns);
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
 
@@ -418,6 +422,7 @@ $(document).ready(function() {
                           } else {
                             if (selectedOverviewRect != null) {
                               selectedMetricIndex = [];
+                              metricType = [];
                               selectedChecksIndex = [];
                               selectedOverviewRect = [];
                               selectedColName = [];
@@ -427,7 +432,8 @@ $(document).ready(function() {
                             }
                           }
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
-                          selectedMetricIndex.push(rowIndex)
+                          selectedMetricIndex.push(rowIndex);
+                          metricType.push("single");
                           selectedColName.push(d.columnName);
                           selectedColIdx.push(columnsStore.indexOf(d.columnName));
                           var col = overlayModel.metricColumns.filter(function(d) {
