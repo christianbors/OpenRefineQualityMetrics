@@ -132,7 +132,7 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
         var idxCheck = selectedChecksIndex[i];
         return z(idxCheck);
       }
-    });
+    }).style("opacity", 0.3);
 
     var separatorPos = [];
     var separatorIdx = 0;
