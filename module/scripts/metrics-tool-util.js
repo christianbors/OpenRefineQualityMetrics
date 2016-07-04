@@ -1,9 +1,13 @@
 var editButton;
+var timerID = null;
 
 function addEvaluableEntry(evalTuple) {
 	var i = $(".metricCheck").length;
-	$("#checksList").append("<li class='list-group-item metricCheck' id='metricEvaluable" + i + "'><div class='input-group' value='" + i + "' id='container" + i + "'></div></li>");
+	$("#checksList").append("<li class='list-group-item metricCheck form-group' id='metricEvaluable" + i + "'><div class='input-group' value='" + i + "' id='container" + i + "'></div></li>");
   $("#container" + i).append("<span class='input-group-addon' value='" + i + "' id='edit"+ i +"' data-toggle='popover'>edit</span>");
+  $("#container" + i).bind("keyup change input",function(){
+    scheduleUpdate(this);
+  })
   $("#container" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  ");
   $("#eval" + i).keypress(function(event){
     if (event.which == 13) {
@@ -119,6 +123,8 @@ function updateMetric() {
             var oldMetric = metricData[0];
             metricData[0] = data;
             var infoText = "";
+            $("#alertMetricUpdate").removeClass("alert-danger");
+            $("#alertMetricUpdate").addClass("alert-info");
             if(metricChange === "concat") {
               infoText += "Concatenation changed to: " + data.concat + ", metric value changed to <strong>" + data.measure + "</strong>";
               $("#alertText").html(infoText);
@@ -556,3 +562,45 @@ function selectRow(d) {
     });
   });
 }
+
+function scheduleUpdate(textArea) {
+    if (timerID !== null) {
+        window.clearTimeout(timerID);
+    }
+    var self = this;
+    timerID = window.setTimeout(function() { 
+      var self = this;
+      var area = $(textArea).children("input")[0].value;
+      var expression = this.expression = $.trim($(textArea).children("input")[0].value);
+      var params = {
+          project: theProject.id,
+          expression: "grel:" + expression,
+          cellIndex: selectedColIdx[0]
+      };
+      
+      $.post(
+          "../../command/core/preview-expression?" + $.param(params), 
+          {
+              rowIndices: JSON.stringify(rowIndex) 
+          },
+          function(data) {
+              if (data.code != "error") {
+                console.log(data.results);
+                $(textArea.parentNode).removeClass("has-error");
+                $("#alertMetricUpdate").hide();
+                  // self._results = data.results;
+              } else {
+                  // self._results = null;
+                console.log(data.message);
+                $(textArea.parentNode).addClass("has-error");
+                $("#alertMetricUpdate").removeClass("alert-info");
+                $("#alertMetricUpdate").addClass("alert-danger");
+                $("#alertText").html(data.message);
+                $("#alertMetricUpdate").show(); //prop("hidden", false)
+              }
+              // self._renderPreview(expression, data);
+          },
+          "json"
+      );
+    }, 300);
+};

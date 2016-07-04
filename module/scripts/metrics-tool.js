@@ -14,7 +14,8 @@ var selectedMetricIndex = [0],
     selectedCol = [],
     selectedColOpacity = [],
     metricData = [],
-    totalEvalTuples = [];
+    totalEvalTuples = [],
+    rowIndex = [];
 // overview vis
 var colWidths;
 // data overlay vis
@@ -138,6 +139,7 @@ $(document).ready(function() {
 
                   columnStore = [];
                   $.each(columns, function(index, value) {
+                    rowIndex.push(index);
                     columnStore[index] = {"title": value.name};
                   });
 
