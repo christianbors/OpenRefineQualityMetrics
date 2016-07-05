@@ -132,7 +132,7 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
         var idxCheck = selectedChecksIndex[i];
         return z(idxCheck);
       }
-    }).style("opacity", 0.3);
+    }).style("opacity", 0.25);
 
     var separatorPos = [];
     var separatorIdx = 0;
@@ -209,7 +209,7 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
     metricDetail.each(function (d) {
       var ys = d3.select(this).selectAll(".bin")
         .attr("y", y(d.index) )
-        .attr("height", 1);
+        .attr("height", 2);
     });
 
     metricDetail.on("click", function(d) {

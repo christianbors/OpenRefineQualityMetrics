@@ -6,7 +6,9 @@ function addEvaluableEntry(evalTuple) {
 	$("#checksList").append("<li class='list-group-item metricCheck form-group' id='metricEvaluable" + i + "'><div class='input-group' value='" + i + "' id='container" + i + "'></div></li>");
   $("#container" + i).append("<span class='input-group-addon' value='" + i + "' id='edit"+ i +"' data-toggle='popover'>edit</span>");
   $("#container" + i).bind("keyup change input",function(){
-    scheduleUpdate(this);
+    if (event.which != 13) {
+      scheduleUpdate(this);
+    }
   })
   $("#container" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  ");
   $("#eval" + i).keypress(function(event){
@@ -17,6 +19,7 @@ function addEvaluableEntry(evalTuple) {
       } else {
         metricData[0].evalTuples[i].evaluable = this.value;
       }
+      window.clearTimeout(timerID);
       updateMetric();
     }
   });
@@ -99,7 +102,7 @@ var metricChange = "none";
 function updateMetric() {
 
   $.getJSON("../../command/metric-doc/updateMetric?" + $.param(
-	        { 
+	        {
 	          metricName: metricData[0].name, 
 	          column: selectedColName[0],
 	          metricIndex: selectedMetricIndex[0],
@@ -168,179 +171,198 @@ function updateMetric() {
                 return col.columnName == selectedColName[0];
               })[0].metrics[selectedMetricIndex[0]] = data;
             } else if (metricType[0] === "spanning") {
-              overlayModel.spanningMetrics[selectedMetricIndex[0]] = data;
+              overlayModel.spanningMetrics[(selectedMetricIndex[0] - overlayModel.availableMetrics.length)] = data;
+              if(data.name === "uniqueness") overlayModel.uniqueness = data;
             }
 
             if(metricType[0] === "single") {
               var overviewTd = d3.select("#overviewTable tbody tr td.selected rect");
-            } else {
-              var overviewTd = d3.select("#spanningOverviewTable tbody tr td.selected svg rect");
-            }
-
-            overviewTd.attr("width", function(d) {
-              if (d != null) {
-                if (d.spanningEvaluable == null) {
-                  var metricName = this.parentNode.parentNode.parentNode.__data__;
-                  var metricCurrent = d.metrics.filter(function(m) {
-                    return m.name == metricName.name;
-                  });
-                  if (metricCurrent.length > 0) {
-                    return metricCurrent[0].measure * colWidths[selectedColIdx[0]];
-                  }
-                } else {
+              overviewTd.attr("width", function(d) {
+                if (d != null) {
+                  d = data;
                   return d.measure * this.parentNode.scrollWidth;
                 }
-              }
-            });
-
-            var col = d3.selectAll("#overlay g.metrics-overlay").filter(function(d, i){
-              return d.columnName == selectedColName[0];
-            });
-            col.selectAll("g").remove();
-            col.selectAll("line").remove();
-            col.selectAll("rect").remove();
-            var newGroups = col.selectAll("g")
-              .data(function(d) {
+              });
+            } else {
+              d3.selectAll("#spanningOverviewTable").data(overlayModel.spanningMetrics);
+              d3.selectAll("#spanningOverviewTable tbody").data(overlayModel.spanningMetrics);
+              d3.selectAll("#spanningOverviewTable tbody tr").data(overlayModel.spanningMetrics);
+              d3.selectAll("#spanningOverviewTable tbody tr td").data(overlayModel.spanningMetrics);
+              d3.selectAll("#spanningOverviewTable tbody tr td svg").data(overlayModel.spanningMetrics);
+              d3.selectAll("#spanningOverviewTable tbody tr td svg rect").data(overlayModel.spanningMetrics);
+              d3.select("#spanningOverviewTable tbody tr td.selected rect").attr("width", function(d) {
                 if (d != null) {
-                  return d.metrics;
+                  d = data;
+                  return d.measure * this.parentNode.scrollWidth;
+                }
+              });
+            }
+
+            if(metricData[0].spanningEvaluable == null) {
+              var col = d3.selectAll("#overlay g.metrics-overlay").filter(function(d, i){
+                return d.columnName == selectedColName[0];
+              });
+              col.selectAll("g").remove();
+              col.selectAll("line").remove();
+              col.selectAll("rect").remove();
+              var newGroups = col.selectAll("g")
+                .data(function(d) {
+                  if (d != null) {
+                    return d.metrics;
+                  } else {
+                    return [];
+                  }
+                }).enter()
+                .append("g")
+                .attr("class", "metrics-overlay-col")
+                .attr("class", function(d, i) {
+                  return d.name;
+                })
+                .attr("transform", function(d, i) {
+                  var offset = 0;
+                  if (i > 0) {
+                    var attr = this.parentNode.children[i-1].attributes["transform"];
+                    var transl = attr.value.match(/\d+/);
+                    offset = offset + parseInt(transl[0]);
+                  }
+                  if(d.dirtyIndices != null) {
+                    offset = offset + 12;
+                  }
+                  return "translate(-" + offset + ",0)";
+                });
+
+              col.selectAll("g").append("rect")
+                .attr("height", $(".dataTables_scrollBody").height())
+                .attr("width", 12)
+                .attr("fill", function(d) {
+                  if (d.dirtyIndices != null) {
+                    return "white";
+                  } else {
+                    return "transparent";
+                  }
+                });
+
+              var bins = newGroups.selectAll("rect.metrics-bin")
+                .data(function(d) {
+                  if (d.dirtyIndices != null) {
+                    return d.dirtyIndices; 
+                  } else {
+                    return [];
+                  }
+                }).enter()
+                .append("rect")
+                .attr("class", "metrics-bin")
+                .attr("width", function (d, i) {
+                  return  12; 
+                })
+                .attr("height", 1)
+                // .attr("y", function(d) { return overlayY(d.index); })
+                .style("fill", function(d, i) {
+                  var metricsCol = this.parentNode.parentNode.__data__;
+                  var current = this.parentNode.__data__;
+                  return z(metricsCol.metrics.indexOf(current));
+                });
+
+              bins.call(tooltipInvalid);
+
+              bins.each(function (d) {
+                var y = overlayY(d.index);
+                var ys = d3.select(this)
+                  .attr("y", y);
+              });
+
+              bins.on("click", selectRow);
+              
+              bins.on("mouseover", function(d) {
+                d3.select(this).style("fill", "steelblue");
+                var selThis = this;
+                var sameRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
+                  return d3.select(this).attr("y") === d3.select(selThis).attr("y");
+                })[0];
+                if(sameRows.length > 1) {
+                  var indices = {
+                    first: sameRows[0].__data__.index,
+                    last: sameRows[sameRows.length-1].__data__.index
+                  };
+                  tooltipInvalid.show(indices);
                 } else {
-                  return [];
+                  tooltipInvalid.show(d.index)
                 }
-              }).enter()
-              .append("g")
-              .attr("class", "metrics-overlay-col")
-              .attr("class", function(d, i) {
-                return d.name;
-              })
-              .attr("transform", function(d, i) {
-                var offset = 0;
-                if (i > 0) {
-                  var attr = this.parentNode.children[i-1].attributes["transform"];
-                  var transl = attr.value.match(/\d+/);
-                  offset = offset + parseInt(transl[0]);
-                }
-                if(d.dirtyIndices != null) {
-                  offset = offset + 12;
-                }
-                return "translate(-" + offset + ",0)";
+                $.each(sameRows, function(i, rowCurrent) {
+                  $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
+                });
               });
 
-            col.selectAll("g").append("rect")
-              .attr("height", $(".dataTables_scrollBody").height())
-              .attr("width", 12)
-              .attr("fill", function(d) {
-                if (d.dirtyIndices != null) {
-                  return "white";
-                } else {
-                  return "transparent";
-                }
+              bins.on("mouseout", function(d) {
+                $("#dataset tr").removeClass("hover");
+                d3.select(this).style("fill", function(d, i) {
+                  var metricsCol = this.parentNode.parentNode.__data__;
+                  var current = this.parentNode.__data__;
+                  return z(metricsCol.metrics.indexOf(current));
+                });
+                tooltipInvalid.hide();
               });
 
-            var bins = newGroups.selectAll("rect.metrics-bin")
-              .data(function(d) {
-                if (d.dirtyIndices != null) {
-                  return d.dirtyIndices; 
-                } else {
-                  return [];
-                }
-              }).enter()
-              .append("rect")
-              .attr("class", "metrics-bin")
-              .attr("width", function (d, i) {
-                return  12; 
-              })
-              .attr("height", 1)
-              // .attr("y", function(d) { return overlayY(d.index); })
-              .style("fill", function(d, i) {
-                var metricsCol = this.parentNode.parentNode.__data__;
-                var current = this.parentNode.__data__;
-                return z(metricsCol.metrics.indexOf(current));
-              });
-
-            bins.call(tooltipInvalid);
-
-            bins.each(function (d) {
-              var y = overlayY(d.index);
-              var ys = d3.select(this)
-                .attr("y", y);
-            });
-
-            bins.on("click", selectRow);
-            
-            bins.on("mouseover", function(d) {
-              d3.select(this).style("fill", "steelblue");
-              var selThis = this;
-              var sameRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
-                return d3.select(this).attr("y") === d3.select(selThis).attr("y");
-              })[0];
-              if(sameRows.length > 1) {
-                var indices = {
-                  first: sameRows[0].__data__.index,
-                  last: sameRows[sameRows.length-1].__data__.index
-                };
-                tooltipInvalid.show(indices);
-              } else {
-                tooltipInvalid.show(d.index)
-              }
-              $.each(sameRows, function(i, rowCurrent) {
-                $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
-              });
-            });
-
-            bins.on("mouseout", function(d) {
-              $("#dataset tr").removeClass("hover");
-              d3.select(this).style("fill", function(d, i) {
-                var metricsCol = this.parentNode.parentNode.__data__;
-                var current = this.parentNode.__data__;
-                return z(metricsCol.metrics.indexOf(current));
-              });
-              tooltipInvalid.hide();
-            });
-
-            // var overlay = d3.select("#overlay").selectAll(".metrics-overlay");
-            col.append("line")
-              .attr("x1", function(d) {
-                var attr = 0;
-                for(var i = 0; i < this.parentNode.children.length; i++) {
-                  var transf = this.parentNode.children[i].attributes["transform"];
-                  if (transf != null) {
-                    var transl = transf.value.match(/\d+/);
-                    var offset = parseInt(transl[0]);
-                    if(offset > attr) {
-                      attr = offset;
+              // var overlay = d3.select("#overlay").selectAll(".metrics-overlay");
+              col.append("line")
+                .attr("x1", function(d) {
+                  var attr = 0;
+                  for(var i = 0; i < this.parentNode.children.length; i++) {
+                    var transf = this.parentNode.children[i].attributes["transform"];
+                    if (transf != null) {
+                      var transl = transf.value.match(/\d+/);
+                      var offset = parseInt(transl[0]);
+                      if(offset > attr) {
+                        attr = offset;
+                      }
                     }
                   }
-                }
-                return "-" + (attr+1);
-              })
-              .attr("x2", function(d) {
-                var attr = 0;
-                for(var i = 0; i < this.parentNode.children.length; i++) {
-                  var transf = this.parentNode.children[i].attributes["transform"];
-                  if (transf != null) {
-                    var transl = transf.value.match(/\d+/);
-                    var offset = parseInt(transl[0]);
-                    if(offset > attr) {
-                      attr = offset;
+                  return "-" + (attr+1);
+                })
+                .attr("x2", function(d) {
+                  var attr = 0;
+                  for(var i = 0; i < this.parentNode.children.length; i++) {
+                    var transf = this.parentNode.children[i].attributes["transform"];
+                    if (transf != null) {
+                      var transl = transf.value.match(/\d+/);
+                      var offset = parseInt(transl[0]);
+                      if(offset > attr) {
+                        attr = offset;
+                      }
                     }
                   }
-                }
-                return "-" + (attr+1);
-              })
-              .attr("y1", 0)
-              .attr("y2", $(".dataTables_scrollBody").height())
-              .attr("stroke", "#ddd")
-              .attr("stroke-width", "2")
+                  return "-" + (attr+1);
+                })
+                .attr("y1", 0)
+                .attr("y2", $(".dataTables_scrollBody").height())
+                .attr("stroke", "#ddd")
+                .attr("stroke-width", "2")
 
-            col.append("line")
-              .attr("x1", 0)
-              .attr("x2", 0)
-              .attr("y1", 0)
-              .attr("y2", $(".dataTables_scrollBody").height())
-              .attr("stroke", "#ddd")
-              .attr("stroke-width", "2")
+              col.append("line")
+                .attr("x1", 0)
+                .attr("x2", 0)
+                .attr("y1", 0)
+                .attr("y2", $(".dataTables_scrollBody").height())
+                .attr("stroke", "#ddd")
+                .attr("stroke-width", "2")
+            }
+            selectedChecksIndex = [];
+
+            totalEvalTuples = [];
+            var enabledTuples = metricData[0].evalTuples.filter(function(d) {
+              return !d.disabled;
+            });
+            if(metricData[0].spanningEvaluable != null) {
+              totalEvalTuples.push(metricData[0].spanningEvaluable);
+              selectedChecksIndex.push(selectedMetricIndex[0]);
+            }
+            totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
+            for(var j = 0; j < enabledTuples.length; j++) {
+              selectedChecksIndex.push(selectedMetricIndex[0]);
+            }
 
             redrawDetailView(theProject, metricData, rowModel, overlayModel);
+            $.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }), null, {}, "json");
           },
           "json");
 	      }, 

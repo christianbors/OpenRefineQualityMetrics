@@ -1,3 +1,5 @@
+var rowFilter = false;
+
 $("#recalculate").on("click", function(d) {
 // recalculate
 $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
@@ -32,25 +34,30 @@ $("#createMetricBtn").on("click", function(btn) {
 });
 
 $("#filtering").on("click", function() {
-    if($("#overlay").is( ":visible" )) {
+    if(rowFilter == false) {
+    	$.fn.dataTableExt.search = [filterFunction];
         $("#dataset").DataTable().draw();
-		$("#overlay").hide();
+        if(metricData[0].spanningEvaluable == null) $("#overlay").hide();
         var svg = d3.select("rect.rect-disabled")
 	    	.attr("fill", "gainsboro");
 		var button = this.firstChild.textContent = "Show all Entries";
+		rowFilter = true;
     } else {
     	$.fn.dataTableExt.search = [];
         $("#dataset").DataTable().draw();
-        $("#overlay").show();
+        if(metricData[0].spanningEvaluable == null) $("#overlay").show();
         var svg = d3.select("rect.rect-disabled")
 	    	.attr("fill", "transparent");
 		var button = this.firstChild.textContent = "Only show dirty Entries";
+		rowFilter = false;
     }
 })
 
 $(document).on("click", "#remove-eval", function() {
 	$(editButton).popover("toggle");
 	$("#metricEvaluable" + selectedEditEvaluable).remove();
+	if(metricData[0].spanningEvaluable != null) selectedEditEvaluable = parseInt(selectedEditEvaluable) - 1;
+
 	metricData[0].evalTuples.splice(selectedEditEvaluable, 1);
 	metricChange = "removeEval";
 	updateMetric();

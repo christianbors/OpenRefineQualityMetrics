@@ -1,6 +1,7 @@
 var theProject,
     overlayModel,
     rowModel;
+var rawDataTable;
 var detailWidth,
     dragbarbottom,
     dragheight = 20,
@@ -69,6 +70,13 @@ var tooltipOverview = d3.tip()
       return text;
     }
   });
+
+var filterFunction = function (oSettings, aData, iDataIndex) {
+  var gs = d3.selectAll("g.metric-detail-row").filter(function(d, i) {
+    return d.index === iDataIndex;
+  });
+  return gs[0].length > 0;
+};
 
 $(document).ready(function() {
 
@@ -214,7 +222,7 @@ $(document).ready(function() {
                       $('#detailViewHeader').css('marginTop', 0 + 'px')
                         .css('marginBottom', 0 + 'px');
 
-                      $('#dataset').DataTable().columns.adjust().draw();
+                      rawDataTable = $('#dataset').DataTable().columns.adjust().draw();
                       var columns = theProject.columnModel.columns;
                       for (var col = 0; col < columns.length; col++) {
                         var column = columns[col];
@@ -362,10 +370,10 @@ $(document).ready(function() {
                           var spanColIdx = -1;
                           for(var idx = 0; idx < overlayModel.availableSpanningMetrics.length; idx++) {
                             if(overlayModel.availableSpanningMetrics[idx].name === lowercaseFirstLetter(d.name)) {
-                              spanColIdx = idx;
+                              spanColIdx = overlayModel.availableMetrics.length + idx;
                             }
                           }
-                          if(spanColIdx == -1) spanColIdx = overlayModel.availableSpanningMetrics.length + 1;
+                          if(spanColIdx == -1) spanColIdx = overlayModel.availableSpanningMetrics.length + overlayModel.availableSpanningMetrics.length + 1;
 
                           metricData.push(d);
                           selectedMetricIndex.push(spanColIdx);
@@ -391,7 +399,25 @@ $(document).ready(function() {
                           refillEditForm(metricData, selectedColName, 0);
                           fillLegend();
                           redrawDetailView(theProject, metricData, rowModel, overlayModel);
+
+                          rawDataTable = $('#dataset').DataTable();
+
+                          for (var colI = 0; colI < columnStore.length; colI++) {
+                            var colCurrent = rawDataTable.column(colI).visible(true);
+                            $("#overlay").show();
+                          }
+                          for (var i = 0; i < metricData.length; i++) {
+                            for (var colI = 0; colI < columnStore.length; colI++) {
+                              if($.inArray(columnStore[colI].title, metricData[i].spanningColumns) == -1) {
+                                var colCurrent = rawDataTable.column(colI);
+                                colCurrent.visible(false);
+                                $("#overlay").hide();
+                              }
+                            }
+                          }
+
                         });
+
                         trow.select("td").select("svg").on("contextmenu", function(d, i) {
                           d3.event.preventDefault();
                           tooltipOverview.hide();
@@ -465,16 +491,16 @@ $(document).ready(function() {
                           }
                           refillEditForm(metricData, selectedColName, rowIndex);
                           fillLegend();
-
-                          $.fn.dataTableExt.search = [];
-                          $.fn.dataTableExt.search.push(
-                            function (oSettings, aData, iDataIndex) {
-                              var gs = d3.selectAll("g.metric-detail-row").filter(function(d, i) {
-                                return d.index === iDataIndex;
-                              });
-                            return gs[0].length > 0;
+                          
+                          for (var i = 0; i < metricData.length; i++) {
+                            if(metricData[i].spanningColumns == null) {
+                              for (var colI = 0; colI < columnStore.length; colI++) {
+                                var colCurrent = rawDataTable.column(colI).visible(true);
+                                $("#overlay").show();
+                              }
                             }
-                          );
+                          }
+
                           redrawDetailView(theProject, metricData, rowModel, overlayModel);
                         }
                       });
