@@ -209,7 +209,7 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
     metricDetail.each(function (d) {
       var ys = d3.select(this).selectAll(".bin")
         .attr("y", y(d.index) )
-        .attr("height", 2);
+        .attr("height", 1);
     });
 
     metricDetail.on("click", function(d) {

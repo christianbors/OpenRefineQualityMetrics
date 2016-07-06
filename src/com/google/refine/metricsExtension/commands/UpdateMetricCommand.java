@@ -16,8 +16,10 @@ import com.google.refine.commands.Command;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.model.Metric;
+import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.Metric.Concatenation;
+import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.model.Project;
 
 public class UpdateMetricCommand extends Command {
@@ -57,9 +59,18 @@ public class UpdateMetricCommand extends Command {
 				toBeEdited = model.getUniqueness();
 			} else {
 				toBeEdited = null;
-				for(Metric spanMetric : model.getSpanMetricsList()) {
+				for(SpanningMetric spanMetric : model.getSpanMetricsList()) {
 					if (spanMetric.getName().equals(metricNameString)) {
 						toBeEdited = spanMetric;
+						String comment = request.getParameter("metricSpanningEvalTuple[comment]");
+						String evaluable = request.getParameter("metricSpanningEvalTuple[evaluable]");
+						boolean disabled = Boolean.parseBoolean(request.getParameter("metricSpanningEvalTuple[disabled]"));
+						try {
+							((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), comment, disabled);
+						} catch (ParsingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						break;
 					}
 				}

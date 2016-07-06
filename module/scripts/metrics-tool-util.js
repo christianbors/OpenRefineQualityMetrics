@@ -110,6 +110,7 @@ function updateMetric() {
 	          metricDescription: metricData[0].description,
 	          metricEvalTuples: metricData[0].evalTuples,
             metricEvalCount: metricData[0].evalTuples.length,
+            metricSpanningEvalTuple: metricData[0].spanningEvaluable,
 	          concat: metricData[0].concat,
 	          comments: metricData[0].comments,
 	          project: theProject.id

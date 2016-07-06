@@ -15,14 +15,19 @@ public class Completeness implements Function {
 	@Override
 	public Object call(Properties bindings, Object[] args) {
 		if (args.length >= 1) {
-            Object o1 = args[0];
-            if (o1 instanceof Long 
-                    || o1 instanceof Double
-                    || o1 instanceof Float) {
-                    return o1 != null;
-            } else if (o1 instanceof String) {
-                return !((String) o1).isEmpty();
-            }
+			Object o1 = args[0];
+			if (o1 instanceof Long || o1 instanceof Double || o1 instanceof Float) {
+				return o1 != null;
+			} else if (o1 instanceof String) {
+				boolean incomplete = ((String) o1).isEmpty();
+				if(args.length == 2) {
+					Object nullValue = args[1];
+					if (!incomplete) {
+						incomplete = o1.equals(nullValue);
+					}
+				}
+				return !incomplete; // return the inverted value since the completeness returns an error if the value is empty
+			}
         }
         
 //		Object value = bindings.get("value");
@@ -37,8 +42,8 @@ public class Completeness implements Function {
 			throws JSONException {
 		
         writer.object();
-        writer.key("description"); writer.value("Evaluates if a value is null");
-        writer.key("params"); writer.value("object o");
+        writer.key("description"); writer.value("Evaluates if an entry is empty");
+        writer.key("params"); writer.value("object o, missing value indicator (optional)");
         writer.key("returns"); writer.value("boolean");
         writer.endObject();
 	}

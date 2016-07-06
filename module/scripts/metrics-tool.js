@@ -363,6 +363,7 @@ $(document).ready(function() {
                               selectedChecksIndex = [];
                               selectedOverviewRect = [];
                               selectedColName = [];
+                              selectedColIdx = [];
                               metricData = [];
                               d3.selectAll(".selected").classed("selected", false);
                             }
@@ -380,6 +381,7 @@ $(document).ready(function() {
                           metricType.push("spanning");
                           selectedColName.push(d.spanningColumns);
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
+                          selectedColIdx.push(columnsStore.indexOf(d.spanningColumns[0]));
 
                           totalEvalTuples = [];
                           for (var i = 0; i < metricData.length; i++) {
