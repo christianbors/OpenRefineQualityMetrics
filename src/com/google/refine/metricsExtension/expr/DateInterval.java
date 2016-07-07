@@ -17,16 +17,6 @@ import com.google.refine.model.Project;
 public class DateInterval implements Function {
 
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-        writer.object();
-        writer.key("description"); writer.value("Determine if an interval is negative");
-        writer.key("params"); writer.value("start column, end column, [gteq (greater than or equal) | eq (equal) | lteq (less than or equal) | gt (greater than) | lt (lesser than)] (optional), number value (optional), string timeunit (optional)");
-        writer.key("returns"); writer.value("boolean");
-        writer.endObject();
-	}
-	
-	@Override
 	public Object call(Properties bindings, Object[] args) {
 		if (args.length >= 2) {
 			WrappedCell valFrom = (WrappedCell) ((CellTuple) bindings.get("cells")).getField((String) args[0], bindings);
@@ -77,8 +67,7 @@ public class DateInterval implements Function {
                     }
                     return new EvalError("Unknown time unit " + unit);
 				}
-				boolean ea = validateDiff(comp, delta, threshold); 
-				return ea;
+				return validateDiff(comp, delta, threshold);
 			} else {
 				return delta <= 0;
 			}
@@ -101,5 +90,15 @@ public class DateInterval implements Function {
 			// default state, will not get reached
 			return false;
 		}
+	}
+
+	@Override
+	public void write(JSONWriter writer, Properties options)
+			throws JSONException {
+        writer.object();
+        writer.key("description"); writer.value("Determine if an interval is negative");
+        writer.key("params"); writer.value("start column, end column, [gteq (greater than or equal) | eq (equal) | lteq (less than or equal) | gt (greater than) | lt (lesser than)] (optional), number value (optional), string timeunit (optional)");
+        writer.key("returns"); writer.value("boolean");
+        writer.endObject();
 	}
 }
