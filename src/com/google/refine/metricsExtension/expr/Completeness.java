@@ -10,7 +10,7 @@ import com.google.refine.expr.EvalError;
 import com.google.refine.grel.Function;
 
 
-public class Completeness implements Function {
+public class Completeness implements MetricFunction {
 
 	@Override
 	public Object call(Properties bindings, Object[] args) {

@@ -14,6 +14,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import com.google.refine.grel.ControlFunctionRegistry;
+import com.google.refine.grel.Function;
+import com.google.refine.metricsExtension.expr.MetricFunction;
+import com.google.refine.metricsExtension.expr.SpanningMetricFunction;
 import com.google.refine.metricsExtension.util.MetricUtils.RegisteredMetrics;
 import com.google.refine.metricsExtension.util.MetricUtils.RegisteredSpanningMetrics;
 import com.google.refine.model.OverlayModel;
@@ -87,17 +91,35 @@ public class MetricsOverlayModel implements OverlayModel {
         }
         writer.endArray();
         
+//        writer.key("availableMetrics");
+//        writer.array();
+//        for (RegisteredMetrics rm : getAvailableMetrics()) {
+//        	rm.write(writer, options);
+//        }
+//        writer.endArray();
         writer.key("availableMetrics");
         writer.array();
-        for (RegisteredMetrics rm : getAvailableMetrics()) {
-        	rm.write(writer, options);
+        for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
+			if (entry.getValue() instanceof MetricFunction) {
+				writer.object();
+				writer.key("name").value(entry.getKey());
+				writer.key("description");
+				entry.getValue().write(writer, options);
+				writer.endObject();
+			}
         }
         writer.endArray();
 
         writer.key("availableSpanningMetrics");
         writer.array();
-        for (RegisteredSpanningMetrics rm : getAvailableSpanningMetrics()) {
-        	rm.write(writer, options);
+        for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
+			if (entry.getValue() instanceof SpanningMetricFunction) {
+				writer.object();
+				writer.key("name").value(entry.getKey());
+				writer.key("description");
+				entry.getValue().write(writer, options);
+				writer.endObject();
+			}
         }
         writer.endArray();
         

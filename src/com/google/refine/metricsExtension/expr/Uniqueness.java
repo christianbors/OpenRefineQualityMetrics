@@ -7,7 +7,7 @@ import org.json.JSONWriter;
 
 import com.google.refine.grel.Function;
 
-public class Uniqueness implements Function {
+public class Uniqueness implements SpanningMetricFunction {
 
 	@Override
 	public void write(JSONWriter writer, Properties options)

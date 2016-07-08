@@ -9,9 +9,8 @@ import org.json.JSONException;
 import org.json.JSONWriter;
 
 import com.google.refine.expr.EvalError;
-import com.google.refine.grel.Function;
 
-public class Plausibility implements Function {
+public class Plausibility implements MetricFunction {
 		
 	@Override
 	public Object call(Properties bindings, Object[] args) {
@@ -32,6 +31,8 @@ public class Plausibility implements Function {
 				float fVal = 0f;
 				if (val instanceof Long) {
 					fVal = ((Long) val).floatValue();
+				} else if (val instanceof Double) {
+					fVal = ((Double) val).floatValue();
 				} else {
 					fVal = (Float) val;
 				}
@@ -40,11 +41,11 @@ public class Plausibility implements Function {
 					Double median = stats.apply(new Median());
 					Double sIQR = (Double) bindings.get("siqr");
 					
-					if (fVal < (median + 2 * sIQR) && 
-							(float) fVal > (median - 2 * sIQR)) {
-						return true;
-					} else {
+					if (fVal > (median + 2 * sIQR) || 
+							(float) fVal < (median - 2 * sIQR)) {
 						return false;
+					} else {
+						return true;
 					}
 				} else {
 					if (fVal < (stats.getMean() + 2 * stats.getStandardDeviation()) && 
@@ -68,6 +69,7 @@ public class Plausibility implements Function {
 		writer.key("description"); writer.value("Perform statistical plausibilization. Plausible values can be compared to robust/standard statistics measures");
 		writer.key("params"); writer.value("value, evaluation mode (optional)");
 		writer.key("returns"); writer.value("boolean that informs if value is plausible");
+		writer.key("defaultParams"); writer.value("robust");
 		writer.endObject();
 	}
 }

@@ -14,7 +14,7 @@ import com.google.refine.expr.WrappedCell;
 import com.google.refine.grel.Function;
 import com.google.refine.model.Project;
 
-public class DateInterval implements Function {
+public class DateInterval implements SpanningMetricFunction {
 
 	@Override
 	public Object call(Properties bindings, Object[] args) {
@@ -99,6 +99,7 @@ public class DateInterval implements Function {
         writer.key("description"); writer.value("Determine if an interval is negative");
         writer.key("params"); writer.value("start column, end column, [gteq (greater than or equal) | eq (equal) | lteq (less than or equal) | gt (greater than) | lt (lesser than)] (optional), number value (optional), string timeunit (optional)");
         writer.key("returns"); writer.value("boolean");
+        writer.key("defaultParams"); writer.value("gteq, 0, seconds");
         writer.endObject();
 	}
 }

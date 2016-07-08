@@ -9,7 +9,7 @@ import org.json.JSONWriter;
 
 import com.google.refine.grel.Function;
 
-public class Validity implements Function {
+public class Validity implements MetricFunction {
 
 	@Override
 	public void write(JSONWriter writer, Properties options)
@@ -18,6 +18,7 @@ public class Validity implements Function {
         writer.key("description"); writer.value("Evaluate validity of a value with respect to the column data type");
         writer.key("params"); writer.value("string s, string type");
         writer.key("returns"); writer.value("boolean");
+        writer.key("defaultParams"); writer.value("string");
         writer.endObject();
 	}
 

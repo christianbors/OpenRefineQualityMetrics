@@ -20,10 +20,14 @@ $("#addCheck").on("click", function(d) {
 	addEvaluableEntry(newEvaluable);
 });
 
+$("#metricSelectMetricModal").on("click", function(btn) {
+	$(btn.target).addClass("active");
+});
+
 $("#createMetricBtn").on("click", function(btn) {
 	var params = { 
 		project: theProject.id, 
-		metric: lowercaseFirstLetter($("#metricSelectMetricModal").val()),
+		metric: $("#metricSelectMetricModal > .active")[0].value,
 		columns: $("#columnFormMetricModal").val(), 
 		dataType: "numeric"
 	};
