@@ -9,6 +9,9 @@ import org.json.JSONException;
 import org.json.JSONWriter;
 
 import com.google.refine.expr.EvalError;
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 
 public class Plausibility implements MetricFunction {
 		
@@ -66,10 +69,25 @@ public class Plausibility implements MetricFunction {
 	public void write(JSONWriter writer, Properties options)
 			throws JSONException {
 		writer.object();
-		writer.key("description"); writer.value("Perform statistical plausibilization. Plausible values can be compared to robust/standard statistics measures");
-		writer.key("params"); writer.value("value, evaluation mode (optional)");
+		writer.key("description"); writer.value(getDescription());
+		writer.key("params"); writer.value(getParams());
 		writer.key("returns"); writer.value("boolean that informs if value is plausible");
 		writer.key("defaultParams"); writer.value("robust");
 		writer.endObject();
+	}
+
+	@Override
+	public String getDescription() {
+		return "Perform statistical plausibilization. Plausible values can be compared to robust/standard statistics measures";
+	}
+
+	@Override
+	public Evaluable getEvaluable() throws ParsingException {
+		return MetaParser.parse("plausibility(value, \"robust\")");
+	}
+
+	@Override
+	public String getParams() {
+		return "value, evaluation mode (optional)";
 	}
 }

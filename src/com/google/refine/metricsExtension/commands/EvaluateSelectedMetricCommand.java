@@ -46,7 +46,6 @@ public class EvaluateSelectedMetricCommand extends Command {
 		Engine engine = new Engine(project);
 		
 		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
 		String column = request.getParameter("column");
 		String metricNameString = request.getParameter("metric[name]");
 		
@@ -62,7 +61,7 @@ public class EvaluateSelectedMetricCommand extends Command {
 				}
 			}
 		} else {
-			metric = overlayModel.getMetricsColumn(column).get(metricIndex);
+			metric = overlayModel.getMetricsColumn(column).get(metricNameString);
 		}
 		FilteredRows filteredRows = engine.getAllFilteredRows();
 		

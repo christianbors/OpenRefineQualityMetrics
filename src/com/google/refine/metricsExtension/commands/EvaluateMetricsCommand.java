@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -90,18 +91,18 @@ public class EvaluateMetricsCommand extends Command {
 					WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
 					if (ct != null) {
 						Cell c = ((WrappedCell )ct).cell;
-						List<Metric> metrics = model
+						Map<String, Metric> metrics = model
 								.getMetricsForColumn(columnName);
 						List<SpanningMetric> spanMetrics = model.getSpanMetricsList();
 
 						ExpressionUtils.bind(bindings, row, rowIndex,
 								columnName, c);
 
-						for (Metric m : metrics) {
+						for (Map.Entry<String, Metric> metricEntry : metrics.entrySet()) {
 							List<Boolean> evalResults = new ArrayList<Boolean>();
 							boolean entryDirty = false;
 
-							for (EvalTuple evalTuple : m.getEvalTuples()) {
+							for (EvalTuple evalTuple : metricEntry.getValue().getEvalTuples()) {
 								if (!evalTuple.disabled) {
 									boolean evalResult;
 									Object evaluation = evalTuple.eval
@@ -117,7 +118,7 @@ public class EvaluateMetricsCommand extends Command {
 							}
 
 							if (entryDirty) {
-								m.addDirtyIndex(rowIndex, evalResults);
+								metricEntry.getValue().addDirtyIndex(rowIndex, evalResults);
 							}
 						}
 						
@@ -165,9 +166,9 @@ public class EvaluateMetricsCommand extends Command {
 				Metric uniqueness = model.getUniqueness();
 				uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
 				for (String columnName : model.getMetricColumnNames()) {
-					for (Metric m : model.getMetricsForColumn(columnName)) {
-						float q = 1f - MetricUtils.determineQuality(bindings, m);
-						m.setMeasure(q);
+					for (Map.Entry<String, Metric> metricEntry : model.getMetricsForColumn(columnName).entrySet()) {
+						float q = 1f - MetricUtils.determineQuality(bindings, metricEntry.getValue());
+						metricEntry.getValue().setMeasure(q);
 					}
 				}
 				for (SpanningMetric sm : model.getSpanMetricsList()) {

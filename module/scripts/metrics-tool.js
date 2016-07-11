@@ -7,9 +7,8 @@ var detailWidth,
     dragheight = 20,
     dragbarw = 20;
 var detailWidths;
-var selectedMetricIndex = [0],
-    metricType = [],
-    selectedChecksIndex = [],
+var metricType = [],
+    selectedChecks = [],
     selectedOverviewRect = [],
     selectedColName = [],
     selectedCol = [],
@@ -208,7 +207,7 @@ $(document).ready(function() {
                       overlayModel.metricColumns = sortedMetrics;
 
                       var tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
-                      tr.append("th").text(function(d) { return d.name; });
+                      tr.append("th").text(function(d) { return d; });
                       var td = tr.selectAll("td").data(overlayModel.metricColumns).enter().append("td");
 
 
@@ -258,39 +257,34 @@ $(document).ready(function() {
 
                       td.append("svg")
                         .attr("width", function(d, i) {
-                          return (colWidths[i]-1);
-                        })
+                        return (colWidths[i]-1);
+                      })
                         .attr("height", 12)
                         .classed("overview-svg", true)
                         .attr("data-toggle", "popover")
                       .append("rect")
+                        .data(function(d, i) {
+                          var metrics = [];
+                          for (var m = 0; m < overlayModel.metricColumns.length; m++) {
+                            var metric = overlayModel.metricColumns[m].metrics[d];
+                            if(metric != null) metric.columnName = overlayModel.metricColumns[m].columnName;
+                            metrics.push(metric);
+                          }
+                          return metrics;
+                        })
                         .classed("metric", true)
                         .attr("height", 12)
                         .attr("width", function(d, i) {
                           if (d != null) {
-                            var metricName = this.parentNode.parentNode.parentNode.__data__;
-                            var metricCurrent = d.metrics.filter(function(m) {
-                              return m.name == metricName.name;
-                            });
-                            if (metricCurrent.length > 0) {
-                              return metricCurrent[0].measure * (colWidths[i]-1);
-                            }
+                            var metricCurrent = d;
+                            return metricCurrent.measure * (colWidths[i]-1);
                           }
                         })
                         .style("fill", function(d, i) {
-                          if (d != null) {
-                            var metricName = this.parentNode.parentNode.parentNode.__data__;
-                            var metricCurrent = d.metrics.filter(function(m) {
-                              return m.name == metricName.name;
-                            });
-                            if(metricCurrent.length > 0) {
-                              for(var idx = 0; idx < overlayModel.availableMetrics.length; idx++) {
-                                if(overlayModel.availableMetrics[idx].name === metricCurrent[0].name) {
-                                  return z(idx);
-                                }
-                              }
-                            }
-                          }
+                          return fillMetricColor(d.name);
+                          // if (d != null) {
+                          //   return z(overlayModel.availableMetrics.indexOf(d.name));
+                          // }
                         });
 
                       var spanningArray;
@@ -336,13 +330,12 @@ $(document).ready(function() {
                             return d.measure * width;
                           })
                           .style("fill", function(d, i) {
-                            for(var idx = 0; idx < overlayModel.availableSpanningMetrics.length; idx++) {
-                                if(overlayModel.availableSpanningMetrics[idx].name === lowercaseFirstLetter(d.name)) {
-                                  return z(overlayModel.availableMetrics.length + idx);
-                                }
-                              }
-                            var idxSM = overlayModel.availableMetrics.length + 1;
-                            return z(idxSM);
+                            return fillMetricColor(d.name);
+                            // if(overlayModel.availableSpanningMetrics.indexOf(d.name) != -1) {
+                            //   return z(overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.indexOf(d.name));
+                            // } else {
+                            //   return z(overlayModel.availableMetrics.length + 1);
+                            // }
                           });
 
                         trow.select("td").select("svg").call(tooltipOverview);
@@ -358,9 +351,7 @@ $(document).ready(function() {
                             contextColumn = null;
                           } else {
                             if (selectedOverviewRect != null) {
-                              selectedMetricIndex = [];
                               metricType = [];
-                              selectedChecksIndex = [];
                               selectedOverviewRect = [];
                               selectedColName = [];
                               selectedColIdx = [];
@@ -377,43 +368,44 @@ $(document).ready(function() {
                           if(spanColIdx == -1) spanColIdx = overlayModel.availableSpanningMetrics.length + overlayModel.availableSpanningMetrics.length + 1;
 
                           metricData.push(d);
-                          selectedMetricIndex.push(spanColIdx);
                           metricType.push("spanning");
                           selectedColName.push(d.spanningColumns);
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
                           selectedColIdx.push(columnsStore.indexOf(d.spanningColumns[0]));
 
                           totalEvalTuples = [];
+                          selectedChecks = [];
                           for (var i = 0; i < metricData.length; i++) {
                             var enabledTuples = metricData[i].evalTuples.filter(function(d) {
                               return !d.disabled;
                             });
                             if(metricData[i].spanningEvaluable != null) {
                               totalEvalTuples.push(metricData[i].spanningEvaluable);
-                              selectedChecksIndex.push(spanColIdx);
+                              selectedChecks.push(metricData[i].name);
                             }
                             totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
                             for(var j = 0; j < enabledTuples.length; j++) {
-                              selectedChecksIndex.push(spanColIdx);
+                              selectedChecks.push(metricData[i].name);
                             }
                           }
+                          if(metricData.length > 0) {
+                            refillEditForm(metricData, selectedColName, 0);
+                            fillLegend();
+                            redrawDetailView(theProject, metricData, rowModel, overlayModel);
 
-                          refillEditForm(metricData, selectedColName, 0);
-                          fillLegend();
-                          redrawDetailView(theProject, metricData, rowModel, overlayModel);
+                            rawDataTable = $('#dataset').DataTable();
 
-                          rawDataTable = $('#dataset').DataTable();
-
-                          for (var colI = 0; colI < columnStore.length; colI++) {
-                            var colCurrent = rawDataTable.column(colI).visible(true);
-                            $("#overlay").show();
-                          }
-                          for (var i = 0; i < metricData.length; i++) {
                             for (var colI = 0; colI < columnStore.length; colI++) {
-                              if($.inArray(columnStore[colI].title, metricData[i].spanningColumns) == -1) {
-                                var colCurrent = rawDataTable.column(colI);
-                                colCurrent.visible(false);
-                                $("#overlay").hide();
+                              var colCurrent = rawDataTable.column(colI).visible(true);
+                              $("#overlay").show();
+                            }
+                            for (var i = 0; i < metricData.length; i++) {
+                              for (var colI = 0; colI < columnStore.length; colI++) {
+                                if($.inArray(columnStore[colI].title, metricData[i].spanningColumns) == -1) {
+                                  var colCurrent = rawDataTable.column(colI);
+                                  colCurrent.visible(false);
+                                  $("#overlay").hide();
+                                }
                               }
                             }
                           }
@@ -451,9 +443,7 @@ $(document).ready(function() {
                             contextColumn = null;
                           } else {
                             if (selectedOverviewRect != null) {
-                              selectedMetricIndex = [];
                               metricType = [];
-                              selectedChecksIndex = [];
                               selectedOverviewRect = [];
                               selectedColName = [];
                               metricData = [];
@@ -462,57 +452,47 @@ $(document).ready(function() {
                             }
                           }
                           selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
-                          selectedMetricIndex.push(rowIndex);
                           metricType.push("single");
                           selectedColName.push(d.columnName);
                           selectedColIdx.push(columnsStore.indexOf(d.columnName));
-                          var col = overlayModel.metricColumns.filter(function(d) {
-                            if (d != null) {
-                              return selectedColName[selectedColName.length-1].indexOf(d.columnName) >= 0;
-                            }
-                          })[0];
-                          for(var rowIdx = 0; rowIdx < col.metrics.length; rowIdx++) {
-                            if(col.metrics[rowIdx].name == rowMetric.name) {
-                              metricData.push(col.metrics[rowIdx]);
-                            }
-                          }
+                          metricData.push(d.metrics[rowMetric]);
 
                           totalEvalTuples = [];
+                          selectedChecks = [];
                           for (var i = 0; i < metricData.length; i++) {
                             var enabledTuples = metricData[i].evalTuples.filter(function(d) {
                               return !d.disabled;
                             });
                             if(metricData[i].spanningEvaluable != null) {
                               totalEvalTuples.push(metricData[i].spanningEvaluable);
-                              selectedChecksIndex.push(rowIndex);
+                              selectedChecks.push(metricData[i].name);
                             }
                             totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
                             for(var j = 0; j < enabledTuples.length; j++) {
-                              selectedChecksIndex.push(rowIndex);
+                              selectedChecks.push(metricData[i].name);
                             }
                           }
-                          refillEditForm(metricData, selectedColName, rowIndex);
-                          fillLegend();
-                          
-                          for (var i = 0; i < metricData.length; i++) {
-                            if(metricData[i].spanningColumns == null) {
-                              for (var colI = 0; colI < columnStore.length; colI++) {
-                                var colCurrent = rawDataTable.column(colI).visible(true);
-                                $("#overlay").show();
+                          if(metricData.length > 0) {
+                            refillEditForm(metricData, selectedColName, rowIndex);
+                            fillLegend();
+                            
+                            for (var i = 0; i < metricData.length; i++) {
+                              if(metricData[i].spanningColumns == null) {
+                                for (var colI = 0; colI < columnStore.length; colI++) {
+                                  var colCurrent = rawDataTable.column(colI).visible(true);
+                                  $("#overlay").show();
+                                }
                               }
                             }
-                          }
 
-                          redrawDetailView(theProject, metricData, rowModel, overlayModel);
+                            redrawDetailView(theProject, metricData, rowModel, overlayModel);
+                          }
                         }
                       });
                       td.select("svg").call(tooltipOverview);
                       td.select("svg").on("mouseover", function(d) {
                         if (d != null) {
-                          var rowData = this.parentNode.parentNode.__data__;
-                          for(var i = 0; i < d.metrics.length; i++) {
-                            if(d.metrics[i].name === rowData.name) tooltipOverview.show(d.metrics[i]);
-                          }
+                          tooltipOverview.show(d.metrics[this.parentNode.parentNode.__data__]);
                         };
                       }).on("mouseout", function(d) {
                         tooltipOverview.hide();
@@ -619,7 +599,10 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   var cols = overlay.selectAll(".metrics-overlay-col")
     .data(function(d) {
       if (d != null) {
-        return d.metrics;
+        var array = $.map(d.metrics, function(value, index) {
+            return [value];
+        });
+        return array;
       } else {
         return [];
       }
@@ -666,13 +649,9 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   .attr("width", function (d, i) {
     return  12; 
   }).style("fill", function(d, i) {
-    var metricsCol = this.parentNode.parentNode.__data__;
     var current = this.parentNode.__data__;
-    for(var idx = 0; idx < overlayModel.availableMetrics.length; idx++) {
-      if(overlayModel.availableMetrics[idx].name === current.name) {
-        return z(idx);
-      }
-    }
+    return fillMetricColor(current.name);
+    // return z(overlayModel.availableMetrics.indexOf(current.name));
   });
 
   bins.call(tooltipInvalid);
@@ -710,7 +689,12 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     d3.select(this).style("fill", function(d, i) {
       var metricsCol = this.parentNode.parentNode.__data__;
       var current = this.parentNode.__data__;
-      return z(metricsCol.metrics.indexOf(current));
+      return fillMetricColor(current.name);
+      // for(var idx = 0; idx < overlayModel.availableMetrics.length; idx++) {
+      //   if(overlayModel.availableMetrics[idx].name === current.name) {
+      //     return z(idx);
+      //   }
+      // }
     });
     tooltipInvalid.hide();
   });
@@ -731,7 +715,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     .attr("y1", 0)
     .attr("y2", $(".dataTables_scrollBody").height())
     .attr("stroke", "#ddd")
-    .attr("stroke-width", "2")
+    .attr("stroke-width", "2");
 
   overlay.append("line")
     .attr("x1", 0)
@@ -739,7 +723,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     .attr("y1", 0)
     .attr("y2", $(".dataTables_scrollBody").height())
     .attr("stroke", "#ddd")
-    .attr("stroke-width", "2")
+    .attr("stroke-width", "2");
 
   // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
   // var svg = headers.insert("svg", "#dataset")
@@ -824,16 +808,17 @@ function fillLegend() {
     .attr("height", 12)
     .attr("width", 12)
     .attr("fill", function(d, i) {
-      return z(selectedMetricIndex[i]);
+      return fillMetricColor(metricData[i].name);
     });
   mHeaders.append("text").text(function(d, i) {
-    if(selectedMetricIndex[i] < overlayModel.availableMetrics.length) {
-      return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableMetrics[selectedMetricIndex[i]].name);
+    // overlayModel.availableMetrics.indexOf(metricData[i].name)
+    if(overlayModel.availableMetrics.indexOf(metricData[i].name) != -1) {
+      return metricData[i].columnName + " - " + capitalizeFirstLetter(metricData[i].name);
     } else {
-      if((selectedMetricIndex[i] - overlayModel.availableMetrics.length) < overlayModel.availableSpanningMetrics.length) {
-        return selectedColName[i] + " - " + capitalizeFirstLetter(overlayModel.availableSpanningMetrics[selectedMetricIndex[i] - overlayModel.availableMetrics.length].name);
+      if(overlayModel.availableSpanningMetrics.indexOf(metricData[i].name) != -1) {
+        return metricData[i].columnName + " - " + capitalizeFirstLetter(metricData[i].name);
       } else {
-        return selectedColName[i] + " - Uniqueness";
+        return metricData[i].columnName + " - Uniqueness";
       }
     }
   })
@@ -926,7 +911,7 @@ function fillModalAfterColumnSelection(theProject) {
           }
         }
       }
-      $("#metricSelectMetricModal").append('<button type="button" value="' + value.name + '" class="' + cl + '">'+ capitalizeFirstLetter(value.name) + '</button>');
+      $("#metricSelectMetricModal").append('<button type="button" value="' + value + '" class="' + cl + '">'+ capitalizeFirstLetter(value) + '</button>');
       $("#metricSelectMetricModal > button").on("click", function() {
         $("#metricSelectMetricModal").val($(this).text());
       });

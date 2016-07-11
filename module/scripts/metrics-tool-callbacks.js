@@ -103,32 +103,19 @@ $(document).on("click", "#comment-eval", function() {
 
 $(document).on("click", "#remove-metric", function(d) {
 	var popover = $("div.popover-content");
-	if(selectedColName.length <= 1) {
-		$.post("../../command/metric-doc/deleteMetric?" + $.param(
-	        { 
-	          metricName: contextMetric.name, 
-	          column: contextColumn,
-	          project: theProject.id
-	        }) + "&callback=?",
-			{},
-	      	function(response) {
-	        	console.log("success");
-	      	}, 
-	      	"jsonp"
-    	);
-	} else {
-		$.post("../../command/metric-doc/deleteMetric?" + $.param(
-	        { 
-	          metricName: contextMetric.name, 
-	          columnNames: selectedColName,
-	          project: theProject.id
-	        }) + "&callback=?",
-	      function(response) {
-	        console.log("success");
-	      }, 
-	      "jsonp"
-	    );
-	}
+	$.post("../../command/metric-doc/deleteMetric?" + $.param(
+        { 
+          metricName: contextMetric.name, 
+          column: selectedColName[0],
+          project: theProject.id
+        }) + "&callback=?",
+		{},
+      	function(response) {
+        	console.log("success");
+      	}, 
+      	"jsonp"
+	);
+
 	d3.selectAll("#overviewTable tbody tr").filter(function(d) {
 		return d.name == contextMetric.name;
 	}).selectAll("td svg rect")
@@ -166,7 +153,7 @@ $("#duplicateMetricBtn").on("click", function(btn) {
 
 	$.post("../../command/metric-doc/duplicateMetric?" + $.param(
 		{ 
-			metricIndex: selectedMetricIndex[0],
+			metricName: contextMetric.name,
 			column: selectedColName[0],
 			targetColumn: $("#columnDuplicateModal").val()[0],
 			project: theProject.id

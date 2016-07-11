@@ -18,7 +18,7 @@ public class DeleteMetricCommand extends Command {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Project project = getProject(request);
-		String[] columnNames = request.getParameterValues("columnNames[]");
+		String[] columnNames = request.getParameterValues("column[]");
 		String columnName = request.getParameter("column");
 		String metricName = request.getParameter("metricName");
 		

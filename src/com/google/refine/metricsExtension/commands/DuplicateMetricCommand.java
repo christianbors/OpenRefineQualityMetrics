@@ -2,6 +2,7 @@ package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,10 +23,10 @@ public class DuplicateMetricCommand extends Command {
 		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 		String column = request.getParameter("column");
 		String targetCol = request.getParameter("targetColumn");
-		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
+		String metricName = request.getParameter("metricName");
 		
-		List<Metric> columnMetrics = model.getMetricsForColumn(column);
-		Metric toBeDuplicated = columnMetrics.get(metricIndex);
+		Map<String, Metric> columnMetrics = model.getMetricsForColumn(column);
+		Metric toBeDuplicated = columnMetrics.get(metricName);
 		Metric dupMetric = new Metric(toBeDuplicated.getName(), 
 				toBeDuplicated.getDescription(), 
 				toBeDuplicated.getDataType(), 

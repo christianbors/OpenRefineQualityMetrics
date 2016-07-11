@@ -41,19 +41,21 @@ public class UpdateMetricCommand extends Command {
 		Project project = getProject(request);
 		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 		
-		String metricNameString = request.getParameter("metricName");
-		String metricDescriptionString = request.getParameter("metricDescription");
-		String metricDatatypeString = request.getParameter("metricDatatype");
-		String metricConcatenation = request.getParameter("concat");
+		// {metric[name]=completeness, metric[datatype]=unknown, metric[evalTuples][0][disabled]=false, metric[description]=Evaluates if an entry is empty, 
+		// metric[concat]=AND, project=2374114907925, metric[evalTuples][0][comment]=, metric[evalTuples][0][evaluable]=completeness(value), 
+		// metric[columnName]=Longitude, metric[measure]=0.10425717}
+		String metricNameString = request.getParameter("metric[name]");
+		String metricDescriptionString = request.getParameter("metric[description]");
+		String metricDatatypeString = request.getParameter("metric[datatype]");
+		String metricConcatenation = request.getParameter("metric[concat]");
 		String column = request.getParameter("column");
-		int metricIndex = Integer.parseInt(request.getParameter("metricIndex"));
 		int evaluableCount = Integer.parseInt(request.getParameter("metricEvalCount"));
 		
 		Metric toBeEdited;
 		if (column != null) {
-			List<Metric> columnMetrics = model.getMetricsForColumn(column);
-			toBeEdited = columnMetrics.get(metricIndex);
-			columnMetrics.remove(metricIndex);
+			Map<String, Metric> columnMetrics = model.getMetricsForColumn(column);
+			toBeEdited = columnMetrics.get(metricNameString);
+			columnMetrics.remove(metricNameString);
 		} else {
 			if(metricNameString.equals("uniqueness")) {
 				toBeEdited = model.getUniqueness();
@@ -62,9 +64,9 @@ public class UpdateMetricCommand extends Command {
 				for(SpanningMetric spanMetric : model.getSpanMetricsList()) {
 					if (spanMetric.getName().equals(metricNameString)) {
 						toBeEdited = spanMetric;
-						String comment = request.getParameter("metricSpanningEvalTuple[comment]");
-						String evaluable = request.getParameter("metricSpanningEvalTuple[evaluable]");
-						boolean disabled = Boolean.parseBoolean(request.getParameter("metricSpanningEvalTuple[disabled]"));
+						String comment = request.getParameter("metric[spanningEvaluable][comment]");
+						String evaluable = request.getParameter("metric[spanningEvaluable][evaluable]");
+						boolean disabled = Boolean.parseBoolean(request.getParameter("metric[spanningEvaluable][disabled]"));
 						try {
 							((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), comment, disabled);
 						} catch (ParsingException e) {
@@ -85,9 +87,9 @@ public class UpdateMetricCommand extends Command {
 		toBeEdited.setConcat(Concatenation.valueOf(metricConcatenation));
 		toBeEdited.getEvalTuples().clear();
 		for(int i = 0; i < evaluableCount; i++) {
-			String comment = request.getParameter("metricEvalTuples[" + i + "][comment]");
-			String evaluable = request.getParameter("metricEvalTuples[" + i + "][evaluable]");
-			boolean disabled = Boolean.parseBoolean(request.getParameter("metricEvalTuples[" + i + "][disabled]"));
+			String comment = request.getParameter("metric[evalTuples][" + i + "][comment]");
+			String evaluable = request.getParameter("metric[evalTuples][" + i + "][evaluable]");
+			boolean disabled = Boolean.parseBoolean(request.getParameter("metric[evalTuples][" + i + "][disabled]"));
 			try {
 				toBeEdited.addEvalTuple(MetaParser.parse(evaluable), comment, disabled);
 			} catch (ParsingException e) {
@@ -99,8 +101,8 @@ public class UpdateMetricCommand extends Command {
 		toBeEdited.setMeasure(0f);
 		
 		if (column != null) {
-			List<Metric> columnMetrics = model.getMetricsForColumn(column);
-			columnMetrics.add(metricIndex, toBeEdited);
+			Map<String, Metric> columnMetrics = model.getMetricsForColumn(column);
+			columnMetrics.put(metricNameString, toBeEdited);
 		}
 		try {
 			respondJSON(response, toBeEdited);

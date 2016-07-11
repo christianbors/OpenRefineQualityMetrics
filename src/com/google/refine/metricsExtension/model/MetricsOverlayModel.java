@@ -3,6 +3,7 @@ package com.google.refine.metricsExtension.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ import com.google.refine.model.Project;
 
 public class MetricsOverlayModel implements OverlayModel {
 
-	private Map<String, List<Metric>> metricsMap;
+	private Map<String, Map<String, Metric>> metricsMap;
 	private List<SpanningMetric> spanMetricsList;
 	
 	private boolean computeDuplicates;
@@ -35,12 +36,12 @@ public class MetricsOverlayModel implements OverlayModel {
 	public static MetricsOverlayModel reconstruct(JSONObject metricsOverlayModel) throws Exception {
 		
 		if (metricsOverlayModel != null) {
-			Map<String, List<Metric>> reconstructMap = new HashMap<String, List<Metric>>();
+			Map<String, Map<String, Metric>> reconstructMap = new HashMap<String, Map<String, Metric>>();
 			MetricsOverlayModel overlayModel;
 			JSONArray metricColumns = metricsOverlayModel.getJSONArray("metricColumns");
 			for (int i = 0; i < metricColumns.length(); ++i) {
 				JSONObject obj = metricColumns.getJSONObject(i);
-				reconstructMap.put(obj.getString("columnName"), reconstructMetrics(obj.getJSONArray("metrics")));
+				reconstructMap.put(obj.getString("columnName"), reconstructMetrics(obj.getJSONObject("metrics")));
 			}
 			List<SpanningMetric> spanMetrics;
 			if (metricsOverlayModel.has("spanningMetrics")) {
@@ -62,13 +63,13 @@ public class MetricsOverlayModel implements OverlayModel {
 		return null;
 	}
 	
-    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<SpanningMetric> spanMetricsList) {
+    public MetricsOverlayModel(Map<String, Map<String, Metric>> metricsMap, List<SpanningMetric> spanMetricsList) {
     	this.metricsMap = metricsMap;
     	this.computeDuplicates = false;
     	this.spanMetricsList = spanMetricsList;
 	}
     
-    public MetricsOverlayModel(Map<String, List<Metric>> metricsMap, List<SpanningMetric> spanMetricsList, SpanningMetric uniqueness) {
+    public MetricsOverlayModel(Map<String, Map<String, Metric>> metricsMap, List<SpanningMetric> spanMetricsList, SpanningMetric uniqueness) {
     	this(metricsMap, spanMetricsList);
     	this.computeDuplicates = true;
     	this.uniqueness = uniqueness;
@@ -80,32 +81,28 @@ public class MetricsOverlayModel implements OverlayModel {
         writer.object();
         writer.key("metricColumns");
         writer.array();
-        for (Entry<String, List<Metric>> e : metricsMap.entrySet()) {
+        for (Entry<String, Map<String, Metric>> e : metricsMap.entrySet()) {
         	writer.object().key("columnName").value(e.getKey());
-        	writer.key("metrics").array();
-        	for (Metric m : e.getValue()) {
-        		m.write(writer, options);
+        	writer.key("metrics").object();
+        	for (Map.Entry<String, Metric> entry : e.getValue().entrySet()) {
+        		writer.key(entry.getKey());
+        		entry.getValue().write(writer, options);
         	}
-        	writer.endArray();
+        	writer.endObject();
         	writer.endObject();
         }
         writer.endArray();
         
-//        writer.key("availableMetrics");
-//        writer.array();
-//        for (RegisteredMetrics rm : getAvailableMetrics()) {
-//        	rm.write(writer, options);
-//        }
-//        writer.endArray();
         writer.key("availableMetrics");
         writer.array();
         for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
 			if (entry.getValue() instanceof MetricFunction) {
-				writer.object();
-				writer.key("name").value(entry.getKey());
-				writer.key("description");
-				entry.getValue().write(writer, options);
-				writer.endObject();
+				writer.value(entry.getKey());
+//				writer.object();
+//				writer.key("name").value(entry.getKey());
+//				writer.key("description");
+//				entry.getValue().write(writer, options);
+//				writer.endObject();
 			}
         }
         writer.endArray();
@@ -114,11 +111,12 @@ public class MetricsOverlayModel implements OverlayModel {
         writer.array();
         for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
 			if (entry.getValue() instanceof SpanningMetricFunction) {
-				writer.object();
-				writer.key("name").value(entry.getKey());
-				writer.key("description");
-				entry.getValue().write(writer, options);
-				writer.endObject();
+				writer.value(entry.getKey());
+//				writer.object();
+//				writer.key("name").value(entry.getKey());
+//				writer.key("description");
+//				entry.getValue().write(writer, options);
+//				writer.endObject();
 			}
         }
         writer.endArray();
@@ -153,26 +151,25 @@ public class MetricsOverlayModel implements OverlayModel {
     public void dispose(Project project) {        
     }
 
-    public List<Metric> getMetricsForColumn(String columnName) {
+    public Map<String, Metric> getMetricsForColumn(String columnName) {
     	return metricsMap.get(columnName);
     }
     
     public void addMetric(String columnName, Metric metric) {
     	if(this.metricsMap.containsKey(columnName)) {
-    		this.metricsMap.get(columnName).add(metric);
+    		this.metricsMap.get(columnName).put(metric.name, metric);
     	} else {
-    		this.metricsMap.put(columnName, new ArrayList<Metric>(Arrays.asList(metric)));    		
+    		this.metricsMap.put(columnName, new HashMap<String, Metric>()).put(metric.name, metric);
+    		
     	}
     }
     
     public boolean deleteMetric(String columnName, String metricName) {
-    	for(Metric m : this.metricsMap.get(columnName)) {
-    		if(m.name.equals(metricName)) {
-    			this.metricsMap.get(columnName).remove(m);
-    			return true;
-    		}
-    	}
-    	return false;
+    	if (this.metricsMap.get(columnName).remove(metricName) != null) {
+			return true;
+		} else {
+			return false;
+		}
     }
     
     public void addSpanningMetric(SpanningMetric spanningMetric) {
@@ -181,22 +178,21 @@ public class MetricsOverlayModel implements OverlayModel {
     
     public boolean deleteSpanningMetric(String metricName, String[] colNames) {
     	for(SpanningMetric sm : this.spanMetricsList) {
-			if(!sm.getSpanningColumns().containsAll(Arrays.asList(colNames))) {
-				return false;
-			}
     		if(sm.name.equals(metricName)) {
-    			this.spanMetricsList.remove(sm);
-    			return true;
+    			if(sm.getSpanningColumns().containsAll(Arrays.asList(colNames))) {
+    				this.spanMetricsList.remove(sm);
+    				return true;    				
+    			}
     		}
     	}
     	return false;
     }
     
-    public void addMetrics(String columnName, List<Metric> metrics) {
+    public void addMetrics(String columnName, Map<String, Metric> metrics) {
     	this.metricsMap.put(columnName, metrics);
     }
     
-    public List<Metric> getMetricsColumn(String columnName) {
+    public Map<String, Metric> getMetricsColumn(String columnName) {
     	return metricsMap.get(columnName);
     }
     
@@ -249,13 +245,15 @@ public class MetricsOverlayModel implements OverlayModel {
 		this.spanMetricsList = spanMetricsList;
 	}
 
-	private static List<Metric> reconstructMetrics(JSONArray jsonArray) throws JSONException {
-		List<Metric> metricsList = new ArrayList<Metric>();
-		for (int i = 0; i < jsonArray.length(); ++i) {
-			JSONObject o = jsonArray.getJSONObject(i);
-			metricsList.add(Metric.load(o));
+	private static Map<String, Metric> reconstructMetrics(JSONObject jsonMetricsMap) throws JSONException {
+		Map<String, Metric> metricsMap = new HashMap<String, Metric>();
+		Iterator<?> keys = jsonMetricsMap.keys();
+		while (keys.hasNext()) {
+			String key = (String) keys.next();
+			JSONObject o = (JSONObject) jsonMetricsMap.get(key);
+			metricsMap.put((String) o.get("name"), Metric.load(o));
 		}
-		return metricsList;
+		return metricsMap;
 	}
 	
 	private static List<SpanningMetric> reconstructSpanningMetrics(JSONArray jsonArray) throws JSONException {

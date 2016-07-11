@@ -129,8 +129,7 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
       if (d == true) {
         return "white";
       } else {
-        var idxCheck = selectedChecksIndex[i];
-        return z(idxCheck);
+        return fillMetricColor(selectedChecks[i]);
       }
     }).style("opacity", 0.25);
 
@@ -270,7 +269,8 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
         if (d == true) {
           return "white";
         } else {
-          return z(selectedChecksIndex[i]);
+          return fillMetricColor(metricData[i].name);
+          // return z(selectedChecksIndex[i]);
         }
         
       });

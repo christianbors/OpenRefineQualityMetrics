@@ -10,6 +10,9 @@ import org.json.JSONWriter;
 
 import com.google.refine.expr.CellTuple;
 import com.google.refine.expr.EvalError;
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedCell;
 import com.google.refine.grel.Function;
 import com.google.refine.model.Project;
@@ -96,10 +99,25 @@ public class DateInterval implements SpanningMetricFunction {
 	public void write(JSONWriter writer, Properties options)
 			throws JSONException {
         writer.object();
-        writer.key("description"); writer.value("Determine if an interval is negative");
-        writer.key("params"); writer.value("start column, end column, [gteq (greater than or equal) | eq (equal) | lteq (less than or equal) | gt (greater than) | lt (lesser than)] (optional), number value (optional), string timeunit (optional)");
+        writer.key("description"); writer.value(getDescription());
+        writer.key("params"); writer.value(getParams());
         writer.key("returns"); writer.value("boolean");
         writer.key("defaultParams"); writer.value("gteq, 0, seconds");
         writer.endObject();
+	}
+
+	@Override
+	public String getDescription() {
+		return "Determine if an interval is negative";
+	}
+
+	@Override
+	public Evaluable getEvaluable() throws ParsingException {
+		return MetaParser.parse("dateInterval(\"From\", \"To\")");
+	}
+
+	@Override
+	public String getParams() {
+		return "start column, end column, [gteq (greater than or equal) | eq (equal) | lteq (less than or equal) | gt (greater than) | lt (lesser than)] (optional), number value (optional), string timeunit (optional)";
 	}
 }

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,10 @@ import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
+import com.google.refine.grel.ControlFunctionRegistry;
+import com.google.refine.grel.Function;
+import com.google.refine.metricsExtension.expr.MetricFunction;
+import com.google.refine.metricsExtension.expr.SpanningMetricFunction;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
@@ -44,15 +49,18 @@ public class MetricsExtensionCommand extends Command {
 			
 			MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 			if (metricsOverlayModel == null) {
-				Map<String, List<Metric>> metricsMap = new HashMap<String, List<Metric>>();
+				Map<String, Map<String, Metric>> metricsMap = new HashMap<String, Map<String, Metric>>();
 				for (Column col : project.columnModel.columns) {
-					List<Metric> metricList = new ArrayList<Metric>();
-					for (RegisteredMetrics rm : MetricUtils.RegisteredMetrics.values()) {
-						Metric m = new Metric(rm.toString(), rm.description(), rm.datatype());
-						m.addEvalTuple(rm.evaluable(), "", false);
-						metricList.add(m);
+					Map<String, Metric> columnMetricsMap = new HashMap<String, Metric>();
+					for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
+						if (entry.getValue() instanceof MetricFunction) {
+							MetricFunction mf = (MetricFunction) entry.getValue();
+							Metric m = new Metric(entry.getKey(), mf.getDescription());
+							m.addEvalTuple(mf.getEvaluable(), "", false);
+							columnMetricsMap.put(entry.getKey(), m);
+						}
+						metricsMap.put(col.getName(), columnMetricsMap);
 					}
-					metricsMap.put(col.getName(), metricList);
 				}
 				List<SpanningMetric> spanningMetrics = new ArrayList<SpanningMetric>();
 				//TODO: insert spanning metrics

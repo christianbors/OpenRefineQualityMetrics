@@ -63,7 +63,7 @@ public class CreateMetricCommand extends Command {
 					String evalString = metricName + "(";
 					if(columnNames.length > 1) {
 						for(int i = 0; i < columnNames.length; ++i) {
-							evalString += "columnName";
+							evalString += "\"" + columnNames[i] + "\"";
 							if(i+1 < columnNames.length)
 								evalString += ", ";
 						}

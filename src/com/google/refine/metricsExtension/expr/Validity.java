@@ -7,6 +7,9 @@ import java.util.Properties;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
 
 public class Validity implements MetricFunction {
@@ -15,8 +18,8 @@ public class Validity implements MetricFunction {
 	public void write(JSONWriter writer, Properties options)
 			throws JSONException {
         writer.object();
-        writer.key("description"); writer.value("Evaluate validity of a value with respect to the column data type");
-        writer.key("params"); writer.value("string s, string type");
+        writer.key("description"); writer.value(getDescription());
+        writer.key("params"); writer.value(getParams());
         writer.key("returns"); writer.value("boolean");
         writer.key("defaultParams"); writer.value("string");
         writer.endObject();
@@ -41,6 +44,21 @@ public class Validity implements MetricFunction {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public String getDescription() {
+		return "Evaluate validity of a value with respect to the column data type";
+	}
+
+	@Override
+	public Evaluable getEvaluable() throws ParsingException {
+		return MetaParser.parse("validity(value)");
+	}
+
+	@Override
+	public String getParams() {
+		return "string s, string type";
 	}
 
 }

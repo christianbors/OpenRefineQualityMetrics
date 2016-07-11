@@ -7,6 +7,9 @@ import org.json.JSONException;
 import org.json.JSONWriter;
 
 import com.google.refine.expr.EvalError;
+import com.google.refine.expr.Evaluable;
+import com.google.refine.expr.MetaParser;
+import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
 
 
@@ -42,10 +45,25 @@ public class Completeness implements MetricFunction {
 			throws JSONException {
 		
         writer.object();
-        writer.key("description"); writer.value("Evaluates if an entry is empty");
-        writer.key("params"); writer.value("object o, missing value indicator (optional)");
+        writer.key("description"); writer.value(getDescription());
+        writer.key("params"); writer.value(getParams());
         writer.key("returns"); writer.value("boolean");
         writer.endObject();
+	}
+
+	@Override
+	public String getDescription() {
+		return "Evaluates if an entry is empty";
+	}
+
+	@Override
+	public Evaluable getEvaluable() throws ParsingException {
+		return MetaParser.parse("completeness(value)");
+	}
+
+	@Override
+	public String getParams() {
+		return "object o, missing value indicator (optional)";
 	}
 
 }
