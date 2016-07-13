@@ -17,6 +17,12 @@ public class DeleteMetricCommand extends Command {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+	@Override
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		Project project = getProject(request);
 		String[] columnNames = request.getParameterValues("column[]");
 		String columnName = request.getParameter("column");
@@ -25,26 +31,13 @@ public class DeleteMetricCommand extends Command {
 		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 		if (columnName != null) {
 			metricsOverlayModel.deleteMetric(columnName, metricName);
-			try {
-				respond(response, "200 OK", "Metric " + metricName + " for column " + columnName + " deleted");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		} else {
 			metricsOverlayModel.deleteSpanningMetric(metricName, columnNames);
-			try {
-				String cols = "";
-				for(int i = 0; i < columnNames.length; ++i) {
-					cols += columnNames[i];
-					if(i+1 < columnNames.length) cols += ", ";
-				}
-				respond(response, "200 OK", "Metric " + metricName + " for columns " + cols + " deleted");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
+		}
+		try {
+			respondJSON(response, metricsOverlayModel);
+		} catch (JSONException e) {
+			respondException(response, e);
 		}
 	}
 

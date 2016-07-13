@@ -121,9 +121,8 @@ function updateMetric() {
   var updateMetricIndex = -1;
   if (metricType[0] === "spanning") {
     updateMetricIndex = overlayModel.spanningMetrics.indexOf(metricData[0]);
-  } else {
-    // updateMetricIndex = overlayModel.metricColumns[selectedColIdx].metrics.indexOf(metricData[0]);
   }
+
   $.getJSON("../../command/metric-doc/updateMetric?" + $.param(
 	        {
             metric: metricShort,
@@ -183,7 +182,9 @@ function updateMetric() {
             metricChange = "none";
 
             if(metricType[0] === "single") {
-              overlayModel.metricColumns[selectedColIdx[0]].metrics[data.name] = data;
+              overlayModel.metricColumns.filter(function(d) {
+                return d.columnName === selectedColName[0];
+              })[0].metrics[data.name] = data;
             } else if (metricType[0] === "spanning") {
               overlayModel.spanningMetrics[updateMetricIndex] = data;
             }
@@ -376,12 +377,9 @@ function updateMetric() {
             }
 
             redrawDetailView(theProject, metricData, rowModel, overlayModel);
-            $.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }), null, {}, "json");
-          },
-          "json");
-	      }, 
-	      "jsonp"
-	    );
+            $.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }));
+          });
+	      });
 }
 
 function addMetricToColumn(data, index) {
@@ -611,7 +609,7 @@ function scheduleUpdate(textArea) {
       var params = {
           project: theProject.id,
           expression: "grel:" + expression,
-          cellIndex: selectedColIdx[0]
+          cellIndex: 0
       };
       
       $.post(
@@ -621,22 +619,15 @@ function scheduleUpdate(textArea) {
           },
           function(data) {
               if (data.code != "error") {
-                console.log(data.results);
                 $(textArea.parentNode).removeClass("has-error");
                 $("#alertMetricUpdate").hide();
-                  // self._results = data.results;
               } else {
-                  // self._results = null;
-                console.log(data.message);
                 $(textArea.parentNode).addClass("has-error");
                 $("#alertMetricUpdate").removeClass("alert-info");
                 $("#alertMetricUpdate").addClass("alert-danger");
                 $("#alertText").html(data.message);
                 $("#alertMetricUpdate").show(); //prop("hidden", false)
               }
-              // self._renderPreview(expression, data);
-          },
-          "json"
-      );
+          });
     }, 300);
 };

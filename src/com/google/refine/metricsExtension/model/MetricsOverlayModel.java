@@ -179,7 +179,7 @@ public class MetricsOverlayModel implements OverlayModel {
     public boolean deleteSpanningMetric(String metricName, String[] colNames) {
     	for(SpanningMetric sm : this.spanMetricsList) {
     		if(sm.name.equals(metricName)) {
-    			if(sm.getSpanningColumns().containsAll(Arrays.asList(colNames))) {
+    			if(sm.getSpanningColumns().size() == colNames.length && sm.getSpanningColumns().containsAll(Arrays.asList(colNames))) {
     				this.spanMetricsList.remove(sm);
     				return true;    				
     			}
