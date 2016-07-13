@@ -35,6 +35,8 @@ var columnStore = [];
 var columnsStore = [];
 var colWidth = 50;
 
+var dataTypes;
+
 var datatablesHeader,
     rawDataHeight;
 
@@ -281,10 +283,9 @@ $(document).ready(function() {
                           }
                         })
                         .style("fill", function(d, i) {
-                          return fillMetricColor(d.name);
-                          // if (d != null) {
-                          //   return z(overlayModel.availableMetrics.indexOf(d.name));
-                          // }
+                          if (d != null) {
+                            return fillMetricColor(d.name);
+                          }
                         });
 
                       if(overlayModel.spanningMetrics != null) {
@@ -328,12 +329,9 @@ $(document).ready(function() {
                             return d.measure * width;
                           })
                           .style("fill", function(d, i) {
-                            return fillMetricColor(d.name);
-                            // if(overlayModel.availableSpanningMetrics.indexOf(d.name) != -1) {
-                            //   return z(overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.indexOf(d.name));
-                            // } else {
-                            //   return z(overlayModel.availableMetrics.length + 1);
-                            // }
+                            if (d != null) {
+                              return fillMetricColor(d.name);
+                            }
                           });
 
                         trow.select("td").select("svg").call(tooltipOverview);
@@ -387,7 +385,7 @@ $(document).ready(function() {
                             }
                           }
                           if(metricData.length > 0) {
-                            refillEditForm(metricData, selectedColName, 0);
+                            refillEditForm(metricData, selectedColName);
                             fillLegend();
                             redrawDetailView(theProject, metricData, rowModel, overlayModel);
 
@@ -413,7 +411,6 @@ $(document).ready(function() {
                         trow.select("td").select("svg").on("contextmenu", function(d, i) {
                           d3.event.preventDefault();
                           tooltipOverview.hide();
-                          var rowIndex = this.parentNode.parentNode.sectionRowIndex;
                           contextMetric = d;
                           contextColumn = d.columnName;
                           var _this = this;
@@ -435,7 +432,6 @@ $(document).ready(function() {
 
                       td.on("click", function(d) {
                         if (d != null) {
-                          var rowIndex = overlayModel.availableMetrics.indexOf(this.parentNode.__data__);
                           var rowMetric = this.parentNode.__data__;
                           if (d3.event.shiftKey) {
                             contextColumn = null;
@@ -471,7 +467,7 @@ $(document).ready(function() {
                             }
                           }
                           if(metricData.length > 0) {
-                            refillEditForm(metricData, selectedColName, rowIndex);
+                            refillEditForm(metricData, selectedColName);
                             fillLegend();
                             
                             for (var i = 0; i < metricData.length; i++) {
@@ -489,32 +485,33 @@ $(document).ready(function() {
                       });
                       td.select("svg").call(tooltipOverview);
                       td.select("svg").on("mouseover", function(d) {
-                        if (d != null) {
+                        if (d.metrics[this.parentNode.parentNode.__data__] != null) {
                           tooltipOverview.show(d.metrics[this.parentNode.parentNode.__data__]);
                         };
                       }).on("mouseout", function(d) {
                         tooltipOverview.hide();
                       });
                       td.select("svg").on("contextmenu", function(d, i) {
-                        d3.event.preventDefault();
-                        tooltipOverview.hide();
-                        var rowIndex = this.parentNode.parentNode.sectionRowIndex;
-                        contextMetric = d.metrics[rowIndex];
-                        contextColumn = d.columnName;
-                        var _this = this;
-                        if(selectedColName.length > 1) {
-                          $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
-                          '<button type="button" class="btn btn-default" id="merge-metric">Merge</button>'+
-                          '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
-                        } else {
-                          $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
-                          '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
-                        }
-                        $(this).popover("toggle");
+                        if (d.metrics[this.parentNode.parentNode.__data__] != null) {
+                          d3.event.preventDefault();
+                          tooltipOverview.hide();
+                          contextMetric = d.metrics[this.parentNode.parentNode.__data__];
+                          contextColumn = d.columnName;
+                          var _this = this;
+                          if(selectedColName.length > 1) {
+                            $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                            '<button type="button" class="btn btn-default" id="merge-metric">Merge</button>'+
+                            '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+                          } else {
+                            $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+                            '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+                          }
+                          $(this).popover("toggle");
 
-                        $(".popover").on("mouseleave", function () {
-                            $(_this).popover('hide');
-                        });
+                          $(".popover").on("mouseleave", function () {
+                              $(_this).popover('hide');
+                          });
+                        }
                       });
                       $("svg.overview-svg").popover({
                         html: 'true',
@@ -732,7 +729,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
   //   .attr("left", tablePos.left);
 }
 
-function refillEditForm(d, colName, metricIndex) {
+function refillEditForm(d, colName) {
   $("#addCheckFooter").show();
   $("#metricInfoDetailHeader").text("Metric Detail - " + capitalizeFirstLetter(d[0].name) + " - " + selectedColName[0]);
   $("#metricName").text(d[0].name);
@@ -828,7 +825,7 @@ function fillModalAfterColumnSelection(theProject) {
   d3.select("#typeDetailModal").select("tbody").selectAll("tr").remove();
   d3.select("#typeDetailModal").select("thead tr").selectAll("td").remove();
 
-  var dataTypes = [];
+  dataTypes = [];
   var metrics;
   var params = { 
     project: theProject.id, 

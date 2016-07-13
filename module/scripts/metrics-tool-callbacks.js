@@ -29,7 +29,7 @@ $("#createMetricBtn").on("click", function(btn) {
 		project: theProject.id, 
 		metric: $("#metricSelectMetricModal > .active")[0].value,
 		columns: $("#columnFormMetricModal").val(), 
-		dataType: "numeric"
+		dataType: dataTypes
 	};
 	$.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
 		function(data) {

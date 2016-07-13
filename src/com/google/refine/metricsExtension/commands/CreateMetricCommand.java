@@ -33,15 +33,15 @@ public class CreateMetricCommand extends Command {
 		String[] columnNames = request.getParameterValues("columns[]");
 		String metricName = request.getParameter("metric");
 		String[] parameters = request.getParameterValues("parameters[]");
-		String dataType = request.getParameter("dataType");
+		String[] dataType = request.getParameterValues("dataType[]");
 		Project project = getProject(request);
 		
 		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 		try {
 			if (columnNames.length == 1) {
 				MetricFunction metricFun = (MetricFunction) ControlFunctionRegistry.getFunction(metricName);
-				
-				Metric m = new Metric(metricName, metricFun.getDescription(), dataType);
+				String dataTypeCol = request.getParameter("dataType[" + columnNames[0] + "][type]");
+				Metric m = new Metric(metricName, metricFun.getDescription(), dataTypeCol);
 				m.addEvalTuple(metricFun.getEvaluable(parameters), "", false);
 				
 				metricsOverlayModel.addMetric(columnNames[0], m);

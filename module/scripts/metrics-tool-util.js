@@ -78,16 +78,22 @@ function dataViewPopover() {
             break;
         }
     }
-    var popoverColumn = theProject.overlayModels.metricsOverlayModel.metricColumns.filter(function(col) {
-        return col.columnName == _this.textContent;
+    var popoverColumn = overlayModel.metricColumns.filter(function(col) {
+      return col.columnName == _this.textContent;
     })[0];
+    var metricsArray = $.map(popoverColumn.metrics, function(value, index) {
+      return [value];
+    });
+
     var popoverSnippet = '';
-    for(var i = 0; i < popoverColumn.metrics.length; i++) {
-      popoverSnippet += "<div class='checkbox'><label><input checked='true' id='"+colIdx+"' class='dataview-popover' type='checkbox'>" + 
-        popoverColumn.metrics[i].name + "</label></div>";
-      if($($("g." + popoverColumn.metrics[i].name)[colIdx]).css('display') == 'none') {
-        $("input.dataview-popover #" + i).prop("checked", false);
-      }
+    for(var i = 0; i < metricsArray.length; i++) {
+      var checked = "checked='checked'";
+      if($($("g." + metricsArray[i].name)[colIdx]).css('display') == 'none') 
+        checked = "";
+
+      popoverSnippet += "<div class='checkbox'><label><input " + checked + 
+        " id='" + colIdx + "' class='dataview-popover' type='checkbox'>" + 
+        metricsArray[i].name + "</label></div>";
     }
     $(this).data("bs.popover").options.content = popoverSnippet;
 
