@@ -50,6 +50,7 @@ public class MetricsExtensionCommand extends Command {
 			MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 			if (metricsOverlayModel == null) {
 				Map<String, Map<String, Metric>> metricsMap = new HashMap<String, Map<String, Metric>>();
+				List<String> colList = new ArrayList<String>();
 				for (Column col : project.columnModel.columns) {
 					Map<String, Metric> columnMetricsMap = new HashMap<String, Metric>();
 					for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
@@ -61,6 +62,7 @@ public class MetricsExtensionCommand extends Command {
 						}
 						metricsMap.put(col.getName(), columnMetricsMap);
 					}
+					colList.add(col.getName());
 				}
 				List<SpanningMetric> spanningMetrics = new ArrayList<SpanningMetric>();
 				//TODO: insert spanning metrics
@@ -68,19 +70,10 @@ public class MetricsExtensionCommand extends Command {
 				if (request.getParameter("computeDuplicates") != null) {
 					boolean computeDuplicates = Boolean.parseBoolean(request.getParameter("computeDuplicates"));
 					if (computeDuplicates) {
-						String[] duplicateDependencies = request.getParameterValues("duplicateDependencies[]");
+						SpanningMetricFunction uniquenessFn = (SpanningMetricFunction) ControlFunctionRegistry.getFunction("uniqueness");
 						SpanningMetric uniqueness = new SpanningMetric("uniqueness",
-								"Determines if duplicate rows exist",
-								Arrays.asList(duplicateDependencies));
-						String uniq = "uniqueness(";
-						for(String s : duplicateDependencies) {
-							uniq += s;
-							if(!duplicateDependencies[duplicateDependencies.length-1].equals(s)) {
-								uniq += ", ";
-							}
-						}
-						uniq += ")";
-						uniqueness.addSpanningEvalTuple(MetaParser.parse(uniq), "", false);
+								uniquenessFn.getDescription(), colList);
+						uniqueness.addSpanningEvalTuple(uniquenessFn.getEvaluable(), "", false);
 						metricsOverlayModel = new MetricsOverlayModel(
 								metricsMap, spanningMetrics, uniqueness);
 								

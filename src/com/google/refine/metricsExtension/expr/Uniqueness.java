@@ -1,5 +1,7 @@
 package com.google.refine.metricsExtension.expr;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.json.JSONException;
@@ -33,8 +35,27 @@ public class Uniqueness implements SpanningMetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable() throws ParsingException {
-		return MetaParser.parse("uniqueness(\"ID\")");
+	public Evaluable getEvaluable(String[] columns, String[] params) throws ParsingException {
+		String eval = "uniqueness(";
+		Iterator<String> it = Arrays.asList(columns).iterator();
+		while(it.hasNext()) {
+			eval += "\"" + it.next() + "\"";
+			if(it.hasNext()) {
+				eval += ", ";
+			}
+		}
+		if (params != null) {
+			eval += ", ";
+			it = Arrays.asList(params).iterator();
+			while (it.hasNext()) {
+				eval += "\"" + it.next() + "\"";
+				if (it.hasNext()) {
+					eval += ", ";
+				}
+			}
+		}
+		eval += ")";
+		return MetaParser.parse(eval);
 	}
 
 	@Override

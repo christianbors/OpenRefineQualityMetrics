@@ -3,6 +3,8 @@ package com.google.refine.metricsExtension.expr;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.json.JSONException;
@@ -14,11 +16,11 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedCell;
-import com.google.refine.grel.Function;
-import com.google.refine.model.Project;
 
 public class DateInterval implements SpanningMetricFunction {
 
+	private static final List<String> defaultParams = Arrays.asList(new String[] {"lteq", "0", "seconds"});
+	
 	@Override
 	public Object call(Properties bindings, Object[] args) {
 		if (args.length >= 2) {
@@ -102,7 +104,7 @@ public class DateInterval implements SpanningMetricFunction {
         writer.key("description"); writer.value(getDescription());
         writer.key("params"); writer.value(getParams());
         writer.key("returns"); writer.value("boolean");
-        writer.key("defaultParams"); writer.value("gteq, 0, seconds");
+        writer.key("defaultParams"); writer.value(defaultParams.toString());
         writer.endObject();
 	}
 
@@ -112,8 +114,29 @@ public class DateInterval implements SpanningMetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable() throws ParsingException {
-		return MetaParser.parse("dateInterval(\"From\", \"To\")");
+	public Evaluable getEvaluable(String[] columns, String[] params) throws ParsingException {
+		String eval = "dateInterval(";
+		Iterator<String> it = Arrays.asList(columns).iterator();
+		while(it.hasNext()) {
+			eval += "\"" + it.next() + "\"";
+			if(it.hasNext()) {
+				eval += ", ";
+			}
+		}
+		if (params != null) {
+			it = Arrays.asList(params).iterator();
+		} else {
+			it = defaultParams.iterator();
+		}
+		eval += ", ";
+		while (it.hasNext()) {
+			eval += "\"" + it.next() + "\"";
+			if (it.hasNext()) {
+				eval += ", ";
+			}
+		}
+		eval += ")";
+		return MetaParser.parse(eval);
 	}
 
 	@Override

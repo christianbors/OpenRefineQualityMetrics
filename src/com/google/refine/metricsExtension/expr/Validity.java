@@ -1,7 +1,10 @@
 package com.google.refine.metricsExtension.expr;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.json.JSONException;
@@ -13,7 +16,9 @@ import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
 
 public class Validity implements MetricFunction {
-
+	
+	private static final List<String> defaultParams = Arrays.asList(new String[] {"string"});
+	
 	@Override
 	public void write(JSONWriter writer, Properties options)
 			throws JSONException {
@@ -52,8 +57,19 @@ public class Validity implements MetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable() throws ParsingException {
-		return MetaParser.parse("validity(value)");
+	public Evaluable getEvaluable(String[] params) throws ParsingException {
+		String eval = "validity(value";
+		Iterator<String> paramIt;
+		if (params != null) {
+			paramIt = Arrays.asList(params).iterator();
+		} else {
+			paramIt = defaultParams.iterator();
+		}
+		while(paramIt.hasNext()) {
+			eval += ", \"" + paramIt.next() + "\"";
+		}
+		eval += ")";
+		return MetaParser.parse(eval);
 	}
 
 	@Override

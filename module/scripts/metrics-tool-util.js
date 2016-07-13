@@ -179,13 +179,7 @@ function updateMetric() {
             if(metricType[0] === "single") {
               overlayModel.metricColumns[selectedColIdx[0]].metrics[data.name] = data;
             } else if (metricType[0] === "spanning") {
-              if(data.name === "uniqueness") { 
-                overlayModel.uniqueness = data;
-                spanningArray.push(overlayModel.uniqueness);
-              }
-              else {
-                overlayModel.spanningMetrics[updateMetricIndex] = data;
-              }
+              overlayModel.spanningMetrics[updateMetricIndex] = data;
             }
 
             if(metricType[0] === "single") {

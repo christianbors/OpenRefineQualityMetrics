@@ -1,6 +1,9 @@
 
 package com.google.refine.metricsExtension.expr;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.json.JSONException;
@@ -11,10 +14,13 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
+import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 
 
 public class Completeness implements MetricFunction {
 
+	private static final List<String> defaultParams = Arrays.asList(new String[] {});
+	
 	@Override
 	public Object call(Properties bindings, Object[] args) {
 		if (args.length >= 1) {
@@ -57,8 +63,19 @@ public class Completeness implements MetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable() throws ParsingException {
-		return MetaParser.parse("completeness(value)");
+	public Evaluable getEvaluable(String[] params) throws ParsingException {
+		String eval = "completeness(value";
+		Iterator<String> paramIt;
+		if (params != null) {
+			paramIt = Arrays.asList(params).iterator();
+		} else {
+			paramIt = defaultParams.iterator();
+		}
+		while(paramIt.hasNext()) {
+			eval += ", \"" + paramIt.next() + "\"";
+		}
+		eval += ")";
+		return MetaParser.parse(eval);
 	}
 
 	@Override

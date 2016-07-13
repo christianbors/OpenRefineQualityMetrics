@@ -287,16 +287,14 @@ $(document).ready(function() {
                           // }
                         });
 
-                      var spanningArray;
                       if(overlayModel.spanningMetrics != null) {
-                        spanningArray = overlayModel.spanningMetrics;
-                        spanningArray.push(overlayModel.uniqueness);
+                        overlayModel.spanningMetrics.push(overlayModel.uniqueness);
                       } else {
-                        spanningArray = new Array(overlayModel.uniqueness);
+                        overlayModel.spanningMetrics = new Array(overlayModel.uniqueness);
                       }
 
                       // var utr = d3.select("#uniquenessTable").select("tbody").selectAll("tr").data(uniquenessArray).enter().append("tr");
-                      var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(spanningArray).enter().append("table").each(function(d, i) {
+                      var spanningTables = d3.select("#spanningMetricPanel").selectAll("table").data(overlayModel.spanningMetrics).enter().append("table").each(function(d, i) {
                         var table = d3.select(this).attr("table-layout", "fixed")
                           .attr("width", $("#overviewTable").width())
                           .attr("id", "spanningOverviewTable")
@@ -830,7 +828,7 @@ function fillModalAfterColumnSelection(theProject) {
   d3.select("#typeDetailModal").select("tbody").selectAll("tr").remove();
   d3.select("#typeDetailModal").select("thead tr").selectAll("td").remove();
 
-  var dataTypes;
+  var dataTypes = [];
   var metrics;
   var params = { 
     project: theProject.id, 
@@ -871,30 +869,45 @@ function fillModalAfterColumnSelection(theProject) {
               return d.val[selectedColIdx];
             })
         }
+        for(var typeIdx = 0; typeIdx < data.length; typeIdx++) {
+          for(var colIdx = 0; colIdx < selectedCols.length; colIdx++) {
+            if(dataTypes[selectedCols[colIdx]] == null) {
+              dataTypes[selectedCols[colIdx]] = data[typeIdx];
+            }
+            if(data[typeIdx].val[colIdx] > dataTypes[selectedCols[colIdx]].val[colIdx]) {
+              dataTypes[selectedCols[colIdx]] = data[typeIdx];
+            }
+          }
+        }
     });
   if(selectedCols.length == 1) {
-    dataTypes = [{type: "String", val: [20]}, {type: "Numeric", val: [70]}, {type: "Date/Time", val: [3]}, {type: "unknown", val: [7]}];
-    metrics = theProject.overlayModels.metricsOverlayModel.availableMetrics;
+    metrics = overlayModel.availableMetrics;
   } else {
-    dataTypes = [{type: "String", val: [20, 10]}, {type: "Numeric", val: [70, 85]}, {type: "Date/Time", val: [3, 1]}, {type: "unknown", val: [7, 4]}];
-    metrics = theProject.overlayModels.metricsOverlayModel.availableSpanningMetrics;
+    metrics = overlayModel.availableSpanningMetrics;
   }
 
   $.each(metrics, function(key, value) {
       var cl = "btn btn-default";
       if(selectedCols.length == 1) {
-        var selectedMetrics = theProject.overlayModels.metricsOverlayModel.metricColumns[0].metrics;
-        for (var i = 0; i < selectedMetrics.length; i++) {
-          if(selectedMetrics[i].name == value.name) {
-            cl += " disabled";
-            break;
+        for(var columnIndex = 0; columnIndex < overlayModel.metricColumns.length; columnIndex++) {
+          if(overlayModel.metricColumns[columnIndex].columnName === selectedCols[0]) {
+            var selectedMetrics = overlayModel.metricColumns[columnIndex].metrics;
+            var selectedMetricsArray = $.map(selectedMetrics, function(value, index) {
+              return [value];
+            });
+            for (var i = 0; i < selectedMetricsArray.length; i++) {
+              if(selectedMetricsArray[i].name == value) {
+                cl += " disabled";
+                break;
+              }
+            }
           }
         }
       } else if (selectedCols.length > 1) {
-        var spanningMetrics = theProject.overlayModels.metricsOverlayModel.spanningMetrics;
+        var spanningMetrics = overlayModel.spanningMetrics;
         if (spanningMetrics != null) {
           for (var i = 0; i < spanningMetrics.length; i++) {
-            if (value.name == spanningMetrics[i].name.toLowerCase()) {
+            if (value == spanningMetrics[i].name) {
               var disable = true;
               for (var j = 0; j < selectedCols.length; j++) {
                 var colIdx = spanningMetrics[i].spanningColumns.indexOf(selectedCols[j]);

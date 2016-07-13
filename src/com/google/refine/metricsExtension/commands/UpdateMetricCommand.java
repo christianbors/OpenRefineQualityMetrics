@@ -41,9 +41,6 @@ public class UpdateMetricCommand extends Command {
 		Project project = getProject(request);
 		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 		
-		// {metric[name]=completeness, metric[datatype]=unknown, metric[evalTuples][0][disabled]=false, metric[description]=Evaluates if an entry is empty, 
-		// metric[concat]=AND, project=2374114907925, metric[evalTuples][0][comment]=, metric[evalTuples][0][evaluable]=completeness(value), 
-		// metric[columnName]=Longitude, metric[measure]=0.10425717}
 		String metricNameString = request.getParameter("metric[name]");
 		String metricDescriptionString = request.getParameter("metric[description]");
 		String metricDatatypeString = request.getParameter("metric[datatype]");
@@ -64,18 +61,18 @@ public class UpdateMetricCommand extends Command {
 				for(SpanningMetric spanMetric : model.getSpanMetricsList()) {
 					if (spanMetric.getName().equals(metricNameString)) {
 						toBeEdited = spanMetric;
-						String comment = request.getParameter("metric[spanningEvaluable][comment]");
-						String evaluable = request.getParameter("metric[spanningEvaluable][evaluable]");
-						boolean disabled = Boolean.parseBoolean(request.getParameter("metric[spanningEvaluable][disabled]"));
-						try {
-							((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), comment, disabled);
-						} catch (ParsingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
 						break;
 					}
 				}
+			}
+			String comment = request.getParameter("metric[spanningEvaluable][comment]");
+			String evaluable = request.getParameter("metric[spanningEvaluable][evaluable]");
+			boolean disabled = Boolean.parseBoolean(request.getParameter("metric[spanningEvaluable][disabled]"));
+			try {
+				((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), comment, disabled);
+			} catch (ParsingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		

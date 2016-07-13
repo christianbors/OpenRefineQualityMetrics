@@ -1,6 +1,8 @@
 package com.google.refine.metricsExtension.expr;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -14,7 +16,9 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 
 public class Plausibility implements MetricFunction {
-		
+
+	private static final List<String> defaultParams = Arrays.asList(new String[] {"robust"});
+	
 	@Override
 	public Object call(Properties bindings, Object[] args) {
 		if(bindings.containsKey("stats")) {
@@ -82,8 +86,19 @@ public class Plausibility implements MetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable() throws ParsingException {
-		return MetaParser.parse("plausibility(value, \"robust\")");
+	public Evaluable getEvaluable(String[] params) throws ParsingException {
+		String eval = "plausibility(value";
+		Iterator<String> paramIt;
+		if (params != null) {
+			paramIt = Arrays.asList(params).iterator();
+		} else {
+			paramIt = defaultParams.iterator();
+		}
+		while(paramIt.hasNext()) {
+			eval += ", \"" + paramIt.next() + "\"";
+		}
+		eval += ")";
+		return MetaParser.parse(eval);
 	}
 
 	@Override
