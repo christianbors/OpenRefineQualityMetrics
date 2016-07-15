@@ -54,11 +54,11 @@ function init() {
   OR.registerOperation(module, "persistMetrics", Packages.com.google.refine.metricsExtension.operations.PersistMetricsOperation);
 
   var FCR = Packages.com.google.refine.grel.ControlFunctionRegistry;
-  FCR.registerFunction("uniqueness", new Packages.com.google.refine.metricsExtension.expr.Uniqueness());
-  FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.Completeness());
-  FCR.registerFunction("validity", new Packages.com.google.refine.metricsExtension.expr.Validity());
-  FCR.registerFunction("dateInterval", new Packages.com.google.refine.metricsExtension.expr.DateInterval());
-  FCR.registerFunction("plausibility", new Packages.com.google.refine.metricsExtension.expr.Plausibility());
+  FCR.registerFunction("completeness", new Packages.com.google.refine.metricsExtension.expr.metrics.singleColumn.Completeness());
+  FCR.registerFunction("validity", new Packages.com.google.refine.metricsExtension.expr.metrics.singleColumn.Validity());
+  FCR.registerFunction("plausibility", new Packages.com.google.refine.metricsExtension.expr.metrics.singleColumn.Plausibility());
+  FCR.registerFunction("dateInterval", new Packages.com.google.refine.metricsExtension.expr.metrics.spanningColumn.DateInterval());
+  FCR.registerFunction("uniqueness", new Packages.com.google.refine.metricsExtension.expr.metrics.spanningColumn.Uniqueness());
 
   Packages.com.google.refine.model.Project.
     registerOverlayModel("metricsOverlayModel", Packages.com.google.refine.metricsExtension.model.MetricsOverlayModel);

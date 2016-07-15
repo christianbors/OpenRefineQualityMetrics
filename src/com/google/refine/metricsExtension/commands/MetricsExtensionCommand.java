@@ -23,8 +23,8 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.grel.ControlFunctionRegistry;
 import com.google.refine.grel.Function;
-import com.google.refine.metricsExtension.expr.MetricFunction;
-import com.google.refine.metricsExtension.expr.SpanningMetricFunction;
+import com.google.refine.metricsExtension.expr.metrics.singleColumn.SingleColumnMetricFunction;
+import com.google.refine.metricsExtension.expr.metrics.spanningColumn.SpanningColumnMetricFunction;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
@@ -54,10 +54,10 @@ public class MetricsExtensionCommand extends Command {
 				for (Column col : project.columnModel.columns) {
 					Map<String, Metric> columnMetricsMap = new HashMap<String, Metric>();
 					for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
-						if (entry.getValue() instanceof MetricFunction) {
-							MetricFunction mf = (MetricFunction) entry.getValue();
+						if (entry.getValue() instanceof SingleColumnMetricFunction) {
+							SingleColumnMetricFunction mf = (SingleColumnMetricFunction) entry.getValue();
 							Metric m = new Metric(entry.getKey(), mf.getDescription());
-							m.addEvalTuple(mf.getEvaluable(), "", false);
+							m.addEvalTuple(mf.getEvaluable(null), "", false);
 							columnMetricsMap.put(entry.getKey(), m);
 						}
 						metricsMap.put(col.getName(), columnMetricsMap);
@@ -70,10 +70,10 @@ public class MetricsExtensionCommand extends Command {
 				if (request.getParameter("computeDuplicates") != null) {
 					boolean computeDuplicates = Boolean.parseBoolean(request.getParameter("computeDuplicates"));
 					if (computeDuplicates) {
-						SpanningMetricFunction uniquenessFn = (SpanningMetricFunction) ControlFunctionRegistry.getFunction("uniqueness");
+						SpanningColumnMetricFunction uniquenessFn = (SpanningColumnMetricFunction) ControlFunctionRegistry.getFunction("uniqueness");
 						SpanningMetric uniqueness = new SpanningMetric("uniqueness",
 								uniquenessFn.getDescription(), colList);
-						uniqueness.addSpanningEvalTuple(uniquenessFn.getEvaluable(), "", false);
+						uniqueness.addSpanningEvalTuple(uniquenessFn.getEvaluable(null, null), "", false);
 						metricsOverlayModel = new MetricsOverlayModel(
 								metricsMap, spanningMetrics, uniqueness);
 								

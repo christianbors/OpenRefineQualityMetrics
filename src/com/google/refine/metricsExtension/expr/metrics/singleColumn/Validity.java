@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.expr;
+package com.google.refine.metricsExtension.expr.metrics.singleColumn;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -15,7 +15,7 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
 
-public class Validity implements MetricFunction {
+public class Validity implements SingleColumnMetricFunction {
 	
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"string"});
 	

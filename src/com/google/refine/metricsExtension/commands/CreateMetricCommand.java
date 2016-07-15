@@ -16,8 +16,8 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.ControlFunctionRegistry;
 import com.google.refine.grel.Function;
-import com.google.refine.metricsExtension.expr.MetricFunction;
-import com.google.refine.metricsExtension.expr.SpanningMetricFunction;
+import com.google.refine.metricsExtension.expr.metrics.singleColumn.SingleColumnMetricFunction;
+import com.google.refine.metricsExtension.expr.metrics.spanningColumn.SpanningColumnMetricFunction;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.Metric.Concatenation;
 import com.google.refine.metricsExtension.model.Metric.EvalTuple;
@@ -49,13 +49,13 @@ public class CreateMetricCommand extends Command {
 		logger.info("spanning metrics {}", metricsOverlayModel.getSpanMetricsList().size());
 		try {
 			if (columnNames.length == 1) {
-				MetricFunction metricFun = (MetricFunction) ControlFunctionRegistry.getFunction(metricName);
+				SingleColumnMetricFunction metricFun = (SingleColumnMetricFunction) ControlFunctionRegistry.getFunction(metricName);
 				Metric m = new Metric(metricName, metricFun.getDescription(), dataType);
 				m.addEvalTuple(metricFun.getEvaluable(parameters), "", false);
 				
 				metricsOverlayModel.addMetric(columnNames[0], m);
 			} else if (columnNames.length >= 2) {
-				SpanningMetricFunction metricFun = (SpanningMetricFunction) ControlFunctionRegistry.getFunction(metricName);
+				SpanningColumnMetricFunction metricFun = (SpanningColumnMetricFunction) ControlFunctionRegistry.getFunction(metricName);
 					SpanningMetric newSpanningMetric = new SpanningMetric(
 							metricName,
 							metricFun.getDescription(),

@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.expr;
+package com.google.refine.metricsExtension.expr.metrics.spanningColumn;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -12,7 +12,7 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.grel.Function;
 
-public class Uniqueness implements SpanningMetricFunction {
+public class Uniqueness implements SpanningColumnMetricFunction {
 
 	@Override
 	public void write(JSONWriter writer, Properties options)
@@ -37,7 +37,12 @@ public class Uniqueness implements SpanningMetricFunction {
 	@Override
 	public Evaluable getEvaluable(String[] columns, String[] params) throws ParsingException {
 		String eval = "uniqueness(";
-		Iterator<String> it = Arrays.asList(columns).iterator();
+		Iterator<String> it;
+		if (columns != null) {
+			it = Arrays.asList(columns).iterator();
+		} else {
+			it = Arrays.asList("ID").iterator();
+		}
 		while(it.hasNext()) {
 			eval += "\"" + it.next() + "\"";
 			if(it.hasNext()) {

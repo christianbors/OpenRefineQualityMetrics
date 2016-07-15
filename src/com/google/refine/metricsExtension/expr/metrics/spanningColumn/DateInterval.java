@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.expr;
+package com.google.refine.metricsExtension.expr.metrics.spanningColumn;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -17,7 +17,7 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedCell;
 
-public class DateInterval implements SpanningMetricFunction {
+public class DateInterval implements SpanningColumnMetricFunction {
 
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"lteq", "0", "seconds"});
 	

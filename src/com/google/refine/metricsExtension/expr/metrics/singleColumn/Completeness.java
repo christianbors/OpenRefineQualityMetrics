@@ -1,5 +1,5 @@
 
-package com.google.refine.metricsExtension.expr;
+package com.google.refine.metricsExtension.expr.metrics.singleColumn;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -17,7 +17,7 @@ import com.google.refine.grel.Function;
 import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 
 
-public class Completeness implements MetricFunction {
+public class Completeness implements SingleColumnMetricFunction {
 
 	private static final List<String> defaultParams = Arrays.asList(new String[] {});
 	

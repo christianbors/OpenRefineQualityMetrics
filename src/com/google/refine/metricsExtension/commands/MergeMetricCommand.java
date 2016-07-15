@@ -44,7 +44,7 @@ public class MergeMetricCommand extends Command {
 				for(EvalTuple et : m2.getEvalTuples()) {
 					mergedMetric.addEvalTuple(et);
 				}
-				metricsOverlayModel.getMetricsForColumn(columnNames[0]).add(mergedMetric);
+				metricsOverlayModel.getMetricsForColumn(columnNames[0]).put(mergedMetric.getName(), mergedMetric);
 			} else {
 				try {
 					if (m1 != null && m2 != null) {

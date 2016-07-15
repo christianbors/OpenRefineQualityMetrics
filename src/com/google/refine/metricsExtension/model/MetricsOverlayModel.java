@@ -17,8 +17,8 @@ import org.json.JSONWriter;
 
 import com.google.refine.grel.ControlFunctionRegistry;
 import com.google.refine.grel.Function;
-import com.google.refine.metricsExtension.expr.MetricFunction;
-import com.google.refine.metricsExtension.expr.SpanningMetricFunction;
+import com.google.refine.metricsExtension.expr.metrics.singleColumn.SingleColumnMetricFunction;
+import com.google.refine.metricsExtension.expr.metrics.spanningColumn.SpanningColumnMetricFunction;
 import com.google.refine.metricsExtension.util.MetricUtils.RegisteredMetrics;
 import com.google.refine.metricsExtension.util.MetricUtils.RegisteredSpanningMetrics;
 import com.google.refine.model.OverlayModel;
@@ -96,7 +96,7 @@ public class MetricsOverlayModel implements OverlayModel {
         writer.key("availableMetrics");
         writer.array();
         for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
-			if (entry.getValue() instanceof MetricFunction) {
+			if (entry.getValue() instanceof SingleColumnMetricFunction) {
 				writer.value(entry.getKey());
 //				writer.object();
 //				writer.key("name").value(entry.getKey());
@@ -110,7 +110,7 @@ public class MetricsOverlayModel implements OverlayModel {
         writer.key("availableSpanningMetrics");
         writer.array();
         for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
-			if (entry.getValue() instanceof SpanningMetricFunction) {
+			if (entry.getValue() instanceof SpanningColumnMetricFunction) {
 				writer.value(entry.getKey());
 //				writer.object();
 //				writer.key("name").value(entry.getKey());

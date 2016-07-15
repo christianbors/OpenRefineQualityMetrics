@@ -1,4 +1,4 @@
-package com.google.refine.metricsExtension.expr;
+package com.google.refine.metricsExtension.expr.metrics.singleColumn;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -15,7 +15,7 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 
-public class Plausibility implements MetricFunction {
+public class Plausibility implements SingleColumnMetricFunction {
 
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"robust"});
 	

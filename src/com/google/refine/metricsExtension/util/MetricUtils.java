@@ -16,7 +16,7 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedRow;
-import com.google.refine.metricsExtension.expr.DateInterval;
+import com.google.refine.metricsExtension.expr.metrics.spanningColumn.DateInterval;
 import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.Metric.Concatenation;
 import com.google.refine.model.Cell;
