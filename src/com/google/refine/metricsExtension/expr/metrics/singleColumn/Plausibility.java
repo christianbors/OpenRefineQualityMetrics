@@ -14,56 +14,67 @@ import com.google.refine.expr.EvalError;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.model.Project;
 
 public class Plausibility implements SingleColumnMetricFunction {
 
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"robust"});
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object call(Properties bindings, Object[] args) {
-		if(bindings.containsKey("stats")) {
-			if(args.length >= 1) {
-				Object val = args[0];
-				String evalMode = "robust";
-				if(args.length >= 2) {
-					String modeParsed = (String) args[1];
-					if(!Arrays.asList(new String[]{"robust", "standard"}).contains(modeParsed)) {
-						return new EvalError("Unknown evaluation mode " + modeParsed);
-					}
-					evalMode = modeParsed;
+		if(args.length >= 1) {
+			Object val = args[0];
+			String evalMode = "robust";
+			if(args.length >= 2) {
+				String modeParsed = (String) args[1];
+				if(!Arrays.asList(new String[]{"robust", "standard"}).contains(modeParsed)) {
+					return new EvalError("Unknown evaluation mode " + modeParsed);
 				}
+				evalMode = modeParsed;
+			}
+			Project model = (Project) bindings.get("project");
+			DescriptiveStatistics stats;
+			Double sIQR;
+			if(bindings.containsKey("stats")) {
+				stats = (DescriptiveStatistics) bindings.get("stats");
+				sIQR = (Double) bindings.get("siqr");
+			} else if (bindings.containsKey("statsList")) {
+				int columnIndex = model.columnModel.getColumnIndexByName((String) bindings.get("columnName"));
+				stats = ((List<DescriptiveStatistics>) bindings.get("statsList")).get(columnIndex);
+				sIQR = ((List<Double>) bindings.get("siqrList")).get(columnIndex);
+			} else {
+				return new EvalError("Statistics could not be determined");
+			}
+			
+			float fVal = 0f;
+			if (val instanceof Long) {
+				fVal = ((Long) val).floatValue();
+			} else if (val instanceof Double) {
+				fVal = ((Double) val).floatValue();
+			} else if (val instanceof Float) {
+				fVal = (Float) val;
+			} else {
+				return new EvalError("No numeric column");
+			}
+			
+			if("robust".equals(evalMode)) {
+				Double median = stats.apply(new Median());
 				
-				DescriptiveStatistics stats = (DescriptiveStatistics) bindings.get("stats");
-				
-				float fVal = 0f;
-				if (val instanceof Long) {
-					fVal = ((Long) val).floatValue();
-				} else if (val instanceof Double) {
-					fVal = ((Double) val).floatValue();
+				if (fVal > (median + 2 * sIQR) || 
+						(float) fVal < (median - 2 * sIQR)) {
+					return false;
 				} else {
-					fVal = (Float) val;
+					return true;
 				}
-				
-				if("robust".equals(evalMode)) {
-					Double median = stats.apply(new Median());
-					Double sIQR = (Double) bindings.get("siqr");
-					
-					if (fVal > (median + 2 * sIQR) || 
-							(float) fVal < (median - 2 * sIQR)) {
-						return false;
-					} else {
-						return true;
-					}
+			} else {
+				if (fVal < (stats.getMean() + 2 * stats.getStandardDeviation()) && 
+						(float) fVal > (stats.getMean() - 2 * stats.getStandardDeviation())) {
+					return true;
 				} else {
-					if (fVal < (stats.getMean() + 2 * stats.getStandardDeviation()) && 
-							(float) fVal > (stats.getMean() - 2 * stats.getStandardDeviation())) {
-						return true;
-					} else {
-						return false;
-					}
+					return false;
 				}
 			}
-			return false;
 		} else {
 			return new EvalError("Statistics could not be determined");
 		}

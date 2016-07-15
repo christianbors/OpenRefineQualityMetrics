@@ -29,7 +29,9 @@ import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.metricsExtension.util.MetricUtils;
+import com.google.refine.metricsExtension.util.StatisticsUtils;
 import com.google.refine.model.Cell;
+import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
 
@@ -69,7 +71,7 @@ public class EvaluateSelectedMetricCommand extends Command {
 		if (column != null) {
 			int cellIndex = project.columnModel.getColumnIndexByName(column);
 			DescriptiveStatistics stats = new DescriptiveStatistics();
-			filteredRows.accept(project, createAggregateRowVisitor(project, cellIndex, stats, values));
+			filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values));
 			
 			Double median = stats.apply(new Median());
 			DescriptiveStatistics madStats = new DescriptiveStatistics();
@@ -83,11 +85,6 @@ public class EvaluateSelectedMetricCommand extends Command {
 			bindings.put("mad", mad);
 			bindings.put("iqr", iqr);
 			bindings.put("siqr", sIQR);
-			logger.info("median {}", median);
-			logger.info("mad {}", mad);
-			logger.info("iqr {}", iqr);
-			logger.info("sIQR {}", sIQR);
-			
 		}
 		
         filteredRows.accept(project, createEvaluateRowVisitor(bindings, response, overlayModel, metric, spanningMetric, column));
@@ -97,42 +94,6 @@ public class EvaluateSelectedMetricCommand extends Command {
 			ProjectManager.singleton.setBusy(false);
 		}
 	}
-	
-	protected RowVisitor createAggregateRowVisitor(Project project, int cellIndex, DescriptiveStatistics stats, List<Float> values) throws Exception {
-        return new RowVisitor() {
-            int cellIndex;
-            DescriptiveStatistics stats;
-            List<Float> values;
-            
-            public RowVisitor init(int cellIndex, DescriptiveStatistics stats, List<Float> values) {
-                this.cellIndex = cellIndex;
-                this.stats = stats;
-                this.values = values;
-                return this;
-            }
-            
-            @Override
-            public void start(Project project) {
-            	// nothing to do
-            }
-            
-            @Override
-            public void end(Project project) {
-            	// nothing to do
-            }
-            
-            public boolean visit(Project project, int rowIndex, Row row) {
-                try {
-                    Number val = (Number)row.getCellValue(this.cellIndex);
-                    this.values.add(val.floatValue());
-                    this.stats.addValue(val.floatValue());
-                } catch (Exception e) {
-                }
-
-                return false;
-            }
-        }.init(cellIndex, stats, values);
-    }
 	
 	protected RowVisitor createEvaluateRowVisitor(Properties bindings, HttpServletResponse response, MetricsOverlayModel model, Metric metric, SpanningMetric spanningMetric, String column) {
 		return new RowVisitor() {
