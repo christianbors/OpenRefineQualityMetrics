@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONException;
 
+import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.model.Project;
@@ -35,6 +36,7 @@ public class DeleteMetricCommand extends Command {
 			metricsOverlayModel.deleteSpanningMetric(metricName, columnNames);
 		}
 		try {
+			ProjectManager.singleton.ensureProjectSaved(project.id);
 			respondJSON(response, metricsOverlayModel);
 		} catch (JSONException e) {
 			respondException(response, e);

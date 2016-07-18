@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
+import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
@@ -102,6 +103,7 @@ public class UpdateMetricCommand extends Command {
 			columnMetrics.put(metricNameString, toBeEdited);
 		}
 		try {
+			ProjectManager.singleton.ensureProjectSaved(project.id);
 			respondJSON(response, toBeEdited);
 		} catch (JSONException e) {
 			e.printStackTrace();

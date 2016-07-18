@@ -16,6 +16,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.json.JSONException;
 
+import com.google.refine.ProjectManager;
 import com.google.refine.browsing.Engine;
 import com.google.refine.browsing.FilteredRows;
 import com.google.refine.browsing.RowVisitor;
@@ -179,6 +180,7 @@ public class EvaluateMetricsCommand extends Command {
 					sm.setMeasure(1f - MetricUtils.determineQuality(bindings, sm));
 				}
 				try {
+					ProjectManager.singleton.ensureProjectSaved(project.id);
 					respondJSON(response, model);
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block

@@ -58,6 +58,7 @@ function init() {
   FCR.registerFunction("validity", new Packages.com.google.refine.metricsExtension.expr.metrics.singleColumn.Validity());
   FCR.registerFunction("plausibility", new Packages.com.google.refine.metricsExtension.expr.metrics.singleColumn.Plausibility());
   FCR.registerFunction("dateInterval", new Packages.com.google.refine.metricsExtension.expr.metrics.spanningColumn.DateInterval());
+  FCR.registerFunction("dateIntervalOutliers", new Packages.com.google.refine.metricsExtension.expr.metrics.spanningColumn.DateIntervalOutliers());
   FCR.registerFunction("uniqueness", new Packages.com.google.refine.metricsExtension.expr.metrics.spanningColumn.Uniqueness());
   // quality checks
   FCR.registerFunction("median", new Packages.com.google.refine.metricsExtension.expr.checks.MedianCheck());
