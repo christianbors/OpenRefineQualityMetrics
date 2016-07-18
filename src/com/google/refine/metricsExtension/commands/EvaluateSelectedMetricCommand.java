@@ -43,51 +43,30 @@ public class EvaluateSelectedMetricCommand extends Command {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
-		Project project = getProject(request);
-		Properties bindings = ExpressionUtils.createBindings(project);
-		Engine engine = new Engine(project);
-		
-		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-		String column = request.getParameter("column");
-		String metricNameString = request.getParameter("metric[name]");
-		
-		Metric metric = null;
-		SpanningMetric spanningMetric = null;
-		if(metricNameString.equals("uniqueness")) {
-			spanningMetric = overlayModel.getUniqueness();
-		} else if(column == null) {
-			for(SpanningMetric spanMetric : overlayModel.getSpanMetricsList()) {
-				if (spanMetric.getName().equals(metricNameString)) {
-					spanningMetric = spanMetric;
-					break;
-				}
-			}
-		} else {
-			metric = overlayModel.getMetricsColumn(column).get(metricNameString);
-		}
-		FilteredRows filteredRows = engine.getAllFilteredRows();
-		
-		List<Float> values = new ArrayList<Float>();
-		if (column != null) {
-			int cellIndex = project.columnModel.getColumnIndexByName(column);
-			DescriptiveStatistics stats = new DescriptiveStatistics();
-			filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values));
+			Project project = getProject(request);
+			Properties bindings = ExpressionUtils.createBindings(project);
+			Engine engine = new Engine(project);
 			
-			Double median = stats.apply(new Median());
-			DescriptiveStatistics madStats = new DescriptiveStatistics();
-			for(double entry : stats.getValues()) {
-				madStats.addValue(Math.abs(entry - median));
+			MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+			String column = request.getParameter("column");
+			String metricNameString = request.getParameter("metric[name]");
+			
+			Metric metric = null;
+			SpanningMetric spanningMetric = null;
+			if(metricNameString.equals("uniqueness")) {
+				spanningMetric = overlayModel.getUniqueness();
+			} else if(column == null) {
+				for(SpanningMetric spanMetric : overlayModel.getSpanMetricsList()) {
+					if (spanMetric.getName().equals(metricNameString)) {
+						spanningMetric = spanMetric;
+						break;
+					}
+				}
+			} else {
+				metric = overlayModel.getMetricsColumn(column).get(metricNameString);
 			}
-			Double mad = madStats.apply(new Median());
-			Double iqr = stats.getPercentile(75) - stats.getPercentile(25);
-			Double sIQR = iqr/1.35f;
-			bindings.put("stats", stats);
-			bindings.put("mad", mad);
-			bindings.put("iqr", iqr);
-			bindings.put("siqr", sIQR);
-		}
-		
-        filteredRows.accept(project, createEvaluateRowVisitor(bindings, response, overlayModel, metric, spanningMetric, column));
+			FilteredRows filteredRows = engine.getAllFilteredRows();
+	        filteredRows.accept(project, createEvaluateRowVisitor(bindings, response, overlayModel, metric, spanningMetric, column));
 		} catch (Exception e) {
 			respondException(response, e);
 		} finally {

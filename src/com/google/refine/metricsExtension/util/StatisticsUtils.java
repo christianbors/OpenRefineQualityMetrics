@@ -45,4 +45,49 @@ public class StatisticsUtils {
             }
         }.init(cellIndex, stats, values);
     }
+	
+	public static RowVisitor createAggregateRowVisitor(Project project, int cellIndex, DescriptiveStatistics stats, List<Float> values, int startIndex, int endIndex) throws Exception {
+        return new RowVisitor() {
+            int cellIndex;
+            int startIndex;
+            int endIndex;
+            DescriptiveStatistics stats;
+            List<Float> values;
+            
+            public RowVisitor init(int cellIndex, DescriptiveStatistics stats, List<Float> values, int startIndex, int endIndex) {
+                this.cellIndex = cellIndex;
+                this.startIndex = startIndex;
+                this.endIndex = endIndex;
+                this.stats = stats;
+                this.values = values;
+                return this;
+            }
+            
+            @Override
+            public void start(Project project) {
+            	// nothing to do
+            }
+            
+            @Override
+            public void end(Project project) {
+            	// nothing to do
+            }
+            
+            public boolean visit(Project project, int rowIndex, Row row) {
+            	if(rowIndex >= startIndex && rowIndex <= endIndex) {
+					try {
+						Number val = (Number) row.getCellValue(this.cellIndex);
+						this.values.add(val.floatValue());
+						this.stats.addValue(val.floatValue());
+					} catch (Exception e) {
+						return false;
+					}
+            	}
+            	if(rowIndex > endIndex) {
+            		return true;
+            	}
+            	return false;
+            }
+        }.init(cellIndex, stats, values, startIndex, endIndex);
+    }
 }

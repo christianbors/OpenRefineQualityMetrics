@@ -44,41 +44,7 @@ public class EvaluateMetricsCommand extends Command {
 		Properties bindings = ExpressionUtils.createBindings(project);
 		Engine engine = new Engine(project);
 		
-		FilteredRows filteredRows = engine.getAllFilteredRows();
-		List<DescriptiveStatistics> statsColsList = new ArrayList<DescriptiveStatistics>();
-		List<Double> madColsList = new ArrayList<Double>();
-		List<Double> iqrColsList = new ArrayList<Double>();
-		List<Double> sIQRColsList = new ArrayList<Double>();
-		for(Column col : project.columnModel.columns) {
-			List<Float> values = new ArrayList<Float>();
-			int cellIndex = col.getCellIndex();
-			DescriptiveStatistics stats = new DescriptiveStatistics();
-			try {
-				filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			Double median = stats.apply(new Median());
-			
-			DescriptiveStatistics madStats = new DescriptiveStatistics();
-			for(double entry : stats.getValues()) {
-				madStats.addValue(Math.abs(entry - median));
-			}
-			statsColsList.add(stats);
-			Double mad = madStats.apply(new Median());
-			Double iqr = stats.getPercentile(75) - stats.getPercentile(25);
-			Double sIQR = iqr/1.35f;
-			madColsList.add(mad);
-			iqrColsList.add(iqr);
-			sIQRColsList.add(sIQR);
-		}
-		bindings.put("statsList", statsColsList);
-		bindings.put("madList", madColsList);
-		bindings.put("iqrList", iqrColsList);
-		bindings.put("siqrList", sIQRColsList);
-		
+		FilteredRows filteredRows = engine.getAllFilteredRows();		
         filteredRows.accept(project, new RowVisitor() {
 			private Properties bindings;
 			private HttpServletResponse response;

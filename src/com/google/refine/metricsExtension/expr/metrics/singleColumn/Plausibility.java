@@ -1,5 +1,6 @@
 package com.google.refine.metricsExtension.expr.metrics.singleColumn;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -10,41 +11,82 @@ import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
+import com.google.refine.browsing.Engine;
+import com.google.refine.browsing.FilteredRows;
 import com.google.refine.expr.EvalError;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
+import com.google.refine.metricsExtension.util.StatisticsUtils;
 import com.google.refine.model.Project;
 
 public class Plausibility implements SingleColumnMetricFunction {
 
-	private static final List<String> defaultParams = Arrays.asList(new String[] {"robust"});
+	private static final List<String> defaultParams = Arrays.asList(new String[] {"global", "robust"});
+	private String comparisonMode = "global";
+	private String evalMode = "robust";
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object call(Properties bindings, Object[] args) {
+		DescriptiveStatistics stats;
+		Double median;
+		Double sIQR;
 		if(args.length >= 1) {
 			Object val = args[0];
-			String evalMode = "robust";
-			if(args.length >= 2) {
-				String modeParsed = (String) args[1];
-				if(!Arrays.asList(new String[]{"robust", "standard"}).contains(modeParsed)) {
-					return new EvalError("Unknown evaluation mode " + modeParsed);
+			if(args.length >= 3) {
+				String comparisonParsed = (String) args[1];
+				if(!Arrays.asList(new String[]{"global", "progressive"}).contains(comparisonParsed)) {
+					return new EvalError("Unknown comparison mode " + comparisonParsed);
 				}
-				evalMode = modeParsed;
+				comparisonMode = comparisonParsed;
+				String evalParsed = (String) args[2];
+				if(!Arrays.asList(new String[]{"robust", "standard"}).contains(evalParsed)) {
+					return new EvalError("Unknown evaluation mode " + evalParsed);
+				}
+				evalMode = evalParsed;
 			}
-			Project model = (Project) bindings.get("project");
-			DescriptiveStatistics stats;
-			Double sIQR;
-			if(bindings.containsKey("stats")) {
+			if (!bindings.containsKey("stats") || comparisonMode.equals("progressive")) {
+				Project project = (Project) bindings.get("project");
+				String column = (String) bindings.get("columnName");
+				int cellIndex = project.columnModel.getColumnIndexByName(column);
+				Engine engine = new Engine(project);
+				FilteredRows filteredRows = engine.getAllFilteredRows();
+				stats = new DescriptiveStatistics();
+				List<Float> values = new ArrayList<Float>();
+				try {
+					if(comparisonMode.equals("progressive")) {
+						int endIdx = (int) bindings.get("rowIndex")-1;
+						if(endIdx < 9) {
+							endIdx = 9;
+						}
+						int startIdx = endIdx - 9;
+						filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values, startIdx, endIdx));
+					} else {
+						filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values));
+						bindings.put("stats", stats);
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+//				DescriptiveStatistics madStats = new DescriptiveStatistics();
+//				for (double entry : stats.getValues()) {
+//					madStats.addValue(Math.abs(entry - median));
+//				}
+				// statsColsList.add(stats);
+				// Double mad = madStats.apply(new Median());
+				// Double iqr = stats.getPercentile(75) -
+				// stats.getPercentile(25);
+				// Double sIQR = iqr/1.35f;
+				// madColsList.add(mad);
+				// iqrColsList.add(iqr);
+				// sIQRColsList.add(sIQR);
+
+			} else {
 				stats = (DescriptiveStatistics) bindings.get("stats");
 				sIQR = (Double) bindings.get("siqr");
-			} else if (bindings.containsKey("statsList")) {
-				int columnIndex = model.columnModel.getColumnIndexByName((String) bindings.get("columnName"));
-				stats = ((List<DescriptiveStatistics>) bindings.get("statsList")).get(columnIndex);
-				sIQR = ((List<Double>) bindings.get("siqrList")).get(columnIndex);
-			} else {
-				return new EvalError("Statistics could not be determined");
 			}
 			
 			float fVal = 0f;
@@ -59,7 +101,16 @@ public class Plausibility implements SingleColumnMetricFunction {
 			}
 			
 			if("robust".equals(evalMode)) {
-				Double median = stats.apply(new Median());
+				median = stats.apply(new Median());
+
+				DescriptiveStatistics madStats = new DescriptiveStatistics();
+				for(double entry : stats.getValues()) {
+					madStats.addValue(Math.abs(entry - median));
+				}
+				Double mad = madStats.apply(new Median());
+				Double iqr = stats.getPercentile(75) - stats.getPercentile(25);
+				Double smad = mad/0.675;
+				sIQR = iqr/1.35f;
 				
 				if (fVal > (median + 2 * sIQR) || 
 						(float) fVal < (median - 2 * sIQR)) {
@@ -93,7 +144,8 @@ public class Plausibility implements SingleColumnMetricFunction {
 
 	@Override
 	public String getDescription() {
-		return "Perform statistical plausibilization. Plausible values can be compared to robust/standard statistics measures";
+		return "Perform statistical plausibilization. The plausibility can be compared progressively (based on the last 10 values), or globally. "
+				+ "Plausible values can be compared to robust/standard statistics measures";
 	}
 
 	@Override
@@ -114,6 +166,6 @@ public class Plausibility implements SingleColumnMetricFunction {
 
 	@Override
 	public String getParams() {
-		return "value, evaluation mode (optional)";
+		return "value, comparisons mode (optional, default: global), statistics type (optional, default: robust)";
 	}
 }
