@@ -13,13 +13,14 @@ function addEvaluableEntry(evalTuple) {
   $("#container" + i).append("<input data-toggle='tooltip' type='text' class='form-control pop metricInput' placeholder='Check' id='eval"+i+"'/>  ");
   $("#eval" + i).keypress(function(event){
     if (event.which == 13) {
+      $("#eval" + i).blur();
+      window.clearTimeout(timerID);
       if(metricData[0].spanningEvaluable != null) {
         if(i == 0) metricData[0].spanningEvaluable.evaluable = this.value;
         else metricData[0].evalTuples[i-1].evaluable = this.value;
       } else {
         metricData[0].evalTuples[i].evaluable = this.value;
       }
-      window.clearTimeout(timerID);
       updateMetric();
     }
   });
@@ -246,6 +247,8 @@ function updateMetric() {
                     offset = offset + 12;
                   }
                   return "translate(-" + offset + ",0)";
+                }).attr("display", function(d, i) {
+                  if(d.dirtyIndices == null) return "none";
                 });
 
               newGroups.append("rect")
@@ -279,7 +282,12 @@ function updateMetric() {
                   return fillMetricColor(current.name);
                 });
 
-              bins.call(tooltipInvalid);
+              for (var i = 0; i < bins.length; i++) {
+                if(bins[i].length > 0) {
+                  bins.call(tooltipInvalid);
+                  break;
+                }
+              }
 
               bins.each(function (d) {
                 var y = overlayY(d.index);

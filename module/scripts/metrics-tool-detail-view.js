@@ -269,7 +269,7 @@ function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
         if (d == true) {
           return "white";
         } else {
-          return fillMetricColor(metricData[i].name);
+          return fillMetricColor(selectedChecks[i]);
           // return z(selectedChecksIndex[i]);
         }
         

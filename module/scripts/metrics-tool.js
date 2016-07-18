@@ -350,6 +350,9 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
         offset = offset + 12;
       }
       return "translate(-" + offset + ",0)";
+    })
+    .attr("display", function(d, i) {
+      if(d.dirtyIndices == null) return "none";
     });
 
   cols.append("rect")
@@ -380,7 +383,6 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     return fillMetricColor(current.name);
     // return z(overlayModel.availableMetrics.indexOf(current.name));
   });
-
   bins.call(tooltipInvalid);
 
   bins.each(function (d) {
@@ -425,7 +427,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel)
     });
     tooltipInvalid.hide();
   });
-
+  
   overlay.append("line")
     .attr("x1", function(d) {
       var attr = this.previousSibling.attributes["transform"];
