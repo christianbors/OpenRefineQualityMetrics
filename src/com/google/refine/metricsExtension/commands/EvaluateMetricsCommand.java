@@ -161,15 +161,19 @@ public class EvaluateMetricsCommand extends Command {
 
 			@Override
 			public void start(Project project) {
-				uniqueness = model.getUniqueness();
-				uniqueness.getDirtyIndices().clear();
+				if (model.getUniqueness() != null) {
+					uniqueness = model.getUniqueness();
+					uniqueness.getDirtyIndices().clear();
+				}
 			}
 
 			@Override
 			public void end(Project project) {
 				// TODO: add AND/OR/XOR
-				Metric uniqueness = model.getUniqueness();
-				uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
+				if (model.getUniqueness() != null) {
+					Metric uniqueness = model.getUniqueness();
+					uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
+				}
 				for (String columnName : model.getMetricColumnNames()) {
 					for (Map.Entry<String, Metric> metricEntry : model.getMetricsForColumn(columnName).entrySet()) {
 						float q = 1f - MetricUtils.determineQuality(bindings, metricEntry.getValue());

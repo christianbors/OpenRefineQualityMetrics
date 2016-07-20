@@ -61,7 +61,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
       "metric-doc",
       "metricsOverlayModel",
       {
-        computeDuplicates: true,
+        computeDuplicates: false,
       },
       body,
       updateOptions,

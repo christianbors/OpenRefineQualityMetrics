@@ -184,7 +184,9 @@ $(document).ready(function() {
                       overlayModel = data;
                       var margin = 20;
 
-                      $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
+                      if (overlayModel.uniqueness != null) {
+                        $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
+                      }
 
                       datatablesHeader = $(".dataTables_scrollHead").height();
                       rawDataHeight = $('#raw-data-container').height();
