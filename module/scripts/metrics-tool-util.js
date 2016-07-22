@@ -199,13 +199,10 @@ function updateMetric() {
                 }
               });
             } else {
-              d3.selectAll("#spanningOverviewTable").data(overlayModel.spanningMetrics);
-              d3.selectAll("#spanningOverviewTable tbody").data(overlayModel.spanningMetrics);
-              d3.selectAll("#spanningOverviewTable tbody tr").data(overlayModel.spanningMetrics);
-              d3.selectAll("#spanningOverviewTable tbody tr td").data(overlayModel.spanningMetrics);
-              d3.selectAll("#spanningOverviewTable tbody tr td svg").data(overlayModel.spanningMetrics);
-              d3.selectAll("#spanningOverviewTable tbody tr td svg rect").data(overlayModel.spanningMetrics);
-              d3.select("#spanningOverviewTable tbody tr td.selected rect").attr("width", function(d) {
+              d3.selectAll(".dataTables_scrollHead thead .span-metric-row td").data(overlayModel.spanningMetrics);
+              d3.selectAll(".dataTables_scrollHead thead .span-metric-row td svg").data(overlayModel.spanningMetrics);
+              d3.selectAll(".dataTables_scrollHead thead .span-metric-row td svg rect").data(overlayModel.spanningMetrics);
+              d3.select(".dataTables_scrollHead thead .span-metric-row td.selected svg rect").attr("width", function(d) {
                 if (d != null) {
                   d = data;
                   return d.measure * this.parentNode.scrollWidth;
@@ -385,7 +382,6 @@ function updateMetric() {
             }
 
             redrawDetailView(theProject, metricData, rowModel, overlayModel);
-            $.post("../../command/metric-doc/persistMetrics?" + $.param({ project: theProject.id }));
           });
 	      });
 }

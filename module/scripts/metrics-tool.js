@@ -37,7 +37,6 @@ var theProject,
     colWidth = 50,
     dataTypes,
     datatablesHeader,
-    rawDataHeight,
     selectedMetricModal,
 // selection for creating a metric
     columnForMetricToBeCreated,
@@ -129,7 +128,7 @@ $(document).ready(function() {
                   columns = theProject.columnModel.columns;
                   for (var r = 0; r < data.rows.length; r++) {
                     var row = data.rows[r];
-                    var rowValues = [];
+                    var rowValues = [''];
                     $.each(columns, function(index, value) {
                       if (value != null) {
                         var cell = row.cells[value.cellIndex]
@@ -143,27 +142,13 @@ $(document).ready(function() {
                     dataSet.push(rowValues);
                   }
 
-                  columnStore = [];
+                  columnStore = [{"title": ""}];
                   $.each(columns, function(index, value) {
                     rowIndex.push(index);
-                    columnStore[index] = {"title": value.name};
+                    columnStore[index+1] = {"title": value.name};
                   });
 
                   var dataCols = dataSet[0];
-
-                  $('#dataset').dataTable( {
-                    "data": dataSet,
-                    "columns": columnStore,
-                    // "scrollX": true,
-                    "sScrollY": "350px",
-                    "scrollCollapse": true,
-                    "paging": true,
-                    "scroller": true,
-                    "bSort": false,
-                    "bFilter": true,
-                    "dom": 'rt<"bottom"i><"clear">',
-                    "bAutoWidth": true
-                  });
 
                   $.each(columnStore, function(key, value){
                     $("#columnFormMetricModal").append('<option value="' + value.title + '">' + value.title + '</option>');
@@ -188,15 +173,61 @@ $(document).ready(function() {
                         $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
                       }
 
-                      datatablesHeader = $(".dataTables_scrollHead").height();
-                      rawDataHeight = $('#raw-data-container').height();
+                      $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Multiple-Column Metrics</th></tr>');
+                      $.each(overlayModel.spanningMetrics, function(key, metric) {
+                        var spanMetricRow = '<tr class="span-metric-row">';
+                        spanMetricRow += '<th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + metric.name + '</th>';
+                        spanMetricRow += '<td style="padding:0px;" colspan="' + columns.length + '"></td>'
+                        spanMetricRow += '</tr>';
+                        var spanMetricColumns = '<tr><td></td>';
+                        $.each(metric.spanningColumns, function(idx, column) {
+                          var colspan = Math.floor(columns.length/metric.spanningColumns.length);
+                          if(idx == 0) {
+                            colspan += 1;
+                          }
+                          spanMetricColumns += "<th colspan="+colspan+">"+column+"</th>";
+                        });
+                        spanMetricColumns += '</tr>';
+                        $("#datasetHeader").append(spanMetricColumns);
+                        $("#datasetHeader").append(spanMetricRow);
+                      });
+
+                      $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Single-Column Metrics</th></tr>');
+                      var singleColsRow = '<tr><td></td>';
+                      $.each(columns, function(key, value) {
+                        singleColsRow += '<th>'+value.name+'</th>';
+                      });
+                      singleColsRow += '</tr>';
+                      $("#datasetHeader").append(singleColsRow);
+                      $.each(overlayModel.availableMetrics, function(key, value) {
+                        var row = '<tr class="metric-row"><th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + value +'</th>';
+                        $.each(columns, function(keyCol, col) {
+                          row += '<td style="padding:0px;"></td>';
+                        });
+                        row += "</tr>"
+                        $("#datasetHeader").append(row);
+                      });
+
+                      $("#datasetHeader").append(singleColsRow);
+
+                      $('#dataset').dataTable( {
+                        "data": dataSet,
+                        "columns": columnStore,
+                        "scrollY": "500px",
+                        "scrollX": true,
+                        "scrollCollapse": true,
+                        "scroller": true,
+                        "bSort": false,
+                        "bFilter": true,
+                        "dom": 'rt<"bottom"i><"clear">'
+                      });
 
                       //this reorders the metrics to be in line with the actual displayed columns
                       var sortedMetrics = new Array();
                       for(var idx = 0; idx < theProject.columnModel.columns.length; idx++) {
                         var foundColumn = overlayModel.metricColumns.filter(function(col) {
-                          if (columnStore[idx] != null) {
-                            return col.columnName == columnStore[idx].title;
+                          if (columns[idx] != null) {
+                            return col.columnName == columns[idx].name;
                           }
                         })[0];
                         if (foundColumn != null) {
@@ -209,8 +240,9 @@ $(document).ready(function() {
 
                       var minScale = overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.length;
                       
-                      tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
-                      tr.append("th").text(function(d) { return d; });
+                      // tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
+                      // tr.append("th").text(function(d) { return d; });
+                      tr = d3.selectAll("tr.metric-row").data(overlayModel.availableMetrics);
 
                       z = d3.scale.ordinal()
                         .range(colorbrewer.YlOrRd[minScale+1])
@@ -220,30 +252,23 @@ $(document).ready(function() {
                       $('#detailViewHeader').css('marginTop', 0 + 'px')
                         .css('marginBottom', 0 + 'px');
 
-                      rawDataTable = $('#dataset').DataTable().columns.adjust().draw();
-                      columns = theProject.columnModel.columns;
-                      for (var col = 0; col < columns.length; col++) {
-                        var column = columns[col];
-                        columnStore[column.cellIndex] = {"title": column.name};
-                        columnsStore.push(column.name);
-                      }
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
                       
-                      colWidths = [];
-                      $.each($("#dataset > tbody > tr")[0].children, function(i, header) {
-                        colWidths.push(header.offsetWidth);
-                      });
+                      // colWidths = [];
+                      // $.each($("#dataset > tbody > tr")[0].children, function(i, header) {
+                      //   colWidths.push(header.offsetWidth);
+                      // });
 
-                      var overviewTable = d3.select("#overviewTable").select("thead tr")
-                        .selectAll('td')
-                        .data(columns).enter()
-                        .append('td')
-                        .attr("width", function(d, i) {
-                          return colWidths[i];
-                      }).text(function(col) { 
-                          return col.name; 
-                      }).attr("data-toggle", "popover")
-                        .on("contextmenu", addMetricToColumn);
+                      // var overviewTable = d3.select("#overviewTable").select("thead tr")
+                      //   .selectAll('td')
+                      //   .data(columns).enter()
+                      //   .append('td')
+                      //   .attr("width", function(d, i) {
+                      //     return colWidths[i];
+                      // }).text(function(col) { 
+                      //     return col.name; 
+                      // }).attr("data-toggle", "popover")
+                      //   .on("contextmenu", addMetricToColumn);
 
                       $("#overviewTable thead tr td").popover({
                         html: 'true',
@@ -256,8 +281,7 @@ $(document).ready(function() {
 
                       renderMetricOverview();
                       renderSpanningMetricOverview();
-
-                      drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel);
+                      drawDatatableScrollVis(theProject, rowModel, columnStore);
                       //todo: edit when selecting other metric
                       dataViewPopover();
                     }, 
@@ -277,193 +301,6 @@ $(document).ready(function() {
   );
   // Sortable.create(checksList, { /* options */ });
 });
-
-function drawDatatableScrollVis(theProject, rowModel, columnStore, overlayModel) {
-  var tablePos = $(".dataTables_scrollBody").position();
-  $("#overlay").css({top: tablePos.top, 
-    left: tablePos.left,
-    position:'absolute', 
-    width: $(".dataTables_scrollBody").width(), 
-    height: $(".dataTables_scrollBody").height()
-  });
-
-  var colWidths = [];
-  $.each($("#dataset > thead > tr > th"), function(i, header) {
-    colWidths.push(header.offsetWidth);
-  });
-
-  //this determines the width offset of the overlay
-  colWidths[0] = colWidths[0];
-  for(var i = 1; i < colWidths.length; i++) {
-    colWidths[i] = colWidths[i] + colWidths[i-1];
-  };
-
-  var overlayX = d3.scale.ordinal().range(colWidths);
-
-  overlayY = d3.scale.linear()
-    .domain([rowModel.filtered, 0])
-    .rangeRound([$(".dataTables_scrollBody").height(), 0]);
-
-  var minScale = 3;
-  if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
-
-  // d3.select("#overlay").attr("transform", "translate(0, -" + $("#dataset_wrapper")[0].clientHeight + ")");
-  var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
-    .data(overlayModel.metricColumns)
-    .enter().append("g")
-    .attr("class", "metrics-overlay")
-    .attr("transform", function (d, i) {
-      var translate = 0;
-      if (d != null) {
-        $.each(d.metrics, function(idx, metric) {
-          if(metric.dirtyIndices != null) {
-            translate++;
-          }
-        });
-      }
-      return "translate(" + colWidths[i] + ",0)";
-    })
-    .attr('pointer-events', 'all');
-
-  var cols = overlay.selectAll(".metrics-overlay-col")
-    .data(function(d) {
-      if (d != null) {
-        var array = $.map(d.metrics, function(value, index) {
-            return [value];
-        });
-        return array;
-      } else {
-        return [];
-      }
-    })
-    .enter().append("g")
-    .attr("class", "metrics-overlay-col")
-    .attr("class", function(d, i) {
-      return d.name;
-    })
-    .attr("transform", function(d, i) {
-      var offset = 0;
-      if (i > 0) {
-        var attr = this.parentNode.children[i-1].attributes["transform"];
-        var transl = attr.value.match(/\d+/);
-        offset = offset + parseInt(transl[0]);
-      }
-      if(d.dirtyIndices != null) {
-        offset = offset + 12;
-      }
-      return "translate(-" + offset + ",0)";
-    })
-    .attr("display", function(d, i) {
-      if(d.dirtyIndices == null) return "none";
-    });
-
-  cols.append("rect")
-    .attr("height", $(".dataTables_scrollBody").height())
-    .attr("width", 12)
-    .attr("fill", function(d) {
-      if (d.dirtyIndices != null) {
-        return "white";
-      } else {
-        return "transparent";
-      }
-    });
-
-  var bins = cols.selectAll(".metrics-bin")
-  .data(function(d) {
-    if (d.dirtyIndices != null) {
-      return d.dirtyIndices; 
-    } else {
-      return [];
-    }
-  }).enter()
-  .append("rect")
-  .attr("class", "metrics-bin")
-  .attr("width", function (d, i) {
-    return  12; 
-  }).style("fill", function(d, i) {
-    var current = this.parentNode.__data__;
-    return fillMetricColor(current.name);
-    // return z(overlayModel.availableMetrics.indexOf(current.name));
-  });
-  bins.call(tooltipInvalid);
-
-  bins.each(function (d) {
-    var ys = d3.select(this)
-      .attr("y", overlayY(d.index))
-      .attr("height", 1);
-  });
-
-  bins.on("click", selectRow);
-
-  bins.on("mouseover", function(d) {
-    d3.select(this).style("fill", "steelblue");
-    var selThis = this;
-    var sameRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
-      return d3.select(this).attr("y") === d3.select(selThis).attr("y");
-    })[0];
-    if(sameRows.length > 1) {
-      var indices = {
-        first: sameRows[0].__data__.index,
-        last: sameRows[sameRows.length-1].__data__.index
-      };
-      tooltipInvalid.show(indices);
-    } else {
-      tooltipInvalid.show(d.index)
-    }
-    $.each(sameRows, function(i, rowCurrent) {
-      $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
-    });
-  });
-
-  bins.on("mouseout", function(d) {
-    $("#dataset tr").removeClass("hover");
-    d3.select(this).style("fill", function(d, i) {
-      var metricsCol = this.parentNode.parentNode.__data__;
-      var current = this.parentNode.__data__;
-      return fillMetricColor(current.name);
-      // for(var idx = 0; idx < overlayModel.availableMetrics.length; idx++) {
-      //   if(overlayModel.availableMetrics[idx].name === current.name) {
-      //     return z(idx);
-      //   }
-      // }
-    });
-    tooltipInvalid.hide();
-  });
-  
-  overlay.append("line")
-    .attr("x1", function(d) {
-      var attr = this.previousSibling.attributes["transform"];
-      var transl = attr.value.match(/\d+/);
-      var offset = parseInt(transl[0]);
-      return "-" + (offset+1);
-    })
-    .attr("x2", function(d) {
-      var attr = this.previousSibling.attributes["transform"];
-      var transl = attr.value.match(/\d+/);
-      var offset = parseInt(transl[0]);
-      return "-" + (offset+1);
-    })
-    .attr("y1", 0)
-    .attr("y2", $(".dataTables_scrollBody").height())
-    .attr("stroke", "#ddd")
-    .attr("stroke-width", "2");
-
-  overlay.append("line")
-    .attr("x1", 0)
-    .attr("x2", 0)
-    .attr("y1", 0)
-    .attr("y2", $(".dataTables_scrollBody").height())
-    .attr("stroke", "#ddd")
-    .attr("stroke-width", "2");
-
-  // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
-  // var svg = headers.insert("svg", "#dataset")
-  //   .attr("class", "overlay")
-  //   .attr("width", $(".dataTables_scrollBody").width())
-  //   .attr("height", $(".dataTables_scrollBody").height())
-  //   .attr("top", tablePos.top)
-  //   .attr("left", tablePos.left);
-}
 
 function refillEditForm(d, colName) {
   $("#addCheckFooter").show();

@@ -1,11 +1,11 @@
-function redrawDetailView(theProject, metricData, rowModel, overlayModel) {
+function redrawDetailView(theProject, metricData, rowModel) {
   d3.select("#heatmap").select("svg").remove();
   $("#filtering").show();
   
   var axisWidths = [];
   axisWidths.push(0);
   // initialize selected metric evaluables
-  var headerHeightComp = datatablesHeader - $("#filtering").outerHeight();// - $('#detailViewHeader').height();
+  var headerHeightComp = $(".dataTables_scrollhead").height() - ($("#legend").height() + $("#legend")[0].offsetTop);
   detailViewMargin = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
   detailViewWidth = parseInt(d3.select("#heatmap").style("width")) - detailViewMargin.left - detailViewMargin.right,
   detailViewHeight = $(".dataTables_scrollBody").height();

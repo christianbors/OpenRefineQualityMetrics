@@ -138,9 +138,9 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-9 overview-col" style="border-top: 2px solid #ccc;">
-        <div><h5>Multiple-Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
+    <!-- <div class="row">
+      <div class="col-md-9 overview-col" style="border-top: 2px solid #ccc;"> -->
+        <!-- <div><h5>Multiple-Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
         <div id="spanningMetricPanel">
         </div>
         <div><h5>Single-Column Metrics <button type="button" class="btn btn-info btn-xs">Info</button></h5></div>
@@ -149,26 +149,33 @@
             <thead><th></th></thead>
             <tbody></tbody>
           </table>
-        </div>
+        </div> -->
+      <!-- </div>
+      <div class="col-md-3" style="padding-right:20px; border-top: 2px solid #ccc;">
       </div>
-      <div class="col-md-3"style="padding-right:20px; border-top: 2px solid #ccc;">
-        <h4 id="detailColumnHeader"></h4>
-        <div id="detailMetricHeader"></div>
-        <div id="selectedMetricsHeader"></div>
-      </div>
-    </div>
+    </div> -->
     <!-- Table and Heatmap view -->
     <div class="row">
       <div class="col-md-9">
         <div id="raw-data-container">
           <table class="table table-condensed table-bordered table-hover" id="dataset">
+            <thead id="datasetHeader">
+              <!-- <tr id="metricHeadSingle"></tr>
+              <tr id="metricHeadSingleCols"></tr>
+              <tr id="metricHeadSpanning"></tr> -->
+              <!-- <tr id="metricHeadSpanningCols"></tr> -->
+            </thead>
           </table>
-          <svg id="overlay" style="pointer-events: none"></svg>
         </div>
         <!-- <button type="button" id="clearSort">Reset Sorting</button> -->
       </div>
       <div class="col-md-3">
-        <div hidden id="filtering"><button type="button" class="btn btn-xs btn-default">Only show dirty Entries</button></div>
+        <div id="legend">
+          <h4 id="detailColumnHeader"></h4>
+          <div id="detailMetricHeader"></div>
+          <div id="selectedMetricsHeader"></div>
+          <div hidden id="filtering"><button type="button" class="btn btn-xs btn-default">Only show dirty Entries</button></div>
+        </div>
         <div id="heatmap"></div>
       </div>
     </div>
