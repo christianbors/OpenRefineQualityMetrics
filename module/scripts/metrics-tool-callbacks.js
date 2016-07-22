@@ -5,8 +5,10 @@ $("#recalculate").on("click", function(d) {
 $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
   function(data) {
     overlayModel = data;
+    renderTableHeader();
     renderMetricOverview();
     renderSpanningMetricOverview();
+    updateOverlayPositions();
   });
 });
 
@@ -38,8 +40,10 @@ $("#createMetricBtn").on("click", function(btn) {
     $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
     function(data) {
       overlayModel = data;
+      renderTableHeader();
       renderMetricOverview();
       renderSpanningMetricOverview();
+      updateOverlayPositions();
     });
   });
 });
@@ -109,7 +113,8 @@ $(document).on("click", "#comment-eval", function() {
 });
 
 $(document).on("click", "#remove-metric", function(d) {
-  var popover = $("div.popover-content");
+  var popover = $("div.popover");
+  popover.popover("toggle");
   var param;
   if (contextMetric.spanningColumns != null) {
     param = {
@@ -129,8 +134,10 @@ $(document).on("click", "#remove-metric", function(d) {
       $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
       function(data) {
         overlayModel = data;
+        renderTableHeader();
         renderMetricOverview();
         renderSpanningMetricOverview();
+        updateOverlayPositions();
       });
     });
 

@@ -381,6 +381,10 @@ function updateMetric() {
               selectedChecks.push(metricData[0].name);
             }
 
+            renderTableHeader();
+            renderMetricOverview();
+            renderSpanningMetricOverview();
+
             redrawDetailView(theProject, metricData, rowModel, overlayModel);
           });
 	      });
@@ -500,6 +504,15 @@ function detaildragresize(d) {
   dragbarbottom.filter(function(d, i) { return i === selectedIdx; })
     .attr("width", detailWidth)
     .attr("border", 1);
+
+  detailViewWidth = 0;
+    for (var i = 0; i < detailWidths.length; i++) {
+      detailViewWidth += detailWidths[i];
+    }
+  d3.selectAll("rect.posHighlight").attr("width", detailViewWidth);
+
+  var svg = d3.select("#heatmap").select("svg")
+    .attr("width", detailViewWidth + detailViewMargin.left + detailViewMargin.right)
 
   var axisWidths = [];
   axisWidths.push(0);

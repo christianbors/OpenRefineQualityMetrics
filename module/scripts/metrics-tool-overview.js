@@ -1,5 +1,52 @@
+var contextPopover;
+
+function renderTableHeader() {
+  if(overlayModel.spanningMetrics != null) {
+    overlayModel.spanningMetrics.push(overlayModel.uniqueness);
+  } else if (overlayModel.uniqueness != null) {
+    overlayModel.spanningMetrics = new Array(overlayModel.uniqueness);
+  }
+  $("#datasetHeader").empty();
+  $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Multiple-Column Metrics</th></tr>');
+  $.each(overlayModel.spanningMetrics, function(key, metric) {
+    var spanMetricRow = '<tr class="span-metric-row">';
+    spanMetricRow += '<th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + metric.name + '</th>';
+    spanMetricRow += '<td style="padding:0px;" colspan="' + columns.length + '"></td>'
+    spanMetricRow += '</tr>';
+    var spanMetricColumns = '<tr class="span-metric-column-row"><td></td>';
+    $.each(metric.spanningColumns, function(idx, column) {
+      var colspan = Math.floor(columns.length/metric.spanningColumns.length);
+      if(metric.spanningColumns.length < columns.length && idx == 0) {
+        colspan += 1;
+      }
+      spanMetricColumns += "<th colspan="+colspan+">"+column+"</th>";
+    });
+    spanMetricColumns += '</tr>';
+    $("#datasetHeader").append(spanMetricColumns);
+    $("#datasetHeader").append(spanMetricRow);
+  });
+
+  $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Single-Column Metrics</th></tr>');
+  var singleColsRow = '<tr><td></td>';
+  $.each(columns, function(key, value) {
+    singleColsRow += '<th>'+value.name+'</th>';
+  });
+  singleColsRow += '</tr>';
+  $("#datasetHeader").append(singleColsRow);
+  $.each(overlayModel.availableMetrics, function(key, value) {
+    var row = '<tr class="metric-row"><th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + value +'</th>';
+    $.each(columns, function(keyCol, col) {
+      row += '<td style="padding:0px;"></td>';
+    });
+    row += "</tr>"
+    $("#datasetHeader").append(row);
+  });
+
+  $("#datasetHeader").append(singleColsRow);
+}
+
 function renderMetricOverview() {
-  // tr.selectAll("td").remove();
+  tr = d3.selectAll("tr.metric-row").data(overlayModel.availableMetrics);
   colWidths = [];
   var headerCols = $(".metric-row > td");
   $.each(headerCols, function(i, header) {
@@ -116,7 +163,7 @@ function updateSVGInteractions() {
       $(_this).popover('hide');
     });
   });
-  $("svg.overview-svg").popover({
+  contextPopover = $("svg.overview-svg").popover({
     html: 'true',
     trigger: 'manual',
     placement: 'auto top',
@@ -178,34 +225,33 @@ function selectMetric(d) {
     fillLegend();
     redrawDetailView(theProject, metricData, rowModel);
 
-    for (var colI = 0; colI < columnStore.length; colI++) {
-      var colCurrent = rawDataTable.column(colI).visible(true);
-      $("#overlay").show();
-    }
-    for (var i = 0; i < metricData.length; i++) {
-      for (var colI = 0; colI < columnStore.length; colI++) {
-        if($.inArray(columnStore[colI].title, metricData[i].spanningColumns) == -1) {
-          var colCurrent = rawDataTable.column(colI);
-          colCurrent.visible(false);
-          $("#overlay").hide();
-        }
-      }
-    }
-    for (var i = 0; i < metricData.length; i++) {
-      if(metricData[i].spanningColumns == null) {
-        for (var colI = 0; colI < columnStore.length; colI++) {
-          var colCurrent = rawDataTable.column(colI).visible(true);
-          $("#overlay").show();
-        }
-      }
-    }
+    // for (var colI = 0; colI < columnStore.length; colI++) {
+    //   var colCurrent = rawDataTable.column(colI).visible(true);
+    //   $("#overlay").show();
+    // }
+    // for (var i = 0; i < metricData.length; i++) {
+    //   for (var colI = 0; colI < columnStore.length; colI++) {
+    //     if($.inArray(columnStore[colI].title, metricData[i].spanningColumns) == -1) {
+    //       var colCurrent = rawDataTable.column(colI);
+    //       colCurrent.visible(false);
+    //       $("#overlay").hide();
+    //     }
+    //   }
+    // }
+    // for (var i = 0; i < metricData.length; i++) {
+    //   if(metricData[i].spanningColumns == null) {
+    //     for (var colI = 0; colI < columnStore.length; colI++) {
+    //       var colCurrent = rawDataTable.column(colI).visible(true);
+    //       $("#overlay").show();
+    //     }
+    //   }
+    // }
     rawDataTable.column(0).visible(true);
 
   }
 }
 
 function drawDatatableScrollVis(theProject, rowModel, columnStore) {
-  var tablePos = $(".dataTables_scrollBody").position();
   d3.select("div.dataTables_scrollBody").append("svg").attr("id", "overlay");
   $("#overlay").css({top: 0, 
     left: 0,
@@ -219,18 +265,21 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
   // $.each($("#dataset > thead > tr > th"), function(i, header) {
   //   colWidths.push(header.offsetWidth);
   // });
-  var headerCols = $(".metric-row").first().find("td");
+  var headerCols = $("#dataset > tbody > tr").first().find("td");
   $.each(headerCols, function(i, header) {
     colWidths.push(header.offsetWidth);
   });
 
   //this determines the width offset of the overlay
-  colWidths[0] = colWidths[0] + $(".metric-row").first().find("th").outerWidth();
-  for(var i = 1; i < colWidths.length; i++) {
-    colWidths[i] = colWidths[i] + colWidths[i-1];
+  var colWidthsCalc = [];
+  var firstWidth = (colWidths[0] + colWidths[1])-1;
+  colWidthsCalc.push(firstWidth);
+  // colWidths[0] = colWidths[0] + $(".metric-row").first().find("th").outerWidth();
+  for(var i = 1; i < colWidths.length-1; i++) {
+    colWidthsCalc.push((colWidthsCalc[i-1] + colWidths[i+1]));
   };
 
-  var overlayX = d3.scale.ordinal().range(colWidths);
+  var overlayX = d3.scale.ordinal().range(colWidthsCalc);
 
   overlayY = d3.scale.linear()
     .domain([rowModel.filtered, 0])
@@ -253,7 +302,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
           }
         });
       }
-      return "translate(" + colWidths[i] + ",0)";
+      return "translate(" + colWidthsCalc[i] + ",0)";
     })
     .attr('pointer-events', 'all');
 
@@ -402,4 +451,38 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
   //   .attr("height", $(".dataTables_scrollBody").height())
   //   .attr("top", tablePos.top)
   //   .attr("left", tablePos.left);
+}
+
+function updateOverlayPositions() {
+  $('#dataset').DataTable().columns.adjust().draw();
+  var colWidths = [];
+  // $.each($("#dataset > thead > tr > th"), function(i, header) {
+  //   colWidths.push(header.offsetWidth);
+  // });
+  var headerCols = $("#dataset > tbody > tr").first().find("td");
+  $.each(headerCols, function(i, header) {
+    colWidths.push(header.offsetWidth);
+  });
+
+  //this determines the width offset of the overlay
+  var colWidthsCalc = [];
+  var firstWidth = (colWidths[0] + colWidths[1])-1;
+  colWidthsCalc.push(firstWidth);
+  // colWidths[0] = colWidths[0] + $(".metric-row").first().find("th").outerWidth();
+  for(var i = 1; i < colWidths.length-1; i++) {
+    colWidthsCalc.push((colWidthsCalc[i-1] + colWidths[i+1]));
+  };
+
+  var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
+    .attr("transform", function (d, i) {
+      var translate = 0;
+      if (d != null) {
+        $.each(d.metrics, function(idx, metric) {
+          if(metric.dirtyIndices != null) {
+            translate++;
+          }
+        });
+      }
+      return "translate(" + colWidthsCalc[i] + ",0)";
+    });
 }

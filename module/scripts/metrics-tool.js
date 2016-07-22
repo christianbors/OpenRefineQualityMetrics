@@ -173,47 +173,14 @@ $(document).ready(function() {
                         $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
                       }
 
-                      $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Multiple-Column Metrics</th></tr>');
-                      $.each(overlayModel.spanningMetrics, function(key, metric) {
-                        var spanMetricRow = '<tr class="span-metric-row">';
-                        spanMetricRow += '<th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + metric.name + '</th>';
-                        spanMetricRow += '<td style="padding:0px;" colspan="' + columns.length + '"></td>'
-                        spanMetricRow += '</tr>';
-                        var spanMetricColumns = '<tr><td></td>';
-                        $.each(metric.spanningColumns, function(idx, column) {
-                          var colspan = Math.floor(columns.length/metric.spanningColumns.length);
-                          if(idx == 0) {
-                            colspan += 1;
-                          }
-                          spanMetricColumns += "<th colspan="+colspan+">"+column+"</th>";
-                        });
-                        spanMetricColumns += '</tr>';
-                        $("#datasetHeader").append(spanMetricColumns);
-                        $("#datasetHeader").append(spanMetricRow);
-                      });
+                      renderTableHeader();
 
-                      $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Single-Column Metrics</th></tr>');
-                      var singleColsRow = '<tr><td></td>';
-                      $.each(columns, function(key, value) {
-                        singleColsRow += '<th>'+value.name+'</th>';
-                      });
-                      singleColsRow += '</tr>';
-                      $("#datasetHeader").append(singleColsRow);
-                      $.each(overlayModel.availableMetrics, function(key, value) {
-                        var row = '<tr class="metric-row"><th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + value +'</th>';
-                        $.each(columns, function(keyCol, col) {
-                          row += '<td style="padding:0px;"></td>';
-                        });
-                        row += "</tr>"
-                        $("#datasetHeader").append(row);
-                      });
-
-                      $("#datasetHeader").append(singleColsRow);
+                      var scrollHeight = 700 - $("#datasetHeader").height();
 
                       $('#dataset').dataTable( {
                         "data": dataSet,
                         "columns": columnStore,
-                        "scrollY": "500px",
+                        "scrollY": scrollHeight + "px",
                         "scrollX": true,
                         "scrollCollapse": true,
                         "scroller": true,
@@ -240,10 +207,6 @@ $(document).ready(function() {
 
                       var minScale = overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.length;
                       
-                      // tr = d3.select("#overviewTable").select("tbody").selectAll("tr").data(overlayModel.availableMetrics).enter().append("tr");
-                      // tr.append("th").text(function(d) { return d; });
-                      tr = d3.selectAll("tr.metric-row").data(overlayModel.availableMetrics);
-
                       z = d3.scale.ordinal()
                         .range(colorbrewer.YlOrRd[minScale+1])
                         .domain([minScale, 0]);

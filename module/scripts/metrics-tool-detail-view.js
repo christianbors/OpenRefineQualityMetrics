@@ -6,7 +6,7 @@ function redrawDetailView(theProject, metricData, rowModel) {
   axisWidths.push(0);
   // initialize selected metric evaluables
   var headerHeightComp = $(".dataTables_scrollhead").height() - ($("#legend").height() + $("#legend")[0].offsetTop);
-  detailViewMargin = {top: headerHeightComp, right: 50, bottom: 70, left: 35};
+  detailViewMargin = {top: headerHeightComp, right: 50, bottom: 20, left: 35};
   detailViewWidth = parseInt(d3.select("#heatmap").style("width")) - detailViewMargin.left - detailViewMargin.right,
   detailViewHeight = $(".dataTables_scrollBody").height();
   if (detailViewWidth > (totalEvalTuples.length*100)) detailViewWidth = totalEvalTuples.length*100;
