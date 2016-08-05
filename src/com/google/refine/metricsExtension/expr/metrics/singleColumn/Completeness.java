@@ -25,6 +25,9 @@ public class Completeness implements SingleColumnMetricFunction {
 	public Object call(Properties bindings, Object[] args) {
 		if (args.length >= 1) {
 			Object o1 = args[0];
+			if(o1 == null) {
+				return false;
+			}
 			if (o1 instanceof Long || o1 instanceof Double || o1 instanceof Float) {
 				return o1 != null;
 			} else if (o1 instanceof String) {

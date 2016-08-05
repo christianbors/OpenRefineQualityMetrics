@@ -56,16 +56,19 @@ public class CreateMetricCommand extends Command {
 				metricsOverlayModel.addMetric(columnNames[0], m);
 			} else if (columnNames.length >= 2) {
 				SpanningColumnMetricFunction metricFun = (SpanningColumnMetricFunction) ControlFunctionRegistry.getFunction(metricName);
-					SpanningMetric newSpanningMetric = new SpanningMetric(
-							metricName,
-							metricFun.getDescription(),
-							dataType,
-							Concatenation.OR,
-							Arrays.asList(columnNames));
-					newSpanningMetric.addSpanningEvalTuple(metricFun.getEvaluable(columnNames, parameters), "", false);
-					
+				SpanningMetric newSpanningMetric = new SpanningMetric(
+						metricName,
+						metricFun.getDescription(),
+						dataType,
+						Concatenation.OR,
+						Arrays.asList(columnNames));
+				newSpanningMetric.addSpanningEvalTuple(metricFun.getEvaluable(columnNames, parameters), "", false);
+				
+				if (metricName.equals("uniqueness")) {
+					metricsOverlayModel.setUniqueness(newSpanningMetric);
+				} else {
 					metricsOverlayModel.addSpanningMetric(newSpanningMetric);
-					logger.info("spanning metrics {}", metricsOverlayModel.getSpanMetricsList().size());
+				}
 			}
 		} catch (ParsingException e) {
 			// TODO Auto-generated catch block

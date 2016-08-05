@@ -103,54 +103,56 @@ public class EvaluateSelectedMetricCommand extends Command {
 				if (ct != null) {
 					Cell c = ((WrappedCell )ct).cell;
 					ExpressionUtils.bind(bindings, row, rowIndex, column, c);
-					if(metric != null) {
-							List<Boolean> evalResults = new ArrayList<Boolean>();
-							boolean entryDirty = false;
-	
-							for (EvalTuple evalTuple : metric.getEvalTuples()) {
-								if (!evalTuple.disabled) {
-									boolean evalResult;
-									Object evaluation = evalTuple.eval
-											.evaluate(bindings);
-									if (evaluation.getClass() != EvalError.class) {
-										evalResult = (Boolean) evaluation;
-										if (!evalResult) {
-											entryDirty = true;
-										}
-										evalResults.add(evalResult);
-									}
-								}
-							}
-	
-							if (entryDirty) {
-								metric.addDirtyIndex(rowIndex, evalResults);
-							}
-					} else {
+				} else {
+					ExpressionUtils.bind(bindings, row, rowIndex, column, null);
+				}
+				if(metric != null) {
 						List<Boolean> evalResults = new ArrayList<Boolean>();
 						boolean entryDirty = false;
-						
-						Object spanEvalResult = spanningMetric.getSpanningEvaluable().eval.evaluate(bindings);
-						if (spanEvalResult.getClass() != EvalError.class) {
-							evalResults.add((Boolean) spanEvalResult);
-							if(!(boolean) spanEvalResult) {
+
+						for (EvalTuple evalTuple : metric.getEvalTuples()) {
+							if (!evalTuple.disabled) {
+								boolean evalResult;
+								Object evaluation = evalTuple.eval
+										.evaluate(bindings);
+								if (evaluation.getClass() != EvalError.class) {
+									evalResult = (Boolean) evaluation;
+									if (!evalResult) {
+										entryDirty = true;
+									}
+									evalResults.add(evalResult);
+								}
+							}
+						}
+
+						if (entryDirty) {
+							metric.addDirtyIndex(rowIndex, evalResults);
+						}
+				} else {
+					List<Boolean> evalResults = new ArrayList<Boolean>();
+					boolean entryDirty = false;
+					
+					Object spanEvalResult = spanningMetric.getSpanningEvaluable().eval.evaluate(bindings);
+					if (spanEvalResult.getClass() != EvalError.class) {
+						evalResults.add((Boolean) spanEvalResult);
+						if(!(boolean) spanEvalResult) {
+							entryDirty = true;
+						}
+					}
+					for (EvalTuple evalTuple : spanningMetric.getEvalTuples()) {
+						boolean evalResult;
+						Object evaluation = evalTuple.eval.evaluate(bindings);
+						if (evaluation.getClass() != EvalError.class) {
+							evalResult = (Boolean) evaluation;
+							if (!evalResult) {
 								entryDirty = true;
 							}
+							evalResults.add(evalResult);
 						}
-						for (EvalTuple evalTuple : spanningMetric.getEvalTuples()) {
-							boolean evalResult;
-							Object evaluation = evalTuple.eval.evaluate(bindings);
-							if (evaluation.getClass() != EvalError.class) {
-								evalResult = (Boolean) evaluation;
-								if (!evalResult) {
-									entryDirty = true;
-								}
-								evalResults.add(evalResult);
-							}
-						}
-	
-						if (entryDirty) {
-							spanningMetric.addDirtyIndex(rowIndex, evalResults);
-						}
+					}
+
+					if (entryDirty) {
+						spanningMetric.addDirtyIndex(rowIndex, evalResults);
 					}
 				}
 				return false;

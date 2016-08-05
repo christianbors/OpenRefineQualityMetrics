@@ -235,6 +235,7 @@ public class MetricsOverlayModel implements OverlayModel {
 
 	public void setUniqueness(SpanningMetric uniqueness) {
 		this.uniqueness = uniqueness;
+		computeDuplicates = true;
 	}
 
 	public List<SpanningMetric> getSpanMetricsList() {

@@ -2,6 +2,7 @@ package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -75,9 +76,16 @@ public class EvaluateMetricsCommand extends Command {
 					for (Cell[] toBeChecked : uniquesSet) {
 						foundDuplicate = true;
 						for (int i = 0; i < toBeChecked.length; ++i) {
-							if(!toBeChecked[i].value.equals(cells[i].value)) {
-								foundDuplicate = false;
-								break;
+							if(toBeChecked[i].value instanceof Date && cells[i].value instanceof Date) {
+								if(((Date) toBeChecked[i].value).getTime() != ((Date) cells[i].value).getTime()) {
+									foundDuplicate = false;
+									break;
+								}
+							} else {
+								if(!toBeChecked[i].value.equals(cells[i].value)) {
+									foundDuplicate = false;
+									break;
+								}
 							}
 						}
 						if (foundDuplicate) {
@@ -96,51 +104,24 @@ public class EvaluateMetricsCommand extends Command {
 					WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
 					if (ct != null) {
 						Cell c = ((WrappedCell )ct).cell;
-						Map<String, Metric> metrics = model
-								.getMetricsForColumn(columnName);
-						List<SpanningMetric> spanMetrics = model.getSpanMetricsList();
+						ExpressionUtils.bind(bindings, row, rowIndex, columnName, c);
+					} else {
+						ExpressionUtils.bind(bindings, row, rowIndex, columnName, null);
+					}
+					
+					Map<String, Metric> metrics = model
+							.getMetricsForColumn(columnName);
+					List<SpanningMetric> spanMetrics = model.getSpanMetricsList();
 
-						ExpressionUtils.bind(bindings, row, rowIndex,
-								columnName, c);
+					for (Map.Entry<String, Metric> metricEntry : metrics.entrySet()) {
+						List<Boolean> evalResults = new ArrayList<Boolean>();
+						boolean entryDirty = false;
 
-						for (Map.Entry<String, Metric> metricEntry : metrics.entrySet()) {
-							List<Boolean> evalResults = new ArrayList<Boolean>();
-							boolean entryDirty = false;
-
-							for (EvalTuple evalTuple : metricEntry.getValue().getEvalTuples()) {
-								if (!evalTuple.disabled) {
-									boolean evalResult;
-									Object evaluation = evalTuple.eval
-											.evaluate(bindings);
-									if (evaluation.getClass() != EvalError.class) {
-										evalResult = (Boolean) evaluation;
-										if (!evalResult) {
-											entryDirty = true;
-										}
-										evalResults.add(evalResult);
-									}
-								}
-							}
-
-							if (entryDirty) {
-								metricEntry.getValue().addDirtyIndex(rowIndex, evalResults);
-							}
-						}
-						
-						for (SpanningMetric sm : spanMetrics) {
-							List<Boolean> evalResults = new ArrayList<Boolean>();
-							boolean entryDirty = false;
-							
-							Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
-							if (spanEvalResult.getClass() != EvalError.class) {
-								evalResults.add((Boolean) spanEvalResult);
-								if(!(boolean) spanEvalResult) {
-									entryDirty = true;
-								}
-							}
-							for (EvalTuple evalTuple : sm.getEvalTuples()) {
+						for (EvalTuple evalTuple : metricEntry.getValue().getEvalTuples()) {
+							if (!evalTuple.disabled) {
 								boolean evalResult;
-								Object evaluation = evalTuple.eval.evaluate(bindings);
+								Object evaluation = evalTuple.eval
+										.evaluate(bindings);
 								if (evaluation.getClass() != EvalError.class) {
 									evalResult = (Boolean) evaluation;
 									if (!evalResult) {
@@ -149,10 +130,38 @@ public class EvaluateMetricsCommand extends Command {
 									evalResults.add(evalResult);
 								}
 							}
+						}
 
-							if (entryDirty) {
-								sm.addDirtyIndex(rowIndex, evalResults);
+						if (entryDirty) {
+							metricEntry.getValue().addDirtyIndex(rowIndex, evalResults);
+						}
+					}
+					
+					for (SpanningMetric sm : spanMetrics) {
+						List<Boolean> evalResults = new ArrayList<Boolean>();
+						boolean entryDirty = false;
+						
+						Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
+						if (spanEvalResult.getClass() != EvalError.class) {
+							evalResults.add((Boolean) spanEvalResult);
+							if(!(boolean) spanEvalResult) {
+								entryDirty = true;
 							}
+						}
+						for (EvalTuple evalTuple : sm.getEvalTuples()) {
+							boolean evalResult;
+							Object evaluation = evalTuple.eval.evaluate(bindings);
+							if (evaluation.getClass() != EvalError.class) {
+								evalResult = (Boolean) evaluation;
+								if (!evalResult) {
+									entryDirty = true;
+								}
+								evalResults.add(evalResult);
+							}
+						}
+
+						if (entryDirty) {
+							sm.addDirtyIndex(rowIndex, evalResults);
 						}
 					}
 				}
