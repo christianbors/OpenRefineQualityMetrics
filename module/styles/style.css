@@ -50,31 +50,25 @@ body {
     vertical-align: bottom;
 }
 
-#overviewTable {
-    position: absolute;
-}
-
 .popover-content {
     white-space:pre;
     max-width:none;
 }
 
-#overviewTable td {
-    border: 1px solid lightgrey;
+#datasetHeader th {
+    border-bottom-width: 1px;
 }
 
-#spanningOverviewTable td {
-    border: 1px solid lightgrey;
+#datasetHeader td {
+    border-bottom-width: 1px;
 }
 
-#overviewTable td.selected {
-    stroke-width: 3px;
-    border: 2px solid steelblue;
-}
-
-#spanningOverviewTable td.selected {
-    stroke-width: 3px;
-    border: 2px solid steelblue;
+#datasetHeader td.selected {
+    border: 1px solid #6c9dc6;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
 }
 
 .absolute-wrapper {
@@ -146,6 +140,10 @@ tbody tr:first-child td {
 
 tbody td {
   padding: 0;
+}
+
+.dataTables_scrollBody {
+    overflow:scroll;
 }
 
 .bin {

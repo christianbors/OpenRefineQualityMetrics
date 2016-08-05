@@ -41,15 +41,18 @@ var theProject,
 // selection for creating a metric
     columnForMetricToBeCreated,
     metricToBeCreated = [];
+var pageLength = 500;
 
 var tooltipInvalid = d3.tip()
   .attr("class", "d3-tip")
   .offset([-10, 0])
   .html(function(d) {
-    if(d != null && d.first != null) {
-      return "<strong>Rows:</strong> <span style='color:steelblue'>" + d.first + " - " + d.last + "</span>";
+    if(d.index.length > 1 && d.index[d.index.length-1] - d.index[0] === d.index.length-1) {
+      return "<strong>Rows:</strong> <span style='color:steelblue'>" + (d.index[0] + 1) + " - " + (d.index[d.index.length-1] + 1) + "</span>";
     } else {
-      return "<strong>Row:</strong> <span style='color:steelblue'>" + d + "</span>";
+      var indexVals = [].concat( d.index );
+      $.each(indexVals, function(i, data) { indexVals[i] = data + 1; });
+      return "<strong>Row:</strong> <span style='color:steelblue'>" + indexVals.join(", ") + "</span>";
     }
   });
 var tooltipOverview = d3.tip()
@@ -70,7 +73,9 @@ var tooltipOverview = d3.tip()
 
 var filterFunction = function (oSettings, aData, iDataIndex) {
   var gs = d3.selectAll("g.metric-detail-row").filter(function(d, i) {
-    return d.index === iDataIndex;
+    if(d != null) {
+      return d.index.indexOf(iDataIndex) != -1;
+    }
   });
   return gs[0].length > 0;
 };
@@ -173,43 +178,31 @@ $(document).ready(function() {
                         $('#uniqueness > tbody:last-child').append("<tr><td>" + overlayModel.uniqueness.name + "</td></tr>");
                       }
 
-                      renderTableHeader();
-
-                      var scrollHeight = 700 - $("#datasetHeader").height();
-
-                      $('#dataset').dataTable( {
-                        "data": dataSet,
-                        "columns": columnStore,
-                        "scrollY": scrollHeight + "px",
-                        "scrollX": true,
-                        "scrollCollapse": true,
-                        "scroller": true,
-                        "bSort": false,
-                        "bFilter": true,
-                        "dom": 'rt<"bottom"i><"clear">'
-                      });
-
-                      //this reorders the metrics to be in line with the actual displayed columns
-                      var sortedMetrics = new Array();
-                      for(var idx = 0; idx < theProject.columnModel.columns.length; idx++) {
-                        var foundColumn = overlayModel.metricColumns.filter(function(col) {
-                          if (columns[idx] != null) {
-                            return col.columnName == columns[idx].name;
-                          }
-                        })[0];
-                        if (foundColumn != null) {
-                          sortedMetrics[idx] = foundColumn;
-                        } else {
-                          sortedMetrics[idx] = null;
-                        }
-                      }
-                      overlayModel.metricColumns = sortedMetrics;
-
                       var minScale = overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.length;
                       
                       z = d3.scale.ordinal()
                         .range(colorbrewer.YlOrRd[minScale+1])
                         .domain([minScale, 0]);
+
+                      renderTableHeader();
+
+                      var scrollHeight = 499 + getScrollBarWidth();
+
+                      if(dataSet.length < pageLength) pageLength = dataSet.length;
+
+                      $('#dataset').dataTable( {
+                        "data": dataSet,
+                        "columns": columnStore,
+                        "scrollX": true,
+                        "pageLength": pageLength,
+                        "paging": true,
+                        "bSort": false,
+                        "bFilter": true,
+                        "dom": 'rt<"bottom"ip><"clear">',
+                        "drawCallback": dataTableRedrawn
+                      });
+
+                      $(".dataTables_scrollBody").css('height', scrollHeight + 'px');
 
                       $("#raw-data-container").css({marginLeft: $("#overviewTable > thead > tr > th").outerWidth()});
                       $('#detailViewHeader').css('marginTop', 0 + 'px')
@@ -217,22 +210,6 @@ $(document).ready(function() {
 
                       $("#overviewPanel").css({height: $("#overviewTable").height() + margin});
                       
-                      // colWidths = [];
-                      // $.each($("#dataset > tbody > tr")[0].children, function(i, header) {
-                      //   colWidths.push(header.offsetWidth);
-                      // });
-
-                      // var overviewTable = d3.select("#overviewTable").select("thead tr")
-                      //   .selectAll('td')
-                      //   .data(columns).enter()
-                      //   .append('td')
-                      //   .attr("width", function(d, i) {
-                      //     return colWidths[i];
-                      // }).text(function(col) { 
-                      //     return col.name; 
-                      // }).attr("data-toggle", "popover")
-                      //   .on("contextmenu", addMetricToColumn);
-
                       $("#overviewTable thead tr td").popover({
                         html: 'true',
                         trigger: 'manual',
@@ -242,9 +219,18 @@ $(document).ready(function() {
                         content: ''
                       });
 
+                      d3.select("div.dataTables_scrollBody").append("svg").attr("id", "overlay");
+                      $("#overlay").css({top: 0, 
+                        left: 0,
+                        position:'absolute', 
+                        width: $(".dataTables_scrollBody > table").width(), 
+                        height: $(".dataTables_scrollBody").height(),
+                        'pointer-events': 'none'
+                      });
+
                       renderMetricOverview();
                       renderSpanningMetricOverview();
-                      drawDatatableScrollVis(theProject, rowModel, columnStore);
+                      drawDatatableScrollVis();
                       //todo: edit when selecting other metric
                       dataViewPopover();
                     }, 

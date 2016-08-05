@@ -5,7 +5,6 @@ $("#recalculate").on("click", function(d) {
 $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
   function(data) {
     overlayModel = data;
-    renderTableHeader();
     renderMetricOverview();
     renderSpanningMetricOverview();
     updateOverlayPositions();
@@ -50,21 +49,21 @@ $("#createMetricBtn").on("click", function(btn) {
 
 $("#filtering").on("click", function() {
     if(rowFilter == false) {
+      rowFilter = true;
       $.fn.dataTableExt.search = [filterFunction];
-        $("#dataset").DataTable().draw();
-        if(metricData[0].spanningEvaluable == null) $("#overlay").hide();
-        var svg = d3.select("rect.rect-disabled")
+      $("#dataset").DataTable().draw();
+      if(metricData[0].spanningEvaluable == null) $("#overlay").hide();
+      d3.select("rect.rect-disabled")
         .attr("fill", "gainsboro");
-    var button = this.firstChild.textContent = "Show all Entries";
-    rowFilter = true;
+      var button = this.firstChild.textContent = "Show all Entries";
     } else {
+      rowFilter = false;
       $.fn.dataTableExt.search = [];
-        $("#dataset").DataTable().draw();
-        if(metricData[0].spanningEvaluable == null) $("#overlay").show();
-        var svg = d3.select("rect.rect-disabled")
+      $("#dataset").DataTable().draw();
+      if(metricData[0].spanningEvaluable == null) $("#overlay").show();
+      d3.select("rect.rect-disabled")
         .attr("fill", "transparent");
-    var button = this.firstChild.textContent = "Only show dirty Entries";
-    rowFilter = false;
+      var button = this.firstChild.textContent = "Only show dirty Entries";
     }
 })
 

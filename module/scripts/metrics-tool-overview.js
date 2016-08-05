@@ -45,7 +45,50 @@ function renderTableHeader() {
   $("#datasetHeader").append(singleColsRow);
 }
 
+function dataTableRedrawn(settings) {
+  // console.log( 'DataTables has redrawn the table' );
+  if(!rowFilter) {
+    updateOverlayPositions();
+    if(d3.selectAll("g.metrics-overlay").selectAll("g").selectAll("g").length > 0) {
+      fillScrollVisMetrics();
+    }
+  }
+
+  if(!d3.select("rect.posHighlight").empty()) {
+    var regex = /(\d+)/g;
+        var ratio = this.scrollTop/this.scrollHeight;
+        var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+        var total = nums[nums.length-1];
+        var pos = ratio * total;
+        d3.select("rect.posHighlight").remove();
+
+    var detailHeat = d3.select("#heatmap svg g").append("rect")
+      .classed("posHighlight", true)
+      .attr("x", 0)
+      .attr("y", detailViewY(nums[0]))
+      .attr("width", detailViewWidth)
+      .attr("height", detailViewY(nums[1]) - detailViewY(nums[0]));
+  }
+}
+
 function renderMetricOverview() {
+  //this reorders the metrics to be in line with the actual displayed columns
+  var sortedMetrics = new Array();
+  for(var idx = 0; idx < theProject.columnModel.columns.length; idx++) {
+    var foundColumn = overlayModel.metricColumns.filter(function(col) {
+      if (columns[idx] != null) {
+        return col.columnName == columns[idx].name;
+      }
+    })[0];
+    if (foundColumn != null) {
+      sortedMetrics[idx] = foundColumn;
+    } else {
+      sortedMetrics[idx] = null;
+    }
+  }
+  overlayModel.metricColumns = sortedMetrics;
+
+  d3.selectAll("svg.overview-svg").remove();
   tr = d3.selectAll("tr.metric-row").data(overlayModel.availableMetrics);
   colWidths = [];
   var headerCols = $(".metric-row > td");
@@ -89,7 +132,7 @@ function renderMetricOverview() {
   });
 
   td.on("click", selectMetric);
-  rawDataTable = $('#dataset').DataTable().columns.adjust().draw();
+  rawDataTable = $('#dataset').DataTable().draw();
   updateSVGInteractions();
 }
 
@@ -120,7 +163,7 @@ function renderSpanningMetricOverview() {
         }
       });
     td.on("click", selectMetric);
-    rawDataTable = $('#dataset').DataTable().columns.adjust().draw();
+    rawDataTable = $('#dataset').DataTable().draw();
     updateSVGInteractions();
   }
 }
@@ -225,42 +268,15 @@ function selectMetric(d) {
     fillLegend();
     redrawDetailView(theProject, metricData, rowModel);
 
-    // for (var colI = 0; colI < columnStore.length; colI++) {
-    //   var colCurrent = rawDataTable.column(colI).visible(true);
-    //   $("#overlay").show();
-    // }
-    // for (var i = 0; i < metricData.length; i++) {
-    //   for (var colI = 0; colI < columnStore.length; colI++) {
-    //     if($.inArray(columnStore[colI].title, metricData[i].spanningColumns) == -1) {
-    //       var colCurrent = rawDataTable.column(colI);
-    //       colCurrent.visible(false);
-    //       $("#overlay").hide();
-    //     }
-    //   }
-    // }
-    // for (var i = 0; i < metricData.length; i++) {
-    //   if(metricData[i].spanningColumns == null) {
-    //     for (var colI = 0; colI < columnStore.length; colI++) {
-    //       var colCurrent = rawDataTable.column(colI).visible(true);
-    //       $("#overlay").show();
-    //     }
-    //   }
-    // }
     rawDataTable.column(0).visible(true);
-
+    updateOverlayPositions();
   }
 }
 
-function drawDatatableScrollVis(theProject, rowModel, columnStore) {
-  d3.select("div.dataTables_scrollBody").append("svg").attr("id", "overlay");
-  $("#overlay").css({top: 0, 
-    left: 0,
-    position:'absolute', 
-    width: $(".dataTables_scrollBody > table").width(), 
-    height: $(".dataTables_scrollBody").height(),
-    'pointer-events': 'none'
-  });
+var rawDataTableHeight;
 
+function drawDatatableScrollVis() {
+  d3.selectAll("g.metrics-overlay").remove();
   var colWidths = [];
   // $.each($("#dataset > thead > tr > th"), function(i, header) {
   //   colWidths.push(header.offsetWidth);
@@ -279,17 +295,15 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
     colWidthsCalc.push((colWidthsCalc[i-1] + colWidths[i+1]));
   };
 
-  var overlayX = d3.scale.ordinal().range(colWidthsCalc);
-
-  overlayY = d3.scale.linear()
-    .domain([rowModel.filtered, 0])
-    .rangeRound([$(".dataTables_scrollBody").height(), 0]);
+  // var overlayX = d3.scale.ordinal().range(colWidthsCalc);
 
   var minScale = 3;
   if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
 
+  rawDataTableHeight = $(".dataTables_scrollBody").height() - getScrollBarWidth();
+
   // d3.select("#overlay").attr("transform", "translate(0, -" + $("#dataset_wrapper")[0].clientHeight + ")");
-  var overlay = d3.select("#overlay").selectAll(".metrics-overlay")
+  var overlay = d3.select("#overlay").selectAll("g.metrics-overlay")
     .data(overlayModel.metricColumns)
     .enter().append("g")
     .attr("class", "metrics-overlay")
@@ -339,7 +353,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
     });
 
   cols.append("rect")
-    .attr("height", $(".dataTables_scrollBody").height())
+    .attr("height", rawDataTableHeight)
     .attr("width", 12)
     .attr("fill", function(d) {
       if (d.dirtyIndices != null) {
@@ -349,14 +363,99 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
       }
     });
 
-  var bins = cols.selectAll(".metrics-bin")
+  fillScrollVisMetrics();
+  
+  overlay.append("line")
+    .attr("x1", function(d) {
+      var attr = this.previousSibling.attributes["transform"];
+      var transl = attr.value.match(/\d+/);
+      var offset = parseInt(transl[0]);
+      return "-" + (offset+1);
+    })
+    .attr("x2", function(d) {
+      var attr = this.previousSibling.attributes["transform"];
+      var transl = attr.value.match(/\d+/);
+      var offset = parseInt(transl[0]);
+      return "-" + (offset+1);
+    })
+    .attr("y1", 0)
+    .attr("y2", rawDataTableHeight)
+    .attr("stroke", "#ddd")
+    .attr("stroke-width", "2");
+
+  overlay.append("line")
+    .attr("x1", 0)
+    .attr("x2", 0)
+    .attr("y1", 0)
+    .attr("y2", rawDataTableHeight)
+    .attr("stroke", "#ddd")
+    .attr("stroke-width", "2");
+
+
+  $(".dataTables_scrollBody").scroll(function() {
+    $('#overlay').css({
+        'top': $(this).scrollTop() 
+         //Why this 15, because in the CSS, we have set left 15, so as we scroll, we would want this to remain at 15px left
+    });
+  });
+  // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
+  // var svg = headers.insert("svg", "#dataset")
+  //   .attr("class", "overlay")
+  //   .attr("width", $(".dataTables_scrollBody").width())
+  //   .attr("height", $(".dataTables_scrollBody").height())
+  //   .attr("top", tablePos.top)
+  //   .attr("left", tablePos.left);
+}
+
+function getScrollBarWidth () {
+  var inner = document.createElement('p');
+  inner.style.width = "100%";
+  inner.style.height = "200px";
+
+  var outer = document.createElement('div');
+  outer.style.position = "absolute";
+  outer.style.top = "0px";
+  outer.style.left = "0px";
+  outer.style.visibility = "hidden";
+  outer.style.width = "200px";
+  outer.style.height = "150px";
+  outer.style.overflow = "hidden";
+  outer.appendChild (inner);
+
+  document.body.appendChild (outer);
+  var w1 = inner.offsetWidth;
+  outer.style.overflow = 'scroll';
+  var w2 = inner.offsetWidth;
+  if (w1 == w2) w2 = outer.clientWidth;
+
+  document.body.removeChild (outer);
+
+  return (w1 - w2);
+};
+
+function fillScrollVisMetrics() {
+  var regex = /(\d+)/g;
+  var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+  var from = parseInt(nums[0]) - 1;
+  var to = parseInt(nums[1]);
+
+  overlayY = d3.scale.linear()
+    .domain([to, from])
+    .rangeRound([rawDataTableHeight, 0]);
+
+  var rects = d3.selectAll("rect.metrics-bin");
+  rects.remove();
+  var bins = d3.selectAll("g.metrics-overlay").selectAll("g").selectAll("g")
   .data(function(d) {
     if (d.dirtyIndices != null) {
-      return d.dirtyIndices; 
+      return d.dirtyIndices.filter(function(d, i) {
+        return d.index >= from && d.index <= to;
+      }); 
     } else {
       return [];
     }
-  }).enter()
+  })
+  .enter()
   .append("rect")
   .attr("class", "metrics-bin")
   .attr("width", function (d, i) {
@@ -389,7 +488,7 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
       };
       tooltipInvalid.show(indices);
     } else {
-      tooltipInvalid.show(d.index)
+      tooltipInvalid.show(d)
     }
     $.each(sameRows, function(i, rowCurrent) {
       $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
@@ -410,51 +509,9 @@ function drawDatatableScrollVis(theProject, rowModel, columnStore) {
     });
     tooltipInvalid.hide();
   });
-  
-  overlay.append("line")
-    .attr("x1", function(d) {
-      var attr = this.previousSibling.attributes["transform"];
-      var transl = attr.value.match(/\d+/);
-      var offset = parseInt(transl[0]);
-      return "-" + (offset+1);
-    })
-    .attr("x2", function(d) {
-      var attr = this.previousSibling.attributes["transform"];
-      var transl = attr.value.match(/\d+/);
-      var offset = parseInt(transl[0]);
-      return "-" + (offset+1);
-    })
-    .attr("y1", 0)
-    .attr("y2", $(".dataTables_scrollBody").height())
-    .attr("stroke", "#ddd")
-    .attr("stroke-width", "2");
-
-  overlay.append("line")
-    .attr("x1", 0)
-    .attr("x2", 0)
-    .attr("y1", 0)
-    .attr("y2", $(".dataTables_scrollBody").height())
-    .attr("stroke", "#ddd")
-    .attr("stroke-width", "2");
-
-
-  $(".dataTables_scrollBody").scroll(function() {
-    $('#overlay').css({
-        'top': $(this).scrollTop() 
-         //Why this 15, because in the CSS, we have set left 15, so as we scroll, we would want this to remain at 15px left
-    });
-  });
-  // var headers = d3.select("#raw-data-container").select("#dataset_wrapper").select(".dataTables_scroll").select(".dataTables_scrollBody");//.selectAll("td").data(overlayModel.metricColumns);
-  // var svg = headers.insert("svg", "#dataset")
-  //   .attr("class", "overlay")
-  //   .attr("width", $(".dataTables_scrollBody").width())
-  //   .attr("height", $(".dataTables_scrollBody").height())
-  //   .attr("top", tablePos.top)
-  //   .attr("left", tablePos.left);
 }
 
 function updateOverlayPositions() {
-  $('#dataset').DataTable().columns.adjust().draw();
   var colWidths = [];
   // $.each($("#dataset > thead > tr > th"), function(i, header) {
   //   colWidths.push(header.offsetWidth);

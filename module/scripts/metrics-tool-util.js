@@ -75,7 +75,8 @@ function dataViewPopover() {
     var colIdx;
     for (var i = 0; i < _this.parentNode.childNodes.length; i++) {
         if (this.parentNode.childNodes[i] == _this) {
-            colIdx = i;
+            // -1 because we have an empty column as well
+            colIdx = i - 1;
             break;
         }
     }
@@ -307,7 +308,7 @@ function updateMetric() {
                   };
                   tooltipInvalid.show(indices);
                 } else {
-                  tooltipInvalid.show(d.index)
+                  tooltipInvalid.show(d)
                 }
                 $.each(sameRows, function(i, rowCurrent) {
                   $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
@@ -381,11 +382,13 @@ function updateMetric() {
               selectedChecks.push(metricData[0].name);
             }
 
-            renderTableHeader();
+            // renderTableHeader();
             renderMetricOverview();
             renderSpanningMetricOverview();
-
+            drawDatatableScrollVis();
+            
             redrawDetailView(theProject, metricData, rowModel, overlayModel);
+            updateOverlayPositions();
           });
 	      });
 }
@@ -603,15 +606,51 @@ function lowercaseFirstLetter(string) {
 function selectRow(d) {
   $("#dataset td").removeClass("highlight");
   var selThis = this;
-  var selectedRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
-    return d3.select(this).attr("y") === d3.select(selThis).attr("y");
-  })[0];
-  $("#dataset").DataTable().row(selectedRows[0].__data__.index).scrollTo();
-  $.each(selectedRows, function(i, rowCurrent) {
-    $.each($("#dataset").DataTable().row(rowCurrent.__data__.index).node().children, function(i, td) {
-      td.classList.add("highlight");
-    });
-  });
+  var thisSelected = this.__data__.index;
+
+      var bodyHeight = $("#dataset tbody").height();
+
+      var regex = /(\d+)/g;
+      var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+      var from = parseInt(nums[0]) - 1;
+      var to = parseInt(nums[1]) - 1;
+
+      if(from > thisSelected || to < thisSelected) {
+        var page = Math.floor(thisSelected / pageLength);
+        $('#dataset').DataTable().page(page).draw('page');
+      }
+
+      $('div.dataTables_scrollBody').animate({
+        scrollTop: $("#dataset").DataTable().row((thisSelected)).node().offsetTop
+      }, 500);
+
+      $.each($("#dataset").DataTable().row((thisSelected)).node().children, function(i, td) {
+        td.classList.add("highlight");
+      });
+  // var bodyHeight = $("#dataset tbody").height();
+  // var regex = /(\d+)/g;
+  // var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+  // var from = parseInt(nums[0]) - 1;
+  // var to = parseInt(nums[1]) - 1;
+
+  // var offsetSelected = thisSelected - from;
+  // var offsetTo = to - from;
+
+  // var ratio = offsetSelected / offsetTo;
+
+  // $('div.dataTables_scrollBody').animate({
+  //   scrollTop: bodyHeight * ratio
+  // }, 500);
+
+  // var selectedRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
+  //   return d3.select(this).attr("y") === d3.select(selThis).attr("y");
+  // })[0];
+  // $("#dataset").DataTable().row(selectedRows[0].__data__.index).scrollTo();
+  // $.each(selectedRows, function(i, rowCurrent) {
+  //   $.each($("#dataset").DataTable().row(rowCurrent.__data__.index).node().children, function(i, td) {
+  //     td.classList.add("highlight");
+  //   });
+  // });
 }
 
 function scheduleUpdate(textArea) {
