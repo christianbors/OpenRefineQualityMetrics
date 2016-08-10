@@ -65,6 +65,8 @@ function init() {
   FCR.registerFunction("std", new Packages.com.google.refine.metricsExtension.expr.checks.StandardDeviationCheck());
   FCR.registerFunction("variance", new Packages.com.google.refine.metricsExtension.expr.checks.VarianceCheck());
   FCR.registerFunction("iqr", new Packages.com.google.refine.metricsExtension.expr.checks.IQRCheck());
+  // convenient GREL functions
+  FCR.registerFunction("transpose", new Packages.com.google.refine.metricsExtension.expr.util.OffsetRow());
 
   Packages.com.google.refine.model.Project.
     registerOverlayModel("metricsOverlayModel", Packages.com.google.refine.metricsExtension.model.MetricsOverlayModel);
