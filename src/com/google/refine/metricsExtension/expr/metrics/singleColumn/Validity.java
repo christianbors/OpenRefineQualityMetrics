@@ -10,6 +10,7 @@ import java.util.Properties;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
+import com.google.refine.expr.EvalError;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
@@ -46,6 +47,8 @@ public class Validity implements SingleColumnMetricFunction {
 	                    || o1 instanceof Float); 
 			} else if (type.toString().equals("date")) {
 				return o1 instanceof Date || o1 instanceof Calendar;
+			} else {
+				return new EvalError("Error at parameter 2: Type string not recognized \"" + type + "\"");
 			}
 		}
 		return true;

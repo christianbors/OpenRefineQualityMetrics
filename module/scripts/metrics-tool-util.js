@@ -386,7 +386,7 @@ function updateMetric() {
             renderMetricOverview();
             renderSpanningMetricOverview();
             drawDatatableScrollVis();
-            
+
             redrawDetailView(theProject, metricData, rowModel, overlayModel);
             updateOverlayPositions();
           });
@@ -674,15 +674,21 @@ function scheduleUpdate(textArea) {
               rowIndices: JSON.stringify(rowIndex) 
           },
           function(data) {
-              if (data.code != "error") {
-                $(textArea.parentNode).removeClass("has-error");
-                $("#alertMetricUpdate").hide();
-              } else {
+              if (data.code == "error") {
                 $(textArea.parentNode).addClass("has-error");
                 $("#alertMetricUpdate").removeClass("alert-info");
                 $("#alertMetricUpdate").addClass("alert-danger");
                 $("#alertText").html(data.message);
                 $("#alertMetricUpdate").show(); //prop("hidden", false)
+              } else if (data.results[0].message.indexOf("Error") != -1) {
+                $(textArea.parentNode).addClass("has-error");
+                $("#alertMetricUpdate").removeClass("alert-info");
+                $("#alertMetricUpdate").addClass("alert-danger");
+                $("#alertText").html(data.results[0].message);
+                $("#alertMetricUpdate").show(); //prop("hidden", false)
+              } else {
+                $(textArea.parentNode).removeClass("has-error");
+                $("#alertMetricUpdate").hide();
               }
           });
     }, 300);
