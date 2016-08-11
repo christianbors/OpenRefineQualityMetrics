@@ -338,6 +338,11 @@ function drawDatatableScrollVis() {
         var array = $.map(d.metrics, function(value, index) {
             return [value];
         });
+        $.each(overlayModel.spanningMetrics, function(index, spanMetric) {
+          if(spanMetric.spanningColumns.indexOf(d.columnName) != -1) {
+            array.push(spanMetric);
+          }
+        });
         return array;
       } else {
         return [];
@@ -497,15 +502,17 @@ function fillScrollVisMetrics() {
     var sameRows = d3.select(this.parentNode).selectAll("rect").filter(function(r) {
       return d3.select(this).attr("y") === d3.select(selThis).attr("y");
     })[0];
+    
     if(sameRows.length > 1) {
-      var indices = {
-        first: sameRows[0].__data__.index,
-        last: sameRows[sameRows.length-1].__data__.index
-      };
+      var indices = {index:[]};
+      $.each(sameRows, function(index, value) {
+        indices.index.push(value.__data__.index);
+      });
       tooltipInvalid.show(indices);
     } else {
       tooltipInvalid.show(d)
     }
+
     $.each(sameRows, function(i, rowCurrent) {
       $("#dataset").DataTable().row(rowCurrent.__data__.index).node().classList.add("hover");
     });
