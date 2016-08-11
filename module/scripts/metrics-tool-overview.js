@@ -107,11 +107,15 @@ function renderMetricOverview() {
     .attr("data-toggle", "popover")
     .append("rect")
     .data(function(d, i) {
-    var metrics = [];
+      var metrics = [];
       for (var m = 0; m < overlayModel.metricColumns.length; m++) {
-        var metric = overlayModel.metricColumns[m].metrics[d];
-        if(metric != null) metric.columnName = overlayModel.metricColumns[m].columnName;
-        metrics.push(metric);
+        if(overlayModel.metricColumns[m] != null) {
+          var metric = overlayModel.metricColumns[m].metrics[d];
+          if(metric != null) metric.columnName = overlayModel.metricColumns[m].columnName;
+          metrics.push(metric);
+        } else {
+          metrics.push(null);
+        }
       }
       return metrics;
     })
@@ -173,38 +177,42 @@ function updateSVGInteractions() {
 
   svgs.call(tooltipOverview);
   svgs.on("mouseover", function(d) {
-    if (d.spanningEvaluable != null) {
-      tooltipOverview.show(d);
-    } else {
-      tooltipOverview.show(d.metrics[this.parentNode.parentNode.__data__]);
-    };
+    if(d != null) {
+      if (d.spanningEvaluable != null) {
+        tooltipOverview.show(d);
+      } else {
+        tooltipOverview.show(d.metrics[this.parentNode.parentNode.__data__]);
+      };
+    }
   }).on("mouseout", function(d) {
     tooltipOverview.hide();
   });
   svgs.on("contextmenu", function(d, i) {
-    if (d.spanningEvaluable != null) {
-      contextMetric = d;
-    } else {
-      contextMetric = d.metrics[this.parentNode.parentNode.__data__];
-    }
-    d3.event.preventDefault();
-    tooltipOverview.hide();
-    
-    contextColumn = d.columnName;
-    var _this = this;
-    if(selectedColName.length > 1) {
-      $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
-      '<button type="button" class="btn btn-default" id="merge-metric">Merge</button>'+
-      '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
-    } else {
-      $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
-      '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
-    }
-    $(this).popover("toggle");
+    if(d != null) {
+      if (d.spanningEvaluable != null) {
+        contextMetric = d;
+      } else {
+        contextMetric = d.metrics[this.parentNode.parentNode.__data__];
+      }
+      d3.event.preventDefault();
+      tooltipOverview.hide();
+      
+      contextColumn = d.columnName;
+      var _this = this;
+      if(selectedColName.length > 1) {
+        $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+        '<button type="button" class="btn btn-default" id="merge-metric">Merge</button>'+
+        '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+      } else {
+        $(this).data("bs.popover").options.content = '<div class="btn-group" role="group"><button type="button" class="btn btn-danger" id="remove-metric">Remove</button>'+
+        '<button type="button" class="btn btn-default" id="duplicate-metric">Duplicate</button></div>';
+      }
+      $(this).popover("toggle");
 
-    $(".popover").on("mouseleave", function () {
-      $(_this).popover('hide');
-    });
+      $(".popover").on("mouseleave", function () {
+        $(_this).popover('hide');
+      });
+    }
   });
   contextPopover = $("svg.overview-svg").popover({
     html: 'true',
@@ -219,57 +227,59 @@ function updateSVGInteractions() {
 
 function selectMetric(d) {
   var metric;
-  if(d.spanningEvaluable != null) {
-    metric = d;
-  } else {
-  metric = d.metrics[this.parentNode.__data__];
-  }
-
-  if (d3.event.shiftKey) {
-  contextColumn = null;
-  } else {
-    if (selectedOverviewRect != null) {
-      metricType = [];
-      selectedOverviewRect = [];
-        selectedColName = [];
-        metricData = [];
-        d3.selectAll(".selected").classed("selected", false);
+  if(d != null) {
+    if(d.spanningEvaluable != null) {
+      metric = d;
+    } else {
+      metric = d.metrics[this.parentNode.__data__];
     }
-  }
 
-  metricData.push(metric);
-  if(d.spanningEvaluable != null) {
-    metricType.push("spanning");
-    selectedColName.push(d.spanningColumns);
-  } else {
-    metricType.push("single");
-    selectedColName.push(d.columnName);
-  }
-  
-  selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
+    if (d3.event.shiftKey) {
+    contextColumn = null;
+    } else {
+      if (selectedOverviewRect != null) {
+        metricType = [];
+        selectedOverviewRect = [];
+          selectedColName = [];
+          metricData = [];
+          d3.selectAll(".selected").classed("selected", false);
+      }
+    }
 
-  totalEvalTuples = [];
-  selectedChecks = [];
-  for (var i = 0; i < metricData.length; i++) {
-    var enabledTuples = metricData[i].evalTuples.filter(function(d) {
-      return !d.disabled;
-      });
-      if(metricData[i].spanningEvaluable != null) {
-      totalEvalTuples.push(metricData[i].spanningEvaluable);
+    metricData.push(metric);
+    if(d.spanningEvaluable != null) {
+      metricType.push("spanning");
+      selectedColName.push(d.spanningColumns);
+    } else {
+      metricType.push("single");
+      selectedColName.push(d.columnName);
+    }
+    
+    selectedOverviewRect.push(d3.select(this).attr("class", "selected"));
+
+    totalEvalTuples = [];
+    selectedChecks = [];
+    for (var i = 0; i < metricData.length; i++) {
+      var enabledTuples = metricData[i].evalTuples.filter(function(d) {
+        return !d.disabled;
+        });
+        if(metricData[i].spanningEvaluable != null) {
+        totalEvalTuples.push(metricData[i].spanningEvaluable);
+          selectedChecks.push(metricData[i].name);
+        }
+      totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
+      for(var j = 0; j < enabledTuples.length; j++) {
         selectedChecks.push(metricData[i].name);
       }
-    totalEvalTuples.push.apply(totalEvalTuples, enabledTuples);
-    for(var j = 0; j < enabledTuples.length; j++) {
-      selectedChecks.push(metricData[i].name);
     }
-  }
-  if(metricData.length > 0) {
-    refillEditForm(metricData, selectedColName);
-    fillLegend();
-    redrawDetailView(theProject, metricData, rowModel);
+    if(metricData.length > 0) {
+      refillEditForm(metricData, selectedColName);
+      fillLegend();
+      redrawDetailView(theProject, metricData, rowModel);
 
-    rawDataTable.column(0).visible(true);
-    updateOverlayPositions();
+      rawDataTable.column(0).visible(true);
+      updateOverlayPositions();
+    }
   }
 }
 
@@ -300,7 +310,9 @@ function drawDatatableScrollVis() {
   var minScale = 3;
   if (overlayModel.availableMetrics.length > 2) minScale = overlayModel.availableMetrics.length;
 
-  rawDataTableHeight = $(".dataTables_scrollBody").height() - getScrollBarWidth();
+  rawDataTableHeight = $(".dataTables_scrollBody").height();
+  if ($(".dataTables_scrollBody").scrollWidth > $(".dataTables_scrollBody").clientWidth)
+    rawDataTableHeight -= getScrollBarWidth();
 
   // d3.select("#overlay").attr("transform", "translate(0, -" + $("#dataset_wrapper")[0].clientHeight + ")");
   var overlay = d3.select("#overlay").selectAll("g.metrics-overlay")
@@ -367,16 +379,20 @@ function drawDatatableScrollVis() {
   
   overlay.append("line")
     .attr("x1", function(d) {
-      var attr = this.previousSibling.attributes["transform"];
-      var transl = attr.value.match(/\d+/);
-      var offset = parseInt(transl[0]);
-      return "-" + (offset+1);
+      if(d != null) {
+        var attr = this.previousSibling.attributes["transform"];
+        var transl = attr.value.match(/\d+/);
+        var offset = parseInt(transl[0]);
+        return "-" + (offset+1);
+      }
     })
     .attr("x2", function(d) {
-      var attr = this.previousSibling.attributes["transform"];
-      var transl = attr.value.match(/\d+/);
-      var offset = parseInt(transl[0]);
-      return "-" + (offset+1);
+      if(d != null) {
+        var attr = this.previousSibling.attributes["transform"];
+        var transl = attr.value.match(/\d+/);
+        var offset = parseInt(transl[0]);
+        return "-" + (offset+1);
+      }
     })
     .attr("y1", 0)
     .attr("y2", rawDataTableHeight)

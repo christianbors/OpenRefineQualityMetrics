@@ -47,7 +47,7 @@ var tooltipInvalid = d3.tip()
   .attr("class", "d3-tip")
   .offset([-10, 0])
   .html(function(d) {
-    if(d.index.length > 1 && d.index[d.index.length-1] - d.index[0] === d.index.length-1) {
+    if(d.index != null && d.index.length > 1 && d.index[d.index.length-1] - d.index[0] === d.index.length-1) {
       return "<strong>Rows:</strong> <span style='color:steelblue'>" + (d.index[0] + 1) + " - " + (d.index[d.index.length-1] + 1) + "</span>";
     } else {
       var indexVals = [].concat( d.index );
@@ -155,12 +155,12 @@ $(document).ready(function() {
 
                   var dataCols = dataSet[0];
 
-                  $.each(columnStore, function(key, value){
-                    $("#columnFormMetricModal").append('<option value="' + value.title + '">' + value.title + '</option>');
-                    $("#columnDuplicateModal").append('<option value="' + value.title + '">' + value.title + '</option>');
+                  $.each(columns, function(key, value){
+                    $("#columnFormMetricModal").append('<option value="' + value.name + '">' + value.name + '</option>');
+                    $("#columnDuplicateModal").append('<option value="' + value.name + '">' + value.name + '</option>');
                   });
 
-                  $("#columnFormMetricModal").attr("size", columnStore.length);
+                  $("#columnFormMetricModal").attr("size", columnStore.length-1);
 
                   // modal on click change
                   $( "#columnFormMetricModal" ).change(function() {
@@ -186,7 +186,7 @@ $(document).ready(function() {
 
                       renderTableHeader();
 
-                      var scrollHeight = 499 + getScrollBarWidth();
+                      var scrollHeight = 650 - $("#datasetHeader").height() - $("div.bottom").height() + getScrollBarWidth();
 
                       if(dataSet.length < pageLength) pageLength = dataSet.length;
 
@@ -409,15 +409,17 @@ function fillModalAfterColumnSelection(theProject) {
       var cl = "btn btn-default";
       if(selectedCols.length == 1) {
         for(var columnIndex = 0; columnIndex < overlayModel.metricColumns.length; columnIndex++) {
-          if(overlayModel.metricColumns[columnIndex].columnName === selectedCols[0]) {
-            var selectedMetrics = overlayModel.metricColumns[columnIndex].metrics;
-            var selectedMetricsArray = $.map(selectedMetrics, function(value, index) {
-              return [value];
-            });
-            for (var i = 0; i < selectedMetricsArray.length; i++) {
-              if(selectedMetricsArray[i].name == value) {
-                cl += " disabled";
-                break;
+          if(overlayModel.metricColumns[columnIndex] != null) {
+            if(overlayModel.metricColumns[columnIndex].columnName === selectedCols[0]) {
+              var selectedMetrics = overlayModel.metricColumns[columnIndex].metrics;
+              var selectedMetricsArray = $.map(selectedMetrics, function(value, index) {
+                return [value];
+              });
+              for (var i = 0; i < selectedMetricsArray.length; i++) {
+                if(selectedMetricsArray[i].name == value) {
+                  cl += " disabled";
+                  break;
+                }
               }
             }
           }
