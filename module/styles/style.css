@@ -162,6 +162,29 @@ th.popoverHeader {
 
 .dataTables_wrapper { font-size: 12px }
 
+.expression-preview-help-container h3 {
+  margin-top: 15px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid #999;
+}
+
+.expression-preview-doc-item-title {
+  font-weight: bold;
+  text-align: right;
+  vertical-align: top;
+  padding-right: 5px;
+}
+
+.expression-preview-doc-item-params {
+}
+
+.expression-preview-doc-item-returns {
+}
+
+.expression-preview-doc-item-desc {
+  color: #666;
+}
+
 .range {
     display: table;
     position: relative;

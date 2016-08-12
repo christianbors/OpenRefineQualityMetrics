@@ -47,6 +47,49 @@ $("#createMetricBtn").on("click", function(btn) {
   });
 });
 
+$("#showExamples").on("click", function(btn) {
+  $.post("../../command/metric-doc/get-metricdoc-language-info", function(data) {
+    var elmt = $("#metricDocExamplesBody");
+    var renderEntry = function(table, name, entry) {
+        var tr0 = table.insertRow(table.rows.length);
+        var tr1 = table.insertRow(table.rows.length);
+        var tr2 = table.insertRow(table.rows.length);
+        
+        $(tr0.insertCell(0)).addClass("expression-preview-doc-item-title").text(name);
+        $(tr0.insertCell(1)).addClass("expression-preview-doc-item-params").text("(" + entry.params + ")");
+        
+        $(tr1.insertCell(0));
+        $(tr1.insertCell(1)).addClass("expression-preview-doc-item-returns").text("returns: " + entry.returns);
+        
+        $(tr2.insertCell(0));
+        $(tr2.insertCell(1)).addClass("expression-preview-doc-item-desc").text(entry.description);
+    };
+    var renderEntries = function(table, map) {
+        var names = [];
+        for (var n in map) {
+            if (map.hasOwnProperty(n)) {
+                names.push(n);
+            }
+        }
+        names.sort();
+        
+        for (var i = 0; i < names.length; i++) {
+            var name = names[i];
+            renderEntry(table, name, map[name]);
+        }
+    };
+    $('<h4></h4>').text("Single Column Metrics").appendTo(elmt);
+    var functionTable = $('<table width="100%" cellspacing="5"></table>').appendTo(elmt)[0];
+    renderEntries(functionTable, data.singleColumnFunctions);
+    $('<h4></h4>').text("Multiple Column Metrics").appendTo(elmt);
+    var functionTable = $('<table width="100%" cellspacing="5"></table>').appendTo(elmt)[0];
+    renderEntries(functionTable, data.spanningColumnFunctions);
+    $('<h4></h4>').text("Data Quality Checks").appendTo(elmt);
+    var functionTable = $('<table width="100%" cellspacing="5"></table>').appendTo(elmt)[0];
+    renderEntries(functionTable, data.qualityCheckFunctions);
+  });
+});
+
 $("#filtering").on("click", function() {
     if(rowFilter == false) {
       rowFilter = true;

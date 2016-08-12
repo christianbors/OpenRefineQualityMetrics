@@ -56,6 +56,9 @@
                   <li><a href="#" id="importProject">Import Project Settings</a></li>
                 </ul>
               </li>
+              <li>
+                <a href="#" id="showExamples" data-toggle="modal" data-target="#examplesModal">Metric and Check Examples</a>
+              </li>
             </ul>
           </div>
         </nav>
@@ -279,6 +282,21 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="addCommentBtn">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="examplesModal" class="modal fade bs-example-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+  <div class="modal-dialog">
+    <div class="modal-content" style="overflow:auto;">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">Metric and Quality Check Examples</h4>
+      </div>
+      <div class="modal-body" id="metricDocExamplesBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

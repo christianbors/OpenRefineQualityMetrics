@@ -31,7 +31,7 @@ public class Uniqueness implements SpanningColumnMetricFunction {
 
 	@Override
 	public String getDescription() {
-		return "uniqueness placeholder";
+		return "Determine duplicate rows based on the specified key columns that need to be different.";
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class Uniqueness implements SpanningColumnMetricFunction {
 
 	@Override
 	public String getParams() {
-		return "";
+		return "list of column names";
 	}
 
 }
