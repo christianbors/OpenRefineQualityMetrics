@@ -81,10 +81,21 @@ function dataViewPopover() {
         }
     }
     var popoverColumn = overlayModel.metricColumns.filter(function(col) {
-      return col.columnName == _this.textContent;
+      if (col != null) {
+        return col.columnName == _this.textContent;
+      }
     })[0];
     var metricsArray = $.map(popoverColumn.metrics, function(value, index) {
       return [value];
+    });
+    var spanMetricsArray = overlayModel.spanningMetrics.filter(function(metric) {
+      if(metric != null) {
+        return metric.spanningColumns.indexOf(_this.textContent) >= 0;
+      }
+    });
+
+    $.each(spanMetricsArray, function(i, m) {
+      metricsArray.push(m);
     });
 
     var popoverSnippet = '';
@@ -93,9 +104,15 @@ function dataViewPopover() {
       if($($("g." + metricsArray[i].name)[colIdx]).css('display') == 'none') 
         checked = "";
 
-      popoverSnippet += "<div class='checkbox'><label><input " + checked + 
-        " id='" + colIdx + "' class='dataview-popover' type='checkbox'>" + 
-        metricsArray[i].name + "</label></div>";
+      if (metricsArray[i].spanningColumns != null) {
+        popoverSnippet += "<div class='checkbox'><label><input " + checked + 
+          " id='" + metricsArray[i].spanningColumns.indexOf(_this.textContent) + "' class='dataview-popover' type='checkbox'>" + 
+          metricsArray[i].name + "</label></div>";
+      } else {
+        popoverSnippet += "<div class='checkbox'><label><input " + checked + 
+          " id='" + colIdx + "' class='dataview-popover' type='checkbox'>" + 
+          metricsArray[i].name + "</label></div>";
+      }
     }
     $(this).data("bs.popover").options.content = popoverSnippet;
 
@@ -185,7 +202,9 @@ function updateMetric() {
 
             if(metricType[0] === "single") {
               overlayModel.metricColumns.filter(function(d) {
-                return d.columnName === selectedColName[0];
+                if(d != null) {
+                  return d.columnName === selectedColName[0];
+                }
               })[0].metrics[data.name] = data;
             } else if (metricType[0] === "spanning") {
               overlayModel.spanningMetrics[updateMetricIndex] = data;
@@ -680,7 +699,10 @@ function scheduleUpdate(textArea) {
                 $("#alertMetricUpdate").addClass("alert-danger");
                 $("#alertText").html(data.message);
                 $("#alertMetricUpdate").show(); //prop("hidden", false)
-              } else if (data.results[0].message.indexOf("Error") != -1) {
+              } else if (data.code == "ok" && data.results[0].message == null) {
+                $(textArea.parentNode).removeClass("has-error");
+                $("#alertMetricUpdate").hide();
+              } else if (data.results[0].message != null) {
                 $(textArea.parentNode).addClass("has-error");
                 $("#alertMetricUpdate").removeClass("alert-info");
                 $("#alertMetricUpdate").addClass("alert-danger");

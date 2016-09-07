@@ -18,6 +18,7 @@ import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.util.StatisticsUtils;
+import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 
 public class Plausibility implements SingleColumnMetricFunction {
@@ -49,7 +50,8 @@ public class Plausibility implements SingleColumnMetricFunction {
 			if (!bindings.containsKey("stats") || comparisonMode.equals("progressive")) {
 				Project project = (Project) bindings.get("project");
 				String column = (String) bindings.get("columnName");
-				int cellIndex = project.columnModel.getColumnIndexByName(column);
+				Column col = project.columnModel.getColumnByName(column);
+				int cellIndex = col.getCellIndex();
 				Engine engine = new Engine(project);
 				FilteredRows filteredRows = engine.getAllFilteredRows();
 				stats = new DescriptiveStatistics();

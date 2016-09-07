@@ -9,21 +9,23 @@ function renderTableHeader() {
   $("#datasetHeader").empty();
   $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Multiple-Column Metrics</th></tr>');
   $.each(overlayModel.spanningMetrics, function(key, metric) {
-    var spanMetricRow = '<tr class="span-metric-row">';
-    spanMetricRow += '<th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + metric.name + '</th>';
-    spanMetricRow += '<td style="padding:0px;" colspan="' + columns.length + '"></td>'
-    spanMetricRow += '</tr>';
-    var spanMetricColumns = '<tr class="span-metric-column-row"><td></td>';
-    $.each(metric.spanningColumns, function(idx, column) {
-      var colspan = Math.floor(columns.length/metric.spanningColumns.length);
-      if(metric.spanningColumns.length < columns.length && idx == 0) {
-        colspan += 1;
-      }
-      spanMetricColumns += "<th colspan="+colspan+">"+column+"</th>";
-    });
-    spanMetricColumns += '</tr>';
-    $("#datasetHeader").append(spanMetricColumns);
-    $("#datasetHeader").append(spanMetricRow);
+    if (metric != null) {
+      var spanMetricRow = '<tr class="span-metric-row">';
+      spanMetricRow += '<th style="padding-left:10px; padding-top:0px; padding-bottom:0px; font-weight:normal;">' + metric.name + '</th>';
+      spanMetricRow += '<td style="padding:0px;" colspan="' + columns.length + '"></td>'
+      spanMetricRow += '</tr>';
+      var spanMetricColumns = '<tr class="span-metric-column-row"><td></td>';
+      $.each(metric.spanningColumns, function(idx, column) {
+        var colspan = Math.floor(columns.length/metric.spanningColumns.length);
+        if(metric.spanningColumns.length < columns.length && idx == 0) {
+          colspan += 1;
+        }
+        spanMetricColumns += "<th colspan="+colspan+">"+column+"</th>";
+      });
+      spanMetricColumns += '</tr>';
+      $("#datasetHeader").append(spanMetricColumns);
+      $("#datasetHeader").append(spanMetricRow);
+    }
   });
 
   $("#datasetHeader").append('<tr><th></th><th colspan="'+columns.length+'">Single-Column Metrics</th></tr>');
@@ -339,7 +341,7 @@ function drawDatatableScrollVis() {
             return [value];
         });
         $.each(overlayModel.spanningMetrics, function(index, spanMetric) {
-          if(spanMetric.spanningColumns.indexOf(d.columnName) != -1) {
+          if(spanMetric != null && spanMetric.spanningColumns.indexOf(d.columnName) != -1) {
             array.push(spanMetric);
           }
         });
