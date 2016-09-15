@@ -3,6 +3,7 @@ package com.google.refine.metricsExtension.commands;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -22,19 +23,53 @@ import com.google.refine.model.Project;
 public class MergeMetricCommand extends Command {
 
 	@Override
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doPost(request, response);
+	}
+
+	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Project project = getProject(request);
 		String[] columnNames = request.getParameterValues("columnNames[]");
-		String[] metricIdxStrings = request.getParameterValues("metricIndices[]");
-		int[] metricIndices = new int[2];
-		metricIndices[0] = Integer.parseInt(metricIdxStrings[0]);
-		metricIndices[1] = Integer.parseInt(metricIdxStrings[1]);
-		
+		String metric1NameString = request.getParameter("metrics[0][name]");
+		String metric1Evaluable = request.getParameter("metrics[1][spanningEvaluable][evaluable]");
+
+		String metric2NameString = request.getParameter("metrics[1][name]");
+		String metric2Evaluable = request.getParameter("metrics[1][spanningEvaluable][evaluable]");
+
+		String[] metric1SpanningColumns = request.getParameterValues("metrics[0][spanningColumns][]");
+		String[] metric2SpanningColumns = request.getParameterValues("metrics[1][spanningColumns][]");
+
 		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-		if(columnNames != null && metricIndices != null && columnNames.length == metricIndices.length) {
-			Metric m1 = metricsOverlayModel.getMetricsForColumn(columnNames[0]).get(metricIndices[0]);
-			Metric m2 = metricsOverlayModel.getMetricsForColumn(columnNames[1]).get(metricIndices[1]);
+		if(columnNames != null && metric1NameString != null) {
+		    Metric m1 = null;
+		    Metric m2 = null;
+		    if(metric1SpanningColumns == null) {
+			m1 = metricsOverlayModel.getMetricsForColumn(columnNames[0]).get(metric1NameString);
+		    } else {
+		        Iterator<SpanningMetric> spanMetricsIt = metricsOverlayModel.getSpanMetricsList().iterator();
+		        while(spanMetricsIt.hasNext()) {
+		            SpanningMetric sm = spanMetricsIt.next();
+		            if(sm.getName().equals(metric1NameString) && sm.getSpanningColumns().containsAll(Arrays.asList(metric1SpanningColumns))) {
+		                m1 = sm;
+		            }
+		        }
+		    }
+		    
+		    if(metric1SpanningColumns == null) {
+		        m2 = metricsOverlayModel.getMetricsForColumn(columnNames[1]).get(metric2NameString);
+                    } else {
+                        Iterator<SpanningMetric> spanMetricsIt = metricsOverlayModel.getSpanMetricsList().iterator();
+                        while(spanMetricsIt.hasNext()) {
+                            SpanningMetric sm = spanMetricsIt.next();
+                            if(sm.getName().equals(metric2NameString) && sm.getSpanningColumns().containsAll(Arrays.asList(metric2SpanningColumns))) {
+                                m2 = sm;
+                            }
+                        }
+                    }
+			
 			if(columnNames[0].equals(columnNames[1])) {
 				Metric mergedMetric = new Metric("MergedMetric", "Metric merged from " + m1.getName() + " and "
 						+ m2.getName(), m1.getDataType(), m1.getConcat());
@@ -46,18 +81,18 @@ public class MergeMetricCommand extends Command {
 				}
 				metricsOverlayModel.getMetricsForColumn(columnNames[0]).put(mergedMetric.getName(), mergedMetric);
 			} else {
-				try {
-					if (m1 != null && m2 != null) {
-						Evaluable eval = MetaParser.parse("and(" + lowercaseEvaluableAndAddColumnInfo(
-											m1.getEvalTuples().get(0).eval, columnNames[0])
-										+ ", "
-										+ lowercaseEvaluableAndAddColumnInfo(
-											m1.getEvalTuples().get(0).eval, columnNames[1])
-										+ ")");
+				if (m1 != null && m2 != null) {
+//					try {
+//						Evaluable eval = MetaParser.parse("and(" + lowercaseEvaluableAndAddColumnInfo(
+//											m1.getEvalTuples().get(0).eval, columnNames[0])
+//										+ ", "
+//										+ lowercaseEvaluableAndAddColumnInfo(
+//											m1.getEvalTuples().get(0).eval, columnNames[1])
+//										+ ")");
 						SpanningMetric sm = new SpanningMetric("MergedMetric",
 									"Metric merged from " + m1.getName() + " and " + m2.getName(), 
 									Arrays.asList(columnNames));
-						sm.addSpanningEvalTuple(eval, "", false);
+//						sm.addSpanningEvalTuple(eval, "", "", false);
 						if(m1.getDataType().equals(m2.getDataType())) {
 							sm.setDataType(m1.getDataType());
 						}
@@ -65,17 +100,17 @@ public class MergeMetricCommand extends Command {
 						spanningColumns.addAll(Arrays.asList(columnNames));
 						sm.setSpanningColumns(spanningColumns);
 						
-						for (int i = 1; i < m1.getEvalTuples().size(); ++i) {
+						for (int i = 0; i < m1.getEvalTuples().size(); ++i) {
 							sm.addEvalTuple(m1.getEvalTuples().get(i));
 						}
-						for (int i = 1; i < m2.getEvalTuples().size(); ++i) {
+						for (int i = 0; i < m2.getEvalTuples().size(); ++i) {
 							sm.addEvalTuple(m2.getEvalTuples().get(i));
 						}
 						metricsOverlayModel.addSpanningMetric(sm);
-					}
-				} catch (ParsingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+//					} catch (ParsingException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
 				}
 			}
 			metricsOverlayModel.deleteMetric(columnNames[0], m1.getName());
@@ -87,7 +122,7 @@ public class MergeMetricCommand extends Command {
 		char c[] = eval.toString().toCharArray();
     	c[0] = Character.toLowerCase(c[0]);
     	String lower = new String(c);
-    	lower = lower.replace("value", "cells[\""+ columnName + "\"].value");
+    	lower = lower.replace("value", "if(get(cells, \""+ columnName + "\") == null, '', get(cells, \""+ columnName + "\"))");
     	return lower;
 	}
 }

@@ -6,6 +6,7 @@ function redrawDetailView(theProject, metricData, rowModel) {
   $("#filtering").show();
   
   var axisWidths = [];
+  maxErrorDens = 0;
   axisWidths.push(0);
   // initialize selected metric evaluables
   var headerHeightComp = $(".dataTables_scrollhead").height() - ($("#legend").height() + $("#legend")[0].offsetTop);

@@ -57,7 +57,7 @@ public class MetricsExtensionCommand extends Command {
 						if (entry.getValue() instanceof SingleColumnMetricFunction) {
 							SingleColumnMetricFunction mf = (SingleColumnMetricFunction) entry.getValue();
 							Metric m = new Metric(entry.getKey(), mf.getDescription());
-							m.addEvalTuple(mf.getEvaluable(null), "", false);
+							m.addEvalTuple(mf.getEvaluable(null), col.getName(), "", false);
 							columnMetricsMap.put(entry.getKey(), m);
 						}
 						metricsMap.put(col.getName(), columnMetricsMap);
@@ -73,7 +73,7 @@ public class MetricsExtensionCommand extends Command {
 						SpanningColumnMetricFunction uniquenessFn = (SpanningColumnMetricFunction) ControlFunctionRegistry.getFunction("uniqueness");
 						SpanningMetric uniqueness = new SpanningMetric("uniqueness",
 								uniquenessFn.getDescription(), colList);
-						uniqueness.addSpanningEvalTuple(uniquenessFn.getEvaluable(null, null), "", false);
+						uniqueness.addSpanningEvalTuple(uniquenessFn.getEvaluable(null, null), colList.get(0), "", false);
 						metricsOverlayModel = new MetricsOverlayModel(
 								metricsMap, spanningMetrics, uniqueness);
 								

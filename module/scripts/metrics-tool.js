@@ -332,11 +332,11 @@ function fillLegend() {
     if(overlayModel.availableMetrics.indexOf(metricData[i].name) != -1) {
       return metricData[i].columnName + " - " + capitalizeFirstLetter(metricData[i].name);
     } else {
-      if(overlayModel.availableSpanningMetrics.indexOf(metricData[i].name) != -1) {
-        return metricData[i].columnName + " - " + capitalizeFirstLetter(metricData[i].name);
-      } else {
-        return metricData[i].columnName + " - Uniqueness";
-      }
+      // if(overlayModel.availableSpanningMetrics.indexOf(metricData[i].name) != -1) {
+        return metricData[i].spanningColumns.toString() + " - " + capitalizeFirstLetter(metricData[i].name);
+      // } else {
+        // return metricData[i].columnName + " - Uniqueness";
+      // }
     }
   })
 }

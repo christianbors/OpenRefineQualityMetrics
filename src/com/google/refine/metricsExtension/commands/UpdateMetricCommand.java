@@ -66,11 +66,14 @@ public class UpdateMetricCommand extends Command {
 					}
 				}
 			}
-			String comment = request.getParameter("metric[spanningEvaluable][comment]");
 			String evaluable = request.getParameter("metric[spanningEvaluable][evaluable]");
+			String columnName = request.getParameter("metric[spanningEvaluable][column]");
+			String comment = request.getParameter("metric[spanningEvaluable][comment]");
 			boolean disabled = Boolean.parseBoolean(request.getParameter("metric[spanningEvaluable][disabled]"));
 			try {
-				((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), comment, disabled);
+				if(evaluable != null) {
+					((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), columnName, comment, disabled);
+				}
 			} catch (ParsingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -85,11 +88,12 @@ public class UpdateMetricCommand extends Command {
 		toBeEdited.setConcat(Concatenation.valueOf(metricConcatenation));
 		toBeEdited.getEvalTuples().clear();
 		for(int i = 0; i < evaluableCount; i++) {
-			String comment = request.getParameter("metric[evalTuples][" + i + "][comment]");
 			String evaluable = request.getParameter("metric[evalTuples][" + i + "][evaluable]");
+			String columnName = request.getParameter("metric[evalTuples][" + i + "][column]");
+			String comment = request.getParameter("metric[evalTuples][" + i + "][comment]");
 			boolean disabled = Boolean.parseBoolean(request.getParameter("metric[evalTuples][" + i + "][disabled]"));
 			try {
-				toBeEdited.addEvalTuple(MetaParser.parse(evaluable), comment, disabled);
+				toBeEdited.addEvalTuple(MetaParser.parse(evaluable), columnName, comment, disabled);
 			} catch (ParsingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

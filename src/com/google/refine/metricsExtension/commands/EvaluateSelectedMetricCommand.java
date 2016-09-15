@@ -9,9 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.stat.descriptive.rank.Median;
-import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +26,7 @@ import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.metricsExtension.util.MetricUtils;
-import com.google.refine.metricsExtension.util.StatisticsUtils;
 import com.google.refine.model.Cell;
-import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
 
@@ -100,54 +95,69 @@ public class EvaluateSelectedMetricCommand extends Command {
 				} else {
 					ct = (WrappedCell) row.getCellTuple(project).getField(spanningMetric.getSpanningColumns().get(0), bindings);
 				}
-				if (ct != null) {
-					Cell c = ((WrappedCell )ct).cell;
-					ExpressionUtils.bind(bindings, row, rowIndex, column, c);
-				} else {
-					ExpressionUtils.bind(bindings, row, rowIndex, column, null);
-				}
-				if(metric != null) {
-						List<Boolean> evalResults = new ArrayList<Boolean>();
-						boolean entryDirty = false;
+//				if (ct != null) {
+//					Cell c = ((WrappedCell )ct).cell;
+//					ExpressionUtils.bind(bindings, row, rowIndex, column, c);
+//				} else {
+//					ExpressionUtils.bind(bindings, row, rowIndex, column, null);
+//				}
+				if (metric != null) {
+					List<Boolean> evalResults = new ArrayList<Boolean>();
+					boolean entryDirty = false;
 
-						for (EvalTuple evalTuple : metric.getEvalTuples()) {
-							if (!evalTuple.disabled) {
-								boolean evalResult;
-								Object evaluation = evalTuple.eval
-										.evaluate(bindings);
-								if (evaluation.getClass() != EvalError.class) {
-									evalResult = (Boolean) evaluation;
-									if (!evalResult) {
-										entryDirty = true;
-									}
-									evalResults.add(evalResult);
+					for (EvalTuple evalTuple : metric.getEvalTuples()) {
+						if (!evalTuple.disabled) {
+							if (ct != null) {
+								Cell c = ((WrappedCell) ct).cell;
+								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, c);
+							} else {
+								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
+							}
+							boolean evalResult;
+							Object evaluation = evalTuple.eval.evaluate(bindings);
+							if (evaluation.getClass() != EvalError.class) {
+								evalResult = (Boolean) evaluation;
+								if (!evalResult) {
+									entryDirty = true;
 								}
+								evalResults.add(evalResult);
 							}
 						}
+					}
 
-						if (entryDirty) {
-							metric.addDirtyIndex(rowIndex, evalResults);
-						}
+					if (entryDirty) {
+						metric.addDirtyIndex(rowIndex, evalResults);
+					}
 				} else {
 					List<Boolean> evalResults = new ArrayList<Boolean>();
 					boolean entryDirty = false;
 					
-					Object spanEvalResult = spanningMetric.getSpanningEvaluable().eval.evaluate(bindings);
-					if (spanEvalResult.getClass() != EvalError.class) {
-						evalResults.add((Boolean) spanEvalResult);
-						if(!(boolean) spanEvalResult) {
-							entryDirty = true;
+					if (spanningMetric.getSpanningEvaluable() != null) {
+						Object spanEvalResult = spanningMetric.getSpanningEvaluable().eval.evaluate(bindings);
+						if (spanEvalResult.getClass() != EvalError.class) {
+							evalResults.add((Boolean) spanEvalResult);
+							if(!(boolean) spanEvalResult) {
+								entryDirty = true;
+							}
 						}
 					}
 					for (EvalTuple evalTuple : spanningMetric.getEvalTuples()) {
-						boolean evalResult;
-						Object evaluation = evalTuple.eval.evaluate(bindings);
-						if (evaluation.getClass() != EvalError.class) {
-							evalResult = (Boolean) evaluation;
-							if (!evalResult) {
-								entryDirty = true;
+						if (!evalTuple.disabled) {
+							if (ct != null) {
+								Cell c = ((WrappedCell) ct).cell;
+								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, c);
+							} else {
+								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
 							}
-							evalResults.add(evalResult);
+							boolean evalResult;
+							Object evaluation = evalTuple.eval.evaluate(bindings);
+							if (evaluation.getClass() != EvalError.class) {
+								evalResult = (Boolean) evaluation;
+								if (!evalResult) {
+									entryDirty = true;
+								}
+								evalResults.add(evalResult);
+							}
 						}
 					}
 

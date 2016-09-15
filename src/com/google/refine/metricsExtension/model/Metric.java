@@ -27,11 +27,13 @@ public class Metric implements Jsonizable {
 	
 	public class EvalTuple {
 		public Evaluable eval;
+		public String column;
 		public String comment;
 		public boolean disabled;
 		
-		public EvalTuple(Evaluable eval, String comment, boolean disabled) {
+		public EvalTuple(Evaluable eval, String column, String comment, boolean disabled) {
 			this.eval = eval;
+			this.column = column;
 			this.comment = comment;
 			this.disabled = disabled;
 		}
@@ -96,6 +98,7 @@ public class Metric implements Jsonizable {
         	c[0] = Character.toLowerCase(c[0]);
         	String evalString = new String(c);
         	writer.key("evaluable").value(evalString);
+        	writer.key("column").value(e.column);
         	writer.key("comment").value(e.comment);
         	writer.key("disabled").value(e.disabled);
         	writer.endObject();
@@ -131,7 +134,8 @@ public class Metric implements Jsonizable {
 				for (int i = 0; i < evals.length(); ++i) {
 					try {
 						JSONObject evalTuple = evals.getJSONObject(i);
-						m.addEvalTuple(MetaParser.parse(MetricUtils.decapitalize(evalTuple.getString("evaluable"))), 
+						m.addEvalTuple(MetaParser.parse(MetricUtils.decapitalize(evalTuple.getString("evaluable"))),
+								evalTuple.getString("column"),
 								evalTuple.getString("comment"), 
 								evalTuple.getBoolean("disabled"));
 					} catch (ParsingException e) {
@@ -148,17 +152,18 @@ public class Metric implements Jsonizable {
         return null;
     }
 	
-	public void addEvalTuple(Evaluable evaluable, String comment, boolean evalDisabled) {
-		this.evaluables.add(new EvalTuple(evaluable, comment, evalDisabled));
+	public void addEvalTuple(Evaluable evaluable, String column, String comment, boolean evalDisabled) {
+		this.evaluables.add(new EvalTuple(evaluable, column, comment, evalDisabled));
 	}
 	
 	public void addEvalTuple(EvalTuple evalTuple) {
 		this.evaluables.add(evalTuple);
 	}
 	
-	public EvalTuple editEvalTuple(int listIndex, Evaluable evaluable, String comment, boolean evalDisabled) {
+	public EvalTuple editEvalTuple(int listIndex, Evaluable evaluable, String column, String comment, boolean evalDisabled) {
 		EvalTuple eval = this.evaluables.get(listIndex);
 		eval.eval = evaluable;
+		eval.column = column;
 		eval.comment = comment;
 		eval.disabled = evalDisabled;
 		return eval;

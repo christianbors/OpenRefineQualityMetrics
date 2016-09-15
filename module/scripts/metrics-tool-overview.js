@@ -180,7 +180,7 @@ function updateSVGInteractions() {
   svgs.call(tooltipOverview);
   svgs.on("mouseover", function(d) {
     if(d != null) {
-      if (d.spanningEvaluable != null) {
+      if (d.spanningColumns != null) {
         tooltipOverview.show(d);
       } else {
         tooltipOverview.show(d.metrics[this.parentNode.parentNode.__data__]);
@@ -191,7 +191,7 @@ function updateSVGInteractions() {
   });
   svgs.on("contextmenu", function(d, i) {
     if(d != null) {
-      if (d.spanningEvaluable != null) {
+      if (d.spanningColumns != null) {
         contextMetric = d;
       } else {
         contextMetric = d.metrics[this.parentNode.parentNode.__data__];
@@ -230,7 +230,7 @@ function updateSVGInteractions() {
 function selectMetric(d) {
   var metric;
   if(d != null) {
-    if(d.spanningEvaluable != null) {
+    if(d.spanningColumns != null) {
       metric = d;
     } else {
       metric = d.metrics[this.parentNode.__data__];
@@ -249,7 +249,7 @@ function selectMetric(d) {
     }
 
     metricData.push(metric);
-    if(d.spanningEvaluable != null) {
+    if(d.spanningColumns != null) {
       metricType.push("spanning");
       selectedColName.push(d.spanningColumns);
     } else {

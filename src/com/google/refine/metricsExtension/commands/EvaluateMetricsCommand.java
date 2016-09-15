@@ -102,12 +102,6 @@ public class EvaluateMetricsCommand extends Command {
 				// evaluate metrics
 				for (String columnName : model.getMetricColumnNames()) {
 					WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
-					if (ct != null) {
-						Cell c = ((WrappedCell )ct).cell;
-						ExpressionUtils.bind(bindings, row, rowIndex, columnName, c);
-					} else {
-						ExpressionUtils.bind(bindings, row, rowIndex, columnName, null);
-					}
 					
 					Map<String, Metric> metrics = model
 							.getMetricsForColumn(columnName);
@@ -119,6 +113,13 @@ public class EvaluateMetricsCommand extends Command {
 
 						for (EvalTuple evalTuple : metricEntry.getValue().getEvalTuples()) {
 							if (!evalTuple.disabled) {
+								if (ct != null) {
+									Cell c = ((WrappedCell )ct).cell;
+									ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, c);
+								} else {
+									ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
+								}
+								
 								boolean evalResult;
 								Object evaluation = evalTuple.eval
 										.evaluate(bindings);

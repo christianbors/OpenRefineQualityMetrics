@@ -62,6 +62,7 @@ public class SpanningMetric extends Metric {
         	c[0] = Character.toLowerCase(c[0]);
         	String evalString = new String(c);
         	writer.key("evaluable").value(evalString);
+        	writer.key("column").value(e.column);
         	writer.key("comment").value(e.comment);
         	writer.key("disabled").value(e.disabled);
         	writer.endObject();
@@ -80,14 +81,17 @@ public class SpanningMetric extends Metric {
         }
         writer.endArray();
         
-        char c[] = spanningEvaluable.eval.toString().toCharArray();
-    	c[0] = Character.toLowerCase(c[0]);
-    	String evalString = new String(c);
-        writer.key("spanningEvaluable").object();
-        writer.key("evaluable").value(evalString);
-    	writer.key("comment").value(spanningEvaluable.comment);
-    	writer.key("disabled").value(spanningEvaluable.disabled);
-    	writer.endObject();
+        if(spanningEvaluable != null) {
+	        char c[] = spanningEvaluable.eval.toString().toCharArray();
+	    	c[0] = Character.toLowerCase(c[0]);
+	    	String evalString = new String(c);
+	        writer.key("spanningEvaluable").object();
+	        writer.key("evaluable").value(evalString);
+	        writer.key("column").value("");
+	    	writer.key("comment").value(spanningEvaluable.comment);
+	    	writer.key("disabled").value(spanningEvaluable.disabled);
+	    	writer.endObject();
+        }
 
         writer.endObject();
 	}
@@ -106,7 +110,8 @@ public class SpanningMetric extends Metric {
         		m.spanningColumns.add(colNameArray.getString(spanningIdx));
         	}
         	JSONObject spanningEval = o.getJSONObject("spanningEvaluable");
-        	m.addSpanningEvalTuple(MetaParser.parse(MetricUtils.decapitalize(spanningEval.getString("evaluable"))), 
+        	m.addSpanningEvalTuple(MetaParser.parse(MetricUtils.decapitalize(spanningEval.getString("evaluable"))),
+        			spanningEval.getString("column"),
         			spanningEval.getString("comment"), 
         			spanningEval.getBoolean("disabled"));
 			if (o.has("dirtyIndices")) {
@@ -128,7 +133,8 @@ public class SpanningMetric extends Metric {
 				for (int i = 0; i < evals.length(); ++i) {
 					try {
 						JSONObject evalTuple = evals.getJSONObject(i);
-						m.addEvalTuple(MetaParser.parse(MetricUtils.decapitalize(evalTuple.getString("evaluable"))), 
+						m.addEvalTuple(MetaParser.parse(MetricUtils.decapitalize(evalTuple.getString("evaluable"))),
+								evalTuple.getString("column"),
 								evalTuple.getString("comment"), 
 								evalTuple.getBoolean("disabled"));
 					} catch (ParsingException e) {
@@ -145,8 +151,8 @@ public class SpanningMetric extends Metric {
         return null;
     }
 	
-	public void addSpanningEvalTuple(Evaluable evaluable, String comment, boolean evalDisabled) {
-		this.spanningEvaluable = new EvalTuple(evaluable, comment, evalDisabled);
+	public void addSpanningEvalTuple(Evaluable evaluable, String columnName, String comment, boolean evalDisabled) {
+		this.spanningEvaluable = new EvalTuple(evaluable, columnName, comment, evalDisabled);
 	}
 	
 	public List<String> getSpanningColumns() {

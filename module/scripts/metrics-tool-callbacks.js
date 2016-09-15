@@ -195,12 +195,17 @@ $(document).on("click", "#remove-metric", function(d) {
 });
 
 $(document).on("click", "#merge-metric", function() {
+  $.each(metricData, function(i, metricCur) {
+    metricCur.dirtyIndices = [];
+  });
+
   $.post("../../command/metric-doc/mergeMetric?" + $.param(
     { 
-      metricIndices: selectedMetricIndex, 
+      metrics: metricData,
       columnNames: selectedColName,
       project: theProject.id
-    }) + "&callback=?",
+    }), 
+    {},
     function(response) {
       console.log("success");
     });
