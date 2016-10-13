@@ -47,9 +47,9 @@ public class Plausibility implements SingleColumnMetricFunction {
 				}
 				evalMode = evalParsed;
 			}
-			if (!bindings.containsKey("stats") || comparisonMode.equals("progressive")) {
+			String column = (String) bindings.get("columnName");
+			if (!bindings.containsKey("stats[" + column + "]") || comparisonMode.equals("progressive")) {
 				Project project = (Project) bindings.get("project");
-				String column = (String) bindings.get("columnName");
 				Column col = project.columnModel.getColumnByName(column);
 				int cellIndex = col.getCellIndex();
 				Engine engine = new Engine(project);
@@ -66,7 +66,7 @@ public class Plausibility implements SingleColumnMetricFunction {
 						filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values, startIdx, endIdx));
 					} else {
 						filteredRows.accept(project, StatisticsUtils.createAggregateRowVisitor(project, cellIndex, stats, values));
-						bindings.put("stats", stats);
+						bindings.put("stats[" + column + "]", stats);
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -87,7 +87,7 @@ public class Plausibility implements SingleColumnMetricFunction {
 				// sIQRColsList.add(sIQR);
 
 			} else {
-				stats = (DescriptiveStatistics) bindings.get("stats");
+				stats = (DescriptiveStatistics) bindings.get("stats[" + column + "]");
 				sIQR = (Double) bindings.get("siqr");
 			}
 			

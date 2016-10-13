@@ -17,7 +17,7 @@ $("#persist").on("click", function(d) {
 });
 
 $("#addCheck").on("click", function(d) {
-  var newEvaluable = {evaluable: "", comment: "", disabled: false};
+  var newEvaluable = {evaluable: "", comment: "", disabled: false, column: metricData[0].columnName};
   metricData[0].evalTuples.push(newEvaluable);
   addEvaluableEntry(newEvaluable);
 });
@@ -36,6 +36,7 @@ $("#createMetricBtn").on("click", function(btn) {
   $.post("../../command/metric-doc/createMetric?" + $.param(params) + "&callback=?",
     function(data) {
     $("#addMetricModal").modal("hide");
+    metricData[0] = data;
     $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
     function(data) {
       overlayModel = data;
@@ -98,7 +99,7 @@ $("#filtering").on("click", function() {
       if(metricData[0].spanningEvaluable == null) $("#overlay").hide();
       d3.select("rect.rect-disabled")
         .attr("fill", "gainsboro");
-      var button = this.firstChild.textContent = "Show all Entries";
+      var button = this.firstChild.textContent = "Show all entries";
     } else {
       rowFilter = false;
       $.fn.dataTableExt.search = [];
@@ -106,7 +107,7 @@ $("#filtering").on("click", function() {
       if(metricData[0].spanningEvaluable == null) $("#overlay").show();
       d3.select("rect.rect-disabled")
         .attr("fill", "transparent");
-      var button = this.firstChild.textContent = "Only show dirty Entries";
+      var button = this.firstChild.textContent = "Only show dirty entries";
     }
 })
 
@@ -176,6 +177,7 @@ $(document).on("click", "#remove-metric", function(d) {
       $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
       function(data) {
         overlayModel = data;
+        metricData = [];
         renderTableHeader();
         renderMetricOverview();
         renderSpanningMetricOverview();
@@ -190,11 +192,15 @@ $(document).on("click", "#remove-metric", function(d) {
     return d.columnName === contextColumn;
   }).remove();
   var gs = d3.selectAll("g.metrics-overlay").filter(function(d) {
-    return d.columnName === contextColumn;
+    if (d != null) {
+      return d.columnName === contextColumn;
+    }
   }).select("g." + contextMetric.name).remove();
 });
 
 $(document).on("click", "#merge-metric", function() {
+  var popover = $("div.popover");
+  popover.popover("toggle");
   $.each(metricData, function(i, metricCur) {
     metricCur.dirtyIndices = [];
   });
@@ -207,7 +213,15 @@ $(document).on("click", "#merge-metric", function() {
     }), 
     {},
     function(response) {
-      console.log("success");
+      overlayModel = response;
+      renderTableHeader();
+      renderMetricOverview();
+      renderSpanningMetricOverview();
+      drawDatatableScrollVis();
+
+      metricData = [];
+      redrawDetailView(theProject, metricData, rowModel, overlayModel);
+      updateOverlayPositions();
     });
 });
 

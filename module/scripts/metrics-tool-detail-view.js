@@ -136,7 +136,8 @@ function redrawDetailView(theProject, metricData, rowModel) {
       .data(dirtyArray)
       .enter()
       .append("g")
-      .attr("class", "metric-detail-row");
+      .attr("class", "metric-detail-row")
+      .style("fill", function(d, i) { return "white"; });
 
     var bins = metricDetail.selectAll(".bin")
         .data(function (d) {
@@ -160,7 +161,6 @@ function redrawDetailView(theProject, metricData, rowModel) {
         return fillMetricColor(selectedChecks[i]);
       }
     }).style("opacity", function(d, i) {
-      // return 0.25;
       var count = d.reduce(function(n, val) {
         return n + (val === false);
       }, 0);
@@ -197,9 +197,6 @@ function redrawDetailView(theProject, metricData, rowModel) {
         .attr("stroke", "black")
         .attr("stroke-width", "2")
         .attr("class", "separator");
-    // .style("opacity", function(d, i) {
-    //   return selectedColOpacity[i];
-    // })
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + (detailViewHeight) + ")")
@@ -274,7 +271,7 @@ function redrawDetailView(theProject, metricData, rowModel) {
     });
 
     bins.on("mouseover", function(d) {
-      d3.select(this.parentNode).selectAll("rect").style("fill", "steelblue");
+      d3.select(this.parentNode).selectAll("rect").style("fill", "#2d5474");
       var attrY = d3.select(this).attr("y");
       tooltipInvalid.show(this.parentNode.__data__);
 

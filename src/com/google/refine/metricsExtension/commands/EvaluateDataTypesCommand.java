@@ -66,34 +66,40 @@ public class EvaluateDataTypesCommand extends Command {
 						WrappedCell ct = (WrappedCell) row
 								.getCellTuple(project).getField(columnName,
 										bindings);
-						Object[] argsDate = { ct.cell.value,
-								"dd.MM.yyyy HH:mm:ss" };
-						Object[] argsDefault = { ct.cell.value };
-						Object dateValue = new ToDate()
-								.call(bindings, argsDate);
-						Object numericValue = new ToNumber().call(bindings,
-								argsDefault);
-						Object stringValue = new ToString().call(bindings,
-								argsDefault);
-						if ((dateValue instanceof Date)
-								|| (dateValue instanceof Calendar)) {
-							int[] counts = types.dataTypes.get("date/time");
-							counts[colIdx]++;
-							types.dataTypes.put("date/time", counts);
-						} else if (numericValue instanceof Long
-								|| numericValue instanceof Float
-								|| numericValue instanceof Integer) {
-							int[] counts = types.dataTypes.get("numeric");
-							counts[colIdx]++;
-							types.dataTypes.put("numeric", counts);
-						} else if (stringValue instanceof String) {
-							int[] counts = types.dataTypes.get("string");
-							counts[colIdx]++;
-							types.dataTypes.put("string", counts);
-						} else {
-							int[] counts = types.dataTypes.get("unknown");
-							counts[colIdx]++;
-							types.dataTypes.put("unknown", counts);
+						Object[] argsDate = 
+							{	"dd.MM.yyyy HH:mm:ss",
+								"yyyy-MM-dd HH:mm:ss" };
+//						if (ct.cell != null) {
+//							argsDate[argsDate.length+1] = ct.cell.value;
+//						}
+						if (ct != null && ct.cell != null) {
+							Object[] argsDefault = { ct.cell.value };
+							Object dateValue = new ToDate()
+									.call(bindings, argsDate);
+							Object numericValue = new ToNumber().call(bindings,
+									argsDefault);
+							Object stringValue = new ToString().call(bindings,
+									argsDefault);
+							if ((dateValue instanceof Date)
+									|| (dateValue instanceof Calendar)) {
+								int[] counts = types.dataTypes.get("date/time");
+								counts[colIdx]++;
+								types.dataTypes.put("date/time", counts);
+							} else if (numericValue instanceof Long
+									|| numericValue instanceof Float
+									|| numericValue instanceof Integer) {
+								int[] counts = types.dataTypes.get("numeric");
+								counts[colIdx]++;
+								types.dataTypes.put("numeric", counts);
+							} else if (stringValue instanceof String) {
+								int[] counts = types.dataTypes.get("string");
+								counts[colIdx]++;
+								types.dataTypes.put("string", counts);
+							} else {
+								int[] counts = types.dataTypes.get("unknown");
+								counts[colIdx]++;
+								types.dataTypes.put("unknown", counts);
+							}
 						}
 					}
 					return false;

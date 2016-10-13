@@ -107,6 +107,9 @@ public class EvaluateSelectedMetricCommand extends Command {
 
 					for (EvalTuple evalTuple : metric.getEvalTuples()) {
 						if (!evalTuple.disabled) {
+							if(evalTuple.column == null) {
+								evalTuple.column = this.column;
+							}
 							if (ct != null) {
 								Cell c = ((WrappedCell) ct).cell;
 								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, c);
@@ -114,6 +117,8 @@ public class EvaluateSelectedMetricCommand extends Command {
 								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
 							}
 							boolean evalResult;
+							bindings.setProperty("columnName", evalTuple.column);
+
 							Object evaluation = evalTuple.eval.evaluate(bindings);
 							if (evaluation.getClass() != EvalError.class) {
 								evalResult = (Boolean) evaluation;
@@ -132,6 +137,13 @@ public class EvaluateSelectedMetricCommand extends Command {
 					List<Boolean> evalResults = new ArrayList<Boolean>();
 					boolean entryDirty = false;
 					
+					if (ct != null) {
+					    Cell c = ((WrappedCell) ct).cell;
+                        ExpressionUtils.bind(bindings, row, rowIndex, "", c);
+                    } else {
+                        ExpressionUtils.bind(bindings, row, rowIndex, "", null);
+                    }
+					
 					if (spanningMetric.getSpanningEvaluable() != null) {
 						Object spanEvalResult = spanningMetric.getSpanningEvaluable().eval.evaluate(bindings);
 						if (spanEvalResult.getClass() != EvalError.class) {
@@ -143,13 +155,8 @@ public class EvaluateSelectedMetricCommand extends Command {
 					}
 					for (EvalTuple evalTuple : spanningMetric.getEvalTuples()) {
 						if (!evalTuple.disabled) {
-							if (ct != null) {
-								Cell c = ((WrappedCell) ct).cell;
-								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, c);
-							} else {
-								ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
-							}
 							boolean evalResult;
+							bindings.setProperty("columnName", evalTuple.column);
 							Object evaluation = evalTuple.eval.evaluate(bindings);
 							if (evaluation.getClass() != EvalError.class) {
 								evalResult = (Boolean) evaluation;

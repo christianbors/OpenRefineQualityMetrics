@@ -119,6 +119,7 @@ public class EvaluateMetricsCommand extends Command {
 								} else {
 									ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
 								}
+								bindings.setProperty("columnName", evalTuple.column);
 								
 								boolean evalResult;
 								Object evaluation = evalTuple.eval
@@ -142,14 +143,18 @@ public class EvaluateMetricsCommand extends Command {
 						List<Boolean> evalResults = new ArrayList<Boolean>();
 						boolean entryDirty = false;
 						
-						Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
-						if (spanEvalResult.getClass() != EvalError.class) {
-							evalResults.add((Boolean) spanEvalResult);
-							if(!(boolean) spanEvalResult) {
-								entryDirty = true;
+						if(sm.getSpanningEvaluable() != null) {
+							Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
+							if (spanEvalResult.getClass() != EvalError.class) {
+								evalResults.add((Boolean) spanEvalResult);
+								if (!(boolean) spanEvalResult) {
+									entryDirty = true;
+								}
 							}
 						}
 						for (EvalTuple evalTuple : sm.getEvalTuples()) {
+							bindings.setProperty("columnName", evalTuple.column);
+
 							boolean evalResult;
 							Object evaluation = evalTuple.eval.evaluate(bindings);
 							if (evaluation.getClass() != EvalError.class) {

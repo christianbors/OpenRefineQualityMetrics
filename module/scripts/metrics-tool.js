@@ -27,7 +27,6 @@ var theProject,
 // context menu
     contextMetric,
     contextColumn,
-// coloring scale should be defined globally
     z,
     selectedEditEvaluable,
     dataSet = [],
@@ -72,12 +71,25 @@ var tooltipOverview = d3.tip()
   });
 
 var filterFunction = function (oSettings, aData, iDataIndex) {
-  var gs = d3.selectAll("g.metric-detail-row").filter(function(d, i) {
-    if(d != null) {
-      return d.index.indexOf(iDataIndex) != -1;
-    }
+  var filteredRow;
+  $.each(metricData, function(ifx, metric) {
+    filteredRow = metric.dirtyIndices.filter(function(d, i) {
+      if(d != null) {
+        return d.index === iDataIndex && (metric.concat === "AND" ? d.dirty.indexOf(true) == -1 : true);
+      }
+    })
   });
-  return gs[0].length > 0;
+  // var gs = d3.selectAll("g.metric-detail-row").filter(function(d, i) {
+  //   if(d != null) {
+  //     if (d.concat === "AND" && d.dirtyIndices.length > 1) {
+  //       return d.index.indexOf(iDataIndex) != -1 && d.dirtyIndices[index].indexOf(true) == -1;
+  //     } else {
+  //       return d.index.indexOf(iDataIndex) != -1;
+  //     }
+  //   }
+  // });
+  // return gs[0].length > 0;
+  return filteredRow.length > 0;
 };
 
 $(document).ready(function() {
@@ -181,7 +193,7 @@ $(document).ready(function() {
                       var minScale = overlayModel.availableMetrics.length + overlayModel.availableSpanningMetrics.length;
                       
                       z = d3.scale.ordinal()
-                        .range(colorbrewer.YlOrRd[minScale+1])
+                        .range(colorbrewer.YlOrRd[minScale])
                         .domain([minScale, 0]);
 
                       renderTableHeader();
@@ -220,6 +232,7 @@ $(document).ready(function() {
                       });
 
                       d3.select("div.dataTables_scrollBody").append("svg").attr("id", "overlay");
+                      var tableEl = $(".dataTables_scrollBody > table");
                       $("#overlay").css({top: 0, 
                         left: 0,
                         position:'absolute', 
@@ -428,18 +441,20 @@ function fillModalAfterColumnSelection(theProject) {
         var spanningMetrics = overlayModel.spanningMetrics;
         if (spanningMetrics != null) {
           for (var i = 0; i < spanningMetrics.length; i++) {
-            if (value == spanningMetrics[i].name) {
-              var disable = true;
-              for (var j = 0; j < selectedCols.length; j++) {
-                var colIdx = spanningMetrics[i].spanningColumns.indexOf(selectedCols[j]);
-                if (colIdx < 0) {
-                  disable = false;
+            if (spanningMetrics[i] != null) {
+              if (value == spanningMetrics[i].name) {
+                var disable = true;
+                for (var j = 0; j < selectedCols.length; j++) {
+                  var colIdx = spanningMetrics[i].spanningColumns.indexOf(selectedCols[j]);
+                  if (colIdx < 0) {
+                    disable = false;
+                    break;
+                  }
+                }
+                if(disable) {
+                  cl += " disabled";
                   break;
                 }
-              }
-              if(disable) {
-                cl += " disabled";
-                break;
               }
             }
           }

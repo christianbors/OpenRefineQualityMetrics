@@ -51,7 +51,7 @@ public class CreateMetricCommand extends Command {
 			if (columnNames.length == 1) {
 				SingleColumnMetricFunction metricFun = (SingleColumnMetricFunction) ControlFunctionRegistry.getFunction(metricName);
 				Metric m = new Metric(metricName, metricFun.getDescription(), dataType);
-				m.addEvalTuple(metricFun.getEvaluable(parameters), "", false);
+				m.addEvalTuple(metricFun.getEvaluable(parameters), "", "", false);
 				
 				metricsOverlayModel.addMetric(columnNames[0], m);
 			} else if (columnNames.length >= 2) {
@@ -62,7 +62,7 @@ public class CreateMetricCommand extends Command {
 						dataType,
 						Concatenation.OR,
 						Arrays.asList(columnNames));
-				newSpanningMetric.addSpanningEvalTuple(metricFun.getEvaluable(columnNames, parameters), "", false);
+				newSpanningMetric.addSpanningEvalTuple(metricFun.getEvaluable(columnNames, parameters), "", "", false);
 				
 				if (metricName.equals("uniqueness")) {
 					metricsOverlayModel.setUniqueness(newSpanningMetric);

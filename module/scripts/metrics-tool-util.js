@@ -232,7 +232,9 @@ function updateMetric() {
 
             if(metricData[0].spanningEvaluable == null) {
               var col = d3.selectAll("#overlay g.metrics-overlay").filter(function(d, i){
-                return d.columnName == selectedColName[0];
+                if (d != null) {
+                  return d.columnName == selectedColName[0];
+                }
               });
               col.selectAll("g").remove();
               col.selectAll("line").remove();
@@ -681,10 +683,17 @@ function scheduleUpdate(textArea) {
       var self = this;
       var area = $(textArea).children("input")[0].value;
       var expression = this.expression = $.trim($(textArea).children("input")[0].value);
+      var index = -1;
+      for(var i = 0, len = overlayModel.metricColumns.length; i < len; i++) {
+        if (columns[i].name === metricData[0].columnName) {
+          index = columns[i].cellIndex;
+          break;
+        }
+      }
       var params = {
           project: theProject.id,
           expression: "grel:" + expression,
-          cellIndex: 0
+          cellIndex: index
       };
       
       $.post(

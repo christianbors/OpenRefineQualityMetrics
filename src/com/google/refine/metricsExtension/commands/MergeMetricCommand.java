@@ -10,6 +10,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONException;
+
+import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
@@ -60,15 +63,15 @@ public class MergeMetricCommand extends Command {
 		    
 		    if(metric1SpanningColumns == null) {
 		        m2 = metricsOverlayModel.getMetricsForColumn(columnNames[1]).get(metric2NameString);
-                    } else {
-                        Iterator<SpanningMetric> spanMetricsIt = metricsOverlayModel.getSpanMetricsList().iterator();
-                        while(spanMetricsIt.hasNext()) {
-                            SpanningMetric sm = spanMetricsIt.next();
-                            if(sm.getName().equals(metric2NameString) && sm.getSpanningColumns().containsAll(Arrays.asList(metric2SpanningColumns))) {
-                                m2 = sm;
-                            }
-                        }
+            } else {
+                Iterator<SpanningMetric> spanMetricsIt = metricsOverlayModel.getSpanMetricsList().iterator();
+                while(spanMetricsIt.hasNext()) {
+                    SpanningMetric sm = spanMetricsIt.next();
+                    if(sm.getName().equals(metric2NameString) && sm.getSpanningColumns().containsAll(Arrays.asList(metric2SpanningColumns))) {
+                        m2 = sm;
                     }
+                }
+            }
 			
 			if(columnNames[0].equals(columnNames[1])) {
 				Metric mergedMetric = new Metric("MergedMetric", "Metric merged from " + m1.getName() + " and "
@@ -90,7 +93,7 @@ public class MergeMetricCommand extends Command {
 //											m1.getEvalTuples().get(0).eval, columnNames[1])
 //										+ ")");
 						SpanningMetric sm = new SpanningMetric("MergedMetric",
-									"Metric merged from " + m1.getName() + " and " + m2.getName(), 
+									"Metric merged from column " + columnNames[0] + " - " + m1.getName() + " and column " + columnNames[0] + " - " + m2.getName(), 
 									Arrays.asList(columnNames));
 //						sm.addSpanningEvalTuple(eval, "", "", false);
 						if(m1.getDataType().equals(m2.getDataType())) {
@@ -115,14 +118,12 @@ public class MergeMetricCommand extends Command {
 			}
 			metricsOverlayModel.deleteMetric(columnNames[0], m1.getName());
 			metricsOverlayModel.deleteMetric(columnNames[1], m2.getName());
+			try {
+				ProjectManager.singleton.ensureProjectSaved(project.id);
+				respondJSON(response, metricsOverlayModel);
+			} catch (JSONException e) {
+				respondException(response, e);
+			}
 		}
-	}
-
-	private String lowercaseEvaluableAndAddColumnInfo(Evaluable eval, String columnName) {
-		char c[] = eval.toString().toCharArray();
-    	c[0] = Character.toLowerCase(c[0]);
-    	String lower = new String(c);
-    	lower = lower.replace("value", "if(get(cells, \""+ columnName + "\") == null, '', get(cells, \""+ columnName + "\"))");
-    	return lower;
 	}
 }
