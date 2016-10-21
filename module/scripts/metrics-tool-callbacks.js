@@ -174,15 +174,12 @@ $(document).on("click", "#remove-metric", function(d) {
   }
   $.post("../../command/metric-doc/deleteMetric?" + $.param(param) + "&callback=?",
     function(data) {
-      $.post("../../command/metric-doc/evaluateMetrics?" + $.param({ project: theProject.id }), null, 
-      function(data) {
-        overlayModel = data;
-        metricData = [];
-        renderTableHeader();
-        renderMetricOverview();
-        renderSpanningMetricOverview();
-        updateOverlayPositions();
-      });
+      overlayModel = data;
+      metricData = [];
+      renderTableHeader();
+      renderMetricOverview();
+      renderSpanningMetricOverview();
+      updateOverlayPositions();
     });
 
   d3.selectAll("#overviewTable tbody tr").filter(function(d) {
@@ -259,7 +256,7 @@ $('#concat button').click(function() {
 
 $(document).on("click", "input.dataview-popover", function(d) {
   var g = $("g." + d.currentTarget.parentNode.textContent);
-  var gSelected = $(g[d.currentTarget.id]);
+  var gSelected = $(g[parseInt(d.currentTarget.id)-1]);
   if(gSelected.css('display') != 'none') {
     gSelected.hide();
   } else {

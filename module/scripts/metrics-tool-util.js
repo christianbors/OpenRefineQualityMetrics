@@ -101,7 +101,7 @@ function dataViewPopover() {
     var popoverSnippet = '';
     for(var i = 0; i < metricsArray.length; i++) {
       var checked = "checked='checked'";
-      if($($("g." + metricsArray[i].name)[colIdx]).css('display') == 'none') 
+      if($($("g.metrics-overlay")[colIdx]).find("g." + metricsArray[i].name).css('display') == 'none') 
         checked = "";
 
       if (metricsArray[i].spanningColumns != null) {
