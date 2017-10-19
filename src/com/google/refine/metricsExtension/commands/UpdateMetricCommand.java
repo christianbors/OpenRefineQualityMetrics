@@ -2,6 +2,7 @@ package com.google.refine.metricsExtension.commands;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +10,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import com.google.refine.ProjectManager;
@@ -41,75 +44,94 @@ public class UpdateMetricCommand extends Command {
 	{
 		Project project = getProject(request);
 		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
-		
-		String metricNameString = request.getParameter("metric[name]");
-		String metricDescriptionString = request.getParameter("metric[description]");
-		String metricDatatypeString = request.getParameter("metric[datatype]");
-		String metricConcatenation = request.getParameter("metric[concat]");
-		String column = request.getParameter("column");
-		int evaluableCount = Integer.parseInt(request.getParameter("metricEvalCount"));
-		
-		Metric toBeEdited;
-		if (column != null) {
-			Map<String, Metric> columnMetrics = model.getMetricsForColumn(column);
-			toBeEdited = columnMetrics.get(metricNameString);
-			columnMetrics.remove(metricNameString);
-		} else {
-			if(metricNameString.equals("uniqueness")) {
-				toBeEdited = model.getUniqueness();
-			} else {
-				toBeEdited = null;
-				for(SpanningMetric spanMetric : model.getSpanMetricsList()) {
-					if (spanMetric.getName().equals(metricNameString)) {
-						toBeEdited = spanMetric;
-						break;
+
+		Metric toBeEdited = null;
+		try {
+			String metricJSON = request.getParameter("metric");
+			JSONObject metric = new JSONObject(metricJSON);
+			String metricName = metric.getString("name");
+			String metricDescription = metric.getString("description");
+			String metricDatatype = metric.getString("datatype");
+			String metricConcat = metric.getString("concat");
+
+			String column = request.getParameter("column");
+
+			JSONArray evalTuplesJSON = metric.getJSONArray("evalTuples");
+
+			if (metric.has("spanningEvaluable")) {
+				JSONArray colsJSON = new JSONArray(request.getParameter("columns"));
+				ArrayList<String> cols = new ArrayList<String>();
+				if (colsJSON != null) {
+					int len = colsJSON.length();
+					for (int i=0;i<len;i++){
+						cols.add(colsJSON.get(i).toString());
 					}
 				}
-			}
-			String evaluable = request.getParameter("metric[spanningEvaluable][evaluable]");
-			String columnName = request.getParameter("metric[spanningEvaluable][column]");
-			String comment = request.getParameter("metric[spanningEvaluable][comment]");
-			boolean disabled = Boolean.parseBoolean(request.getParameter("metric[spanningEvaluable][disabled]"));
-			try {
-				if(evaluable != null) {
-					((SpanningMetric) toBeEdited).addSpanningEvalTuple(MetaParser.parse(evaluable), columnName, comment, disabled);
+
+				if (metricName.equalsIgnoreCase("uniqueness")) {
+					toBeEdited = model.getUniqueness();
+				} else {
+					for (SpanningMetric spanningMetric : model.getSpanMetricsList()) {
+						if (spanningMetric.getName().equals(metricName)
+								&& spanningMetric.getSpanningColumns().size() == cols.size()
+								&& spanningMetric.getSpanningColumns().containsAll(cols)) {
+							toBeEdited = spanningMetric;
+							break;
+						}
+					}
 				}
-			} catch (ParsingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+
+				JSONObject metricSpanningEvaluable = metric.getJSONObject("spanningEvaluable");
+				String spanningEvaluable = metricSpanningEvaluable.getString("evaluable");
+				String spanningColumn = metricSpanningEvaluable.getString("column");
+				String spanningComment = metricSpanningEvaluable.getString("comment");
+				boolean spanningDisabled = metricSpanningEvaluable.getBoolean("disabled");
+
+				if (toBeEdited != null) {
+					EvalTuple et = ((SpanningMetric) toBeEdited).getSpanningEvaluable();
+					et.eval = MetaParser.parse(spanningEvaluable);
+					et.column = spanningColumn;
+					et.comment = spanningComment;
+					et.disabled = spanningDisabled;
+				} else {
+					throw new JSONException("metric not found");
+				}
+			} else {
+				Map<String, Metric> colMetrics = model.getMetricsForColumn(column);
+				toBeEdited = colMetrics.get(metricName);
 			}
-		}
-		
-		toBeEdited.setDataType(metricDatatypeString);
-		toBeEdited.setName(metricNameString);
-		if (!metricDescriptionString.isEmpty()) {
-			toBeEdited.setDescription(metricDescriptionString);
-		}
-		toBeEdited.setConcat(Concatenation.valueOf(metricConcatenation));
-		toBeEdited.getEvalTuples().clear();
-		for(int i = 0; i < evaluableCount; i++) {
-			String evaluable = request.getParameter("metric[evalTuples][" + i + "][evaluable]");
-			String columnName = request.getParameter("metric[evalTuples][" + i + "][column]");
-			String comment = request.getParameter("metric[evalTuples][" + i + "][comment]");
-			boolean disabled = Boolean.parseBoolean(request.getParameter("metric[evalTuples][" + i + "][disabled]"));
-			try {
-				toBeEdited.addEvalTuple(MetaParser.parse(evaluable), columnName, comment, disabled);
-			} catch (ParsingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			toBeEdited.setName(metricName);
+			toBeEdited.setConcat(Concatenation.valueOf(metricConcat));
+			toBeEdited.setDataType(metricDatatype);
+			toBeEdited.setDescription(metricDescription);
+
+			if (evalTuplesJSON.length() > 0) {
+				toBeEdited.getEvalTuples().clear();
+				for (int i = 0; i < evalTuplesJSON.length(); ++i) {
+					JSONObject tupleJSON = evalTuplesJSON.getJSONObject(i);
+					toBeEdited.addEvalTuple(MetaParser.parse(tupleJSON.getString("evaluable")),
+							tupleJSON.getString("column"),
+							tupleJSON.getString("comment"),
+							tupleJSON.getBoolean("disabled"));
+				}
 			}
+
+			toBeEdited.getDirtyIndices().clear();
+			toBeEdited.setMeasure(0f);
+
+		} catch (JSONException e) {
+			respondException(response, e);
+			e.printStackTrace();
+		} catch (ParsingException e) {
+			respondException(response, e);
+			e.printStackTrace();
 		}
-		toBeEdited.getDirtyIndices().clear();
-		toBeEdited.setMeasure(0f);
-		
-		if (column != null) {
-			Map<String, Metric> columnMetrics = model.getMetricsForColumn(column);
-			columnMetrics.put(metricNameString, toBeEdited);
-		}
+
 		try {
 			ProjectManager.singleton.ensureProjectSaved(project.id);
 			respondJSON(response, toBeEdited);
 		} catch (JSONException e) {
+			respondException(response, e);
 			e.printStackTrace();
 		}
 	}

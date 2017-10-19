@@ -6,6 +6,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.refine.metricsExtension.MetricsException;
 import org.json.JSONException;
 
 import com.google.refine.ProjectManager;
@@ -23,14 +24,18 @@ public class GetMetricsOverlayModelCommand extends Command {
             try {
                 project = getProject(request);
             } catch (ServletException e) {
-                respond(response, "error", e.getLocalizedMessage());
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                respondException(response, e);
                 return;
             }
             MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
 			if (model != null) {
 				respondJSON(response, model);
-			}
+			} else {
+                throw new JSONException("Overlay Model not found");
+            }
         } catch (JSONException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             respondException(response, e);
         }
     }

@@ -5,6 +5,7 @@ import java.io.LineNumberReader;
 import java.io.Writer;
 import java.util.Properties;
 
+import com.google.refine.ProjectMetadata;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -77,6 +78,7 @@ public class MetricsExtensionOperation extends AbstractOperation {
 				_oldMetricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
                 
                 project.overlayModels.put("metricsOverlayModel", _newMetricsOverlayModel);
+                project.getMetadata().setCustomMetadata("metricsProject", true);
             }
 		}
 
@@ -85,9 +87,11 @@ public class MetricsExtensionOperation extends AbstractOperation {
 			synchronized (project) {
 				if (_oldMetricsOverlayModel == null) {
 					project.overlayModels.remove("metricsOverlayModel");
+					project.getMetadata().setCustomMetadata("metricsProject", false);
 				} else {
 					project.overlayModels.put("metricsOverlayModel",
 							_oldMetricsOverlayModel);
+					project.getMetadata().setCustomMetadata("metricsProject", false);
 				}
 			}
 		}

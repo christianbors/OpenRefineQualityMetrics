@@ -1,26 +1,7 @@
 package com.google.refine.metricsExtension.commands;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Map.Entry;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.google.refine.ProjectManager;
 import com.google.refine.commands.Command;
-import com.google.refine.expr.Evaluable;
-import com.google.refine.expr.MetaParser;
 import com.google.refine.grel.ControlFunctionRegistry;
 import com.google.refine.grel.Function;
 import com.google.refine.metricsExtension.expr.metrics.singleColumn.SingleColumnMetricFunction;
@@ -29,14 +10,17 @@ import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
 import com.google.refine.metricsExtension.operations.MetricsExtensionOperation;
-import com.google.refine.metricsExtension.util.MetricUtils;
-import com.google.refine.metricsExtension.util.MetricUtils.RegisteredMetrics;
-import com.google.refine.metricsExtension.util.MetricUtils.RegisteredSpanningMetrics;
 import com.google.refine.model.AbstractOperation;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 import com.google.refine.process.Process;
-import com.google.refine.util.ParsingUtilities;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class MetricsExtensionCommand extends Command {
 

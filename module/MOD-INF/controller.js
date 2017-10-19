@@ -37,7 +37,7 @@ function init() {
     "com.google.refine.metricsExtension.operations.MetricsExtensionOperation$MetricsProjectChange");
   RS.cacheClass(Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation$MetricsProjectChange);
 
-  RS.registerCommand(module, "metricsOverlayModel", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
+  RS.registerCommand(module, "createMetricsExtension", new Packages.com.google.refine.metricsExtension.commands.MetricsExtensionCommand);
   RS.registerCommand(module, "evaluateMetrics", new Packages.com.google.refine.metricsExtension.commands.EvaluateMetricsCommand);
   RS.registerCommand(module, "evaluateSelectedMetric", new Packages.com.google.refine.metricsExtension.commands.EvaluateSelectedMetricCommand);
   RS.registerCommand(module, "evaluateDataTypes", new Packages.com.google.refine.metricsExtension.commands.EvaluateDataTypesCommand);
@@ -77,17 +77,7 @@ function init() {
  * Function invoked to handle each request in a custom way.
  */
 function process(path, request, response) {
-  // Analyze path and handle this request yourself.
-
-  if (path == "/" || path == "") {
-    var context = {};
-    // here's how to pass things into the .vt templates
-    context.someList = ["Superior","Michigan","Huron","Erie","Ontario"];
-    context.someString = "foo";
-    context.someInt = 3;
-
-    send(request, response, "index.html", context);
-  }
+  
 }
 
 function send(request, response, template, context) {

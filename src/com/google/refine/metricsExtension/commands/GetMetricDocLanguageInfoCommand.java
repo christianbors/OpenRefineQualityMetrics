@@ -32,6 +32,7 @@ public class GetMetricDocLanguageInfoCommand extends Command {
         try {
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
+            response.addHeader("Access-Control-Allow-Origin", "*");
             
             JSONWriter writer = new JSONWriter(response.getWriter());
             Properties options = new Properties();
@@ -51,16 +52,19 @@ public class GetMetricDocLanguageInfoCommand extends Command {
             writer.endObject();
             
             writer.key("singleColumnFunctions");
-            writer.object();
+            writer.array();
             {
                 for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
                 	if (entry.getValue() instanceof SingleColumnMetricFunction) {
-	                    writer.key(entry.getKey());
-	                    entry.getValue().write(writer, options);
+                	    writer.object();
+	                    writer.key("name").value(entry.getKey());
+	                    writer.key("function").value(entry.getValue());
+//	                    entry.getValue().write(writer, options);
+	                    writer.endObject();
                 	}
                 }
             }
-            writer.endObject();
+            writer.endArray();
             
             writer.key("spanningColumnFunctions");
             writer.object();

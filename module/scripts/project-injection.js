@@ -59,7 +59,7 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
 
     Refine.postProcess(
       "metric-doc",
-      "metricsOverlayModel",
+      "createMetricsExtension",
       {
         computeDuplicates: false,
       },
@@ -75,11 +75,10 @@ DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
     [
     {},
     {
-      id: "metric-doc/metricsOverlayModel",
+      id: "metric-doc/createMetricsExtension",
       label: "Add Metrics",
       click: prepMetricsDialog
     }
     ]
   );
 });
-
