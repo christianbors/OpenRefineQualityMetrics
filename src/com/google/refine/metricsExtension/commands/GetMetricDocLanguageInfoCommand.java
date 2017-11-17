@@ -52,19 +52,16 @@ public class GetMetricDocLanguageInfoCommand extends Command {
             writer.endObject();
             
             writer.key("singleColumnFunctions");
-            writer.array();
+            writer.object();
             {
                 for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
                 	if (entry.getValue() instanceof SingleColumnMetricFunction) {
-                	    writer.object();
-	                    writer.key("name").value(entry.getKey());
-	                    writer.key("function").value(entry.getValue());
-//	                    entry.getValue().write(writer, options);
-	                    writer.endObject();
+                	    writer.key(entry.getKey());
+	                    entry.getValue().write(writer, options);
                 	}
                 }
             }
-            writer.endArray();
+            writer.endObject();
             
             writer.key("spanningColumnFunctions");
             writer.object();

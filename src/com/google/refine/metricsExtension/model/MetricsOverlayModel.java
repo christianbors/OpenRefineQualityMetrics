@@ -131,7 +131,7 @@ public class MetricsOverlayModel implements OverlayModel {
         
         writer.key("computeDuplicates").value(computeDuplicates);
         
-		if (computeDuplicates) {
+		if (computeDuplicates && uniqueness != null) {
 			writer.key("uniqueness");
 			uniqueness.write(writer, options);
 		}

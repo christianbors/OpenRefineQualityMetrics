@@ -49,6 +49,7 @@ function init() {
   RS.registerCommand(module, "duplicateMetric", new Packages.com.google.refine.metricsExtension.commands.DuplicateMetricCommand);
   RS.registerCommand(module, "deleteMetric", new Packages.com.google.refine.metricsExtension.commands.DeleteMetricCommand);
   RS.registerCommand(module, "get-metricdoc-language-info", new Packages.com.google.refine.metricsExtension.commands.GetMetricDocLanguageInfoCommand);
+  RS.registerCommand(module, "recommend-metrics", new Packages.com.google.refine.metricsExtension.commands.RecommendMetricsCommand);
 
   var OR = Packages.com.google.refine.operations.OperationRegistry;
   OR.registerOperation(module, "metricsExtension", Packages.com.google.refine.metricsExtension.operations.MetricsExtensionOperation);

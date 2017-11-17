@@ -55,7 +55,7 @@
         <pathelement path="${refine.classes.dir}"/>
     </path>
 
-	<target name="build_java">
+    <target name="build_java">
         <mkdir dir="${classes.dir}" />
         <javac encoding="utf-8" destdir="${classes.dir}" debug="true" includeAntRuntime="no">
             <src path="${src.dir}"/>
