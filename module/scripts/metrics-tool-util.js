@@ -629,25 +629,25 @@ function selectRow(d) {
   var selThis = this;
   var thisSelected = this.__data__.index;
 
-      var bodyHeight = $("#dataset tbody").height();
+  var bodyHeight = $("#dataset tbody").height();
 
-      var regex = /(\d+)/g;
-      var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
-      var from = parseInt(nums[0]) - 1;
-      var to = parseInt(nums[1]) - 1;
+  var regex = /(\d+)/g;
+  var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+  var from = parseInt(nums[0]) - 1;
+  var to = parseInt(nums[1]) - 1;
 
-      if(from > thisSelected || to < thisSelected) {
-        var page = Math.floor(thisSelected / pageLength);
-        $('#dataset').DataTable().page(page).draw('page');
-      }
+  if(from > thisSelected || to < thisSelected) {
+    var page = Math.floor(thisSelected / pageLength);
+    $('#dataset').DataTable().page(page).draw('page');
+  }
 
-      $('div.dataTables_scrollBody').animate({
-        scrollTop: $("#dataset").DataTable().row((thisSelected)).node().offsetTop
-      }, 500);
+  $('div.dataTables_scrollBody').animate({
+    scrollTop: $("#dataset").DataTable().row((thisSelected)).node().offsetTop
+  }, 500);
 
-      $.each($("#dataset").DataTable().row((thisSelected)).node().children, function(i, td) {
-        td.classList.add("highlight");
-      });
+  $.each($("#dataset").DataTable().row((thisSelected)).node().children, function(i, td) {
+    td.classList.add("highlight");
+  });
   // var bodyHeight = $("#dataset tbody").height();
   // var regex = /(\d+)/g;
   // var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);

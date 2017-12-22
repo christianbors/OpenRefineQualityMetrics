@@ -71,6 +71,31 @@ function dataTableRedrawn(settings) {
       .attr("width", detailViewWidth)
       .attr("height", detailViewY(nums[1]) - detailViewY(nums[0]));
   }
+  if(rowHighlighting) {
+    let highlightIndices = [];
+    for (let md of metricData) {
+      let mdDirty = md.dirtyIndices.map(function(d, idx) {
+        if(highlightIndices.indexOf(d.index) < 0)
+          return d.index;
+      });
+      highlightIndices.push.apply(highlightIndices, mdDirty);
+    }
+
+    var regex = /(\d+)/g;
+    var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+    var from = parseInt(nums[0]) - 1;
+    var to = parseInt(nums[1]) - 1;
+
+    highlightIndices = highlightIndices.filter(function(d, idx) {
+      return (from < d && to > d);
+    });
+
+    for(let highlightIndex of highlightIndices) {
+      $.each($("#dataset").DataTable().row(highlightIndex).node().children, function(i, td) {
+        td.classList.add("highlight");
+      });
+    }
+  }
 }
 
 function renderMetricOverview() {

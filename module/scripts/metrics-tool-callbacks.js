@@ -1,4 +1,5 @@
 var rowFilter = false;
+var rowHighlighting = false;
 
 $("#recalculate").on("click", function(d) {
 // recalculate
@@ -109,6 +110,39 @@ $("#filtering").on("click", function() {
         .attr("fill", "transparent");
       var button = this.firstChild.textContent = "Only show dirty entries";
     }
+})
+
+$("#highlighting").on("click", function() {
+  if(rowHighlighting == false) {
+    rowHighlighting = true;
+
+    let highlightIndices = [];
+    for (let md of metricData) {
+      let mdDirty = md.dirtyIndices.map(function(d, idx) {
+        if(highlightIndices.indexOf(d.index) < 0)
+          return d.index;
+      });
+      highlightIndices.push.apply(highlightIndices, mdDirty);
+    }
+
+    var regex = /(\d+)/g;
+    var nums = $(".dataTables_info").text().replace(/,/g, "").match(regex);
+    var from = parseInt(nums[0]) - 1;
+    var to = parseInt(nums[1]) - 1;
+
+    highlightIndices = highlightIndices.filter(function(d, idx) {
+      return (from < d && to > d);
+    });
+
+    for(let highlightIndex of highlightIndices) {
+      $.each($("#dataset").DataTable().row(highlightIndex).node().children, function(i, td) {
+        td.classList.add("highlight");
+      });
+    }
+  } else {
+    rowHighlighting = false;
+    $("#dataset td").removeClass("highlight");
+  }
 })
 
 $(document).on("click", "#remove-eval", function() {
