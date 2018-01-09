@@ -16,7 +16,7 @@ public class MetricList implements Jsonizable {
 
     @Override
     public void write(JSONWriter writer, Properties options) throws JSONException {
-        writer.object().array();
+        writer.object().key("metricList").array();
         for(Metric m : metricList) {
             m.write(writer, options);
         }

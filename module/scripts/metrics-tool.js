@@ -146,6 +146,7 @@ $(document).ready(function() {
                   for (var r = 0; r < data.rows.length; r++) {
                     var row = data.rows[r];
                     var rowValues = [''];
+                    // add sort here
                     $.each(columns, function(index, value) {
                       if (value != null) {
                         var cell = row.cells[value.cellIndex]

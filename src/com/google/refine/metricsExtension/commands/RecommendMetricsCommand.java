@@ -109,7 +109,7 @@ public class RecommendMetricsCommand extends Command {
                         if(entry.getValue().getValues().length > this.dateCount.get(entry.getKey()).intValue() &&
                                 entry.getValue().getValues().length > this.dateCount.get(entry.getKey()).intValue()) {
                             recommendationMap.get(entry.getKey()).add(new MetricRecommendation("plausibility", "value", ControlFunctionRegistry.getFunction("plausibility")));
-                            recommendationMap.get(entry.getKey()).add(new MetricRecommendation("validity", "value, numeric", ControlFunctionRegistry.getFunction("validity")));
+                            recommendationMap.get(entry.getKey()).add(new MetricRecommendation("validity", "value, number", ControlFunctionRegistry.getFunction("validity")));
                         }
                         if (this.stringCount.get(entry.getKey()).intValue() > this.dateCount.get(entry.getKey()).intValue() &&
                                 this.stringCount.get(entry.getKey()).intValue() > entry.getValue().getValues().length) {

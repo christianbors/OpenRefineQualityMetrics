@@ -64,7 +64,7 @@ public class EvaluateMetricsCommand extends Command {
 			@Override
 			public boolean visit(Project project, int rowIndex, Row row) {
 				// compute duplicates
-				if (model.isComputeDuplicates()) {
+				if (model.getUniqueness() != null && model.isComputeDuplicates()) {
 					Cell[] cells = new Cell[uniqueness.getSpanningColumns().size()];
 					for (int i = 0; i < uniqueness.getSpanningColumns().size(); ++i) {
 						String columnName = uniqueness.getSpanningColumns().get(i);

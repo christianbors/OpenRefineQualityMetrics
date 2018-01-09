@@ -43,13 +43,20 @@
                 <a href="#" id="recalculate">Recalculate Metrics</a>
               </li>
               <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Sort Raw Data <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" id="exportQuality">Sort by Original Structure</a></li>
+                  <li><a href="#" id="exportMetrics">Sort by Dirtiness</a></li>
+                </ul>
+              </li>
+              <li class="dropdown disabled">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Export <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li><a href="#" id="exportQuality">Export Quality Values</a></li>
                   <li><a href="#" id="exportMetrics">Export Quality Metrics</a></li>
                 </ul>
               </li>
-              <li class="dropdown">
+              <li class="dropdown disabled">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Import Metrics from Project<span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li><a href="#" id="importMetrics">Import Metrics</a></li>
