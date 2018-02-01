@@ -85,8 +85,10 @@ public class MetricsOverlayModel implements OverlayModel {
         	writer.object().key("columnName").value(e.getKey());
         	writer.key("metrics").object();
         	for (Map.Entry<String, Metric> entry : e.getValue().entrySet()) {
-        		writer.key(entry.getKey());
-        		entry.getValue().write(writer, options);
+        	    if (entry.getValue() != null) {
+                    writer.key(entry.getKey());
+                    entry.getValue().write(writer, options);
+                }
         	}
         	writer.endObject();
         	writer.endObject();
@@ -124,7 +126,9 @@ public class MetricsOverlayModel implements OverlayModel {
 		if (this.spanMetricsList.size() > 0) {
 			writer.key("spanningMetrics").array();
 			for (SpanningMetric sm : this.spanMetricsList) {
-				sm.write(writer, options);
+				if(sm != null) {
+					sm.write(writer, options);
+				}
 			}
 			writer.endArray();
 		}
