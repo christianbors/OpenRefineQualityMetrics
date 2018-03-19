@@ -1,39 +1,44 @@
 # Open Refine Quality Metrics Extension
 
-## Basic Metrics
+_MetricDoc_ is an interactive visual exploration environment for assessing data quality.
 
-Basic metrics constitute the starting point for overview analysis of a specific data column.
-For that we automatically detect the data type and calculate the respective default metric.
-It can hence be further refined by appending features and checks (e.g.: quality checks, statistical analyses, etc.).
+During data pre-processing, analysts spend a significant part of their time and effort profiling the quality of the data along with cleansing and transforming the data for further analysis. 
+While quality metrics -- ranging from general to domain-specific measures -- support assessment of the quality of a dataset, there are hardly any approaches to visually support the analyst in customizing and applying such metrics.
+Yet, visual approaches could facilitate users' involvement in data quality assessment.
+We present _MetricDoc_, an interactive environment for assessing data quality that provides customizable, reusable quality metrics in combination with immediate visual feedback.
+Moreover, we provide an overview visualization of these quality metrics
+along with error visualizations that facilitate interactive navigation of the data to determine the causes of quality issues present in the data.
+In this paper we describe the architecture, design, and evaluation of _MetricDoc_ which underwent several design cycles, including heuristic evaluation and expert reviews as well as a focus group with data quality, human-computer interaction, and visual analytics experts.
 
-## Accumulating Metrics
+## Architecture
+![MetricDoc Architecture](https://github.com/christianbors/OpenRefineQualityMetrics/blob/master/suppl/architecture.png)
 
-What about the choice of only wanting one metric for quality control.
-We provide the possibility of aggregating multiple metrics to provide one comprehensive measure that could act as an indicator for certain error cases, known data issues, ...
-With this functionality arises the necessity to variably weigh the different metrics.
-
-### Metric Granularity
-
-Granularity level of metrics is an issue that needs to be considered. Specifically for metrics
+A schematic overview of the environment's architecture illustrates the interconnection of different data models, representations as well as interactions.
+The data structures in MetricDoc extend OpenRefine's column data representation, adding data quality information in form of quality metrics.
+Similarily, the data structures of other data profiling or wrangling tools can be extended, irregardless of the storage-approach employed (e.g., column-wise, row-wise, tuple-wise).
+Additionally, server-side data quality operations (calculations, setup procedures, etc.) ensure proper project persistence and data management.
 
 ## Connection to OpenRefine
 
-We will provide customized Metrics in a separate configuration panel that features a small sample data table the metrics can be computed and tested on, utilizing bootstrap, d3, ... as additional libraries to facilitate development, based upon the OpenRefine Server architecture.
+We provide customized Metrics in a separate configuration panel that features a small sample data table the metrics can be computed and tested on, utilizing bootstrap, d3, ... as additional libraries to facilitate development, based upon the OpenRefine Server architecture.
 
 ## User Interface
 
-![Custom Metrics Extension](https://github.com/christianbors/OpenRefineQualityMetrics/blob/master/suppl/custom-metrics.png)
+![Custom Metrics Extension](https://github.com/christianbors/OpenRefineQualityMetrics/blob/master/suppl/metricdoc_teaser.png)
 
-Current status
-* Not yet functional UI
-* basic data loading works
-* OpenRefine classes can be integrated via loading js files considering the relative source path: Path to `core` directory is accomplished by `../../`. Subsequently a file located in `scripts` can be included with `../../scripts/xyz.js`.
-
-## Uncertainty
-
-**TODO:** Determine which uncertainty mechanisms will be incorporated
+The environment consists of the 
+(a) _quality metrics overview_ 
+(b) the metric information view and 
+(c) customization tabs 
+(d) the _metric detail view_ and
+(e) the tabular _raw data view_ enhanced with _error distribution_ heatmaps 
+(f) mouseover tooltips provide detail information on 
+(g) metrics and (h) data errors,
+(j) metric distribution heatmaps can be enabled and disabled individually.
 
 ## Setup
+
+Please follow OpenRefine extension install guide for adding MetricDoc to your OpenRefine environment.
 
 Libraries utilized
 
