@@ -27,6 +27,8 @@ import com.google.refine.model.Project;
 
 public class MetricsOverlayModel implements OverlayModel {
 
+	public static final String OVERLAY_NAME = "metricsOverlayModel";
+
 	private Map<String, Map<String, Metric>> metricsMap;
 	private List<SpanningMetric> spanMetricsList;
 	

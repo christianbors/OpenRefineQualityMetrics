@@ -28,7 +28,7 @@ public class GetMetricsOverlayModelCommand extends Command {
                 respondException(response, e);
                 return;
             }
-            MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+            MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 			if (model != null) {
 				respondJSON(response, model);
 			} else {

@@ -22,7 +22,7 @@ public class PersistMetricsCommand extends Command {
 		try {
 			Project project = getProject(request);
 			MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels
-					.get("metricsOverlayModel");
+					.get(MetricsOverlayModel.OVERLAY_NAME);
 
 			AbstractOperation op = new PersistMetricsOperation(overlayModel);
 			Process process = op.createProcess(project, new Properties());

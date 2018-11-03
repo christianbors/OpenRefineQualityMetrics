@@ -41,13 +41,13 @@ public class EvaluateSelectedMetricCommand extends Command {
 			Properties bindings = ExpressionUtils.createBindings(project);
 			Engine engine = new Engine(project);
 
-			MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+			MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 			JSONArray selection = new JSONArray(request.getParameter("selection"));
 
 			List<MetricSelection> metricSelections = new ArrayList<>();
 
 			for (int selIdx = 0; selIdx < selection.length(); ++selIdx) {
-				JSONObject selectionObj = new JSONObject(selection.getString(selIdx));
+				JSONObject selectionObj = selection.getJSONObject(selIdx);
 				JSONObject metricJSON = new JSONObject(selectionObj.getString("metric"));
 				if(metricJSON.has("spanningEvaluable")) {
 					JSONArray colsJSON = new JSONArray(selectionObj.getString("columns"));

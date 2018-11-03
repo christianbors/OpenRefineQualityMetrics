@@ -45,7 +45,7 @@ public class CreateMetricCommand extends Command {
 		String dataType = request.getParameter("dataType");
 		Project project = getProject(request);
 		
-		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 		logger.info("spanning metrics {}", metricsOverlayModel.getSpanMetricsList().size());
 		try {
 			if (columnNames.length == 1) {

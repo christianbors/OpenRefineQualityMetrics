@@ -5,7 +5,6 @@ import java.io.LineNumberReader;
 import java.io.Writer;
 import java.util.Properties;
 
-import com.google.refine.ProjectMetadata;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -26,7 +25,7 @@ public class MetricsExtensionOperation extends AbstractOperation {
 	static public AbstractOperation reconstruct(Project project,
 			JSONObject object) throws Exception {
 		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels
-				.get("metricsOverlayModel");
+				.get(MetricsOverlayModel.OVERLAY_NAME);
 		return new MetricsExtensionOperation(overlayModel);
 	}
 
@@ -75,9 +74,9 @@ public class MetricsExtensionOperation extends AbstractOperation {
 		@Override
 		public void apply(Project project) {
 			synchronized (project) {
-				_oldMetricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+				_oldMetricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
                 
-                project.overlayModels.put("metricsOverlayModel", _newMetricsOverlayModel);
+                project.overlayModels.put(MetricsOverlayModel.OVERLAY_NAME, _newMetricsOverlayModel);
                 project.getMetadata().setCustomMetadata("metricsProject", true);
             }
 		}
@@ -86,10 +85,10 @@ public class MetricsExtensionOperation extends AbstractOperation {
 		public void revert(Project project) {
 			synchronized (project) {
 				if (_oldMetricsOverlayModel == null) {
-					project.overlayModels.remove("metricsOverlayModel");
+					project.overlayModels.remove(MetricsOverlayModel.OVERLAY_NAME);
 					project.getMetadata().setCustomMetadata("metricsProject", false);
 				} else {
-					project.overlayModels.put("metricsOverlayModel",
+					project.overlayModels.put(MetricsOverlayModel.OVERLAY_NAME,
 							_oldMetricsOverlayModel);
 					project.getMetadata().setCustomMetadata("metricsProject", false);
 				}

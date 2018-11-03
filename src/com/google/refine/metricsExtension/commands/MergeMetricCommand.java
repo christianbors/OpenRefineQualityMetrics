@@ -45,7 +45,7 @@ public class MergeMetricCommand extends Command {
 		String[] metric1SpanningColumns = request.getParameterValues("metrics[0][spanningColumns][]");
 		String[] metric2SpanningColumns = request.getParameterValues("metrics[1][spanningColumns][]");
 
-		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 		if(columnNames != null && metric1NameString != null) {
 		    Metric m1 = null;
 		    Metric m2 = null;

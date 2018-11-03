@@ -36,7 +36,7 @@ public class MetricsExtensionCommand extends Command {
 		try {
 			Project project = getProject(request);
 			
-			MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+			MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
             if (request.getParameter("metricsConfigList") == null) {
                 Map<String, Map<String, Metric>> metricsMap = new HashMap<String, Map<String, Metric>>();
                 List<String> colList = new ArrayList<String>();

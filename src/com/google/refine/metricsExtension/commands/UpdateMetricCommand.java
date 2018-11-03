@@ -43,7 +43,7 @@ public class UpdateMetricCommand extends Command {
 	protected void internalRespond(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		Project project = getProject(request);
-		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 
 		Metric toBeEdited = null;
 		try {

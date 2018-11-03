@@ -20,7 +20,7 @@ public class PersistMetricsOperation extends AbstractOperation {
 	static public AbstractOperation reconstruct(Project project,
 			JSONObject object) throws Exception {
 		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels
-				.get("metricsOverlayModel");
+				.get(MetricsOverlayModel.OVERLAY_NAME);
 		return new PersistMetricsOperation(overlayModel);
 	}
 	

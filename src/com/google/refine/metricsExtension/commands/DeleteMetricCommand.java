@@ -29,7 +29,7 @@ public class DeleteMetricCommand extends Command {
 		String columnName = request.getParameter("column");
 		String metricName = request.getParameter("metricName");
 		
-		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		MetricsOverlayModel metricsOverlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 		if (columnName != null) {
 			metricsOverlayModel.deleteMetric(columnName, metricName);
 		} else {

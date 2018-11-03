@@ -29,6 +29,7 @@ import com.google.refine.metricsExtension.model.Metric;
 import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 import com.google.refine.metricsExtension.model.MetricsOverlayModel;
 import com.google.refine.metricsExtension.model.SpanningMetric;
+import com.google.refine.metricsExtension.util.EvaluateMetricsRowVisitor;
 import com.google.refine.metricsExtension.util.MetricUtils;
 import com.google.refine.metricsExtension.util.StatisticsUtils;
 import com.google.refine.model.Cell;
@@ -42,149 +43,15 @@ public class EvaluateMetricsCommand extends Command {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Project project = getProject(request);
-		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		MetricsOverlayModel overlayModel = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 		Properties bindings = ExpressionUtils.createBindings(project);
 		Engine engine = new Engine(project);
 
 		if(overlayModel != null) {
             FilteredRows filteredRows = engine.getAllFilteredRows();
-            filteredRows.accept(project, new RowVisitor() {
-                private Properties bindings;
-                private HttpServletResponse response;
-                private MetricsOverlayModel model;
-                private Set<Cell[]> uniquesSet = new LinkedHashSet<Cell[]>();
-                private SpanningMetric uniqueness;
+            filteredRows.accept(project, new EvaluateMetricsRowVisitor() {
 
-                public RowVisitor init(Properties bindings, HttpServletResponse response, MetricsOverlayModel model) {
-                    this.bindings = bindings;
-                    this.response = response;
-                    this.model = model;
-                    return this;
-                }
-
-                @Override
-                public boolean visit(Project project, int rowIndex, Row row) {
-                    // compute duplicates
-                    if (model.getUniqueness() != null && model.isComputeDuplicates()) {
-                        Cell[] cells = new Cell[uniqueness.getSpanningColumns().size()];
-                        for (int i = 0; i < uniqueness.getSpanningColumns().size(); ++i) {
-                            String columnName = uniqueness.getSpanningColumns().get(i);
-                            WrappedCell wc = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
-                            cells[i] = wc.cell;
-                        }
-                        // evaluate here
-                        boolean foundDuplicate = false;
-                        for (Cell[] toBeChecked : uniquesSet) {
-                            foundDuplicate = true;
-                            for (int i = 0; i < toBeChecked.length; ++i) {
-                                if (toBeChecked[i].value instanceof Date && cells[i].value instanceof Date) {
-                                    if (((Date) toBeChecked[i].value).getTime() != ((Date) cells[i].value).getTime()) {
-                                        foundDuplicate = false;
-                                        break;
-                                    }
-                                } else {
-                                    if (!toBeChecked[i].value.equals(cells[i].value)) {
-                                        foundDuplicate = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (foundDuplicate) {
-                                List<Boolean> errors = new ArrayList<Boolean>();
-                                errors.add(false);
-                                uniqueness.addDirtyIndex(rowIndex, new ArrayList<Boolean>(errors));
-                            }
-                        }
-                        if (!foundDuplicate) {
-                            // after that add the data
-                            uniquesSet.add(cells);
-                        }
-                    }
-                    // evaluate metrics
-                    for (String columnName : model.getMetricColumnNames()) {
-                        WrappedCell ct = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
-
-                        Map<String, Metric> metrics = model
-                                .getMetricsForColumn(columnName);
-                        List<SpanningMetric> spanMetrics = model.getSpanMetricsList();
-
-                        for (Map.Entry<String, Metric> metricEntry : metrics.entrySet()) {
-                            List<Boolean> evalResults = new ArrayList<Boolean>();
-                            boolean entryDirty = false;
-
-                            for (EvalTuple evalTuple : metricEntry.getValue().getEvalTuples()) {
-                                if (!evalTuple.disabled) {
-                                    if (ct != null) {
-                                        Cell c = ((WrappedCell) ct).cell;
-                                        ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, c);
-                                    } else {
-                                        ExpressionUtils.bind(bindings, row, rowIndex, evalTuple.column, null);
-                                    }
-                                    bindings.setProperty("columnName", evalTuple.column);
-
-                                    boolean evalResult;
-                                    Object evaluation = evalTuple.eval
-                                            .evaluate(bindings);
-                                    if (evaluation.getClass() != EvalError.class) {
-                                        evalResult = (Boolean) evaluation;
-                                        if (!evalResult) {
-                                            entryDirty = true;
-                                        }
-                                        evalResults.add(evalResult);
-                                    }
-                                }
-                            }
-
-                            if (entryDirty) {
-                                metricEntry.getValue().addDirtyIndex(rowIndex, evalResults);
-                            }
-                        }
-
-                        for (SpanningMetric sm : spanMetrics) {
-                            List<Boolean> evalResults = new ArrayList<Boolean>();
-                            boolean entryDirty = false;
-
-                            if (sm.getSpanningEvaluable() != null) {
-                                Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
-                                if (spanEvalResult.getClass() != EvalError.class) {
-                                    evalResults.add((Boolean) spanEvalResult);
-                                    if (!(boolean) spanEvalResult) {
-                                        entryDirty = true;
-                                    }
-                                }
-                            }
-                            for (EvalTuple evalTuple : sm.getEvalTuples()) {
-                                bindings.setProperty("columnName", evalTuple.column);
-
-                                boolean evalResult;
-                                Object evaluation = evalTuple.eval.evaluate(bindings);
-                                if (evaluation.getClass() != EvalError.class) {
-                                    evalResult = (Boolean) evaluation;
-                                    if (!evalResult) {
-                                        entryDirty = true;
-                                    }
-                                    evalResults.add(evalResult);
-                                }
-                            }
-
-                            if (entryDirty) {
-                                sm.addDirtyIndex(rowIndex, evalResults);
-                            }
-                        }
-                    }
-                    return false;
-                }
-
-                @Override
-                public void start(Project project) {
-                    if (model.getUniqueness() != null) {
-                        uniqueness = model.getUniqueness();
-                        uniqueness.getDirtyIndices().clear();
-                    }
-                }
-
-                @Override
-                public void end(Project project) {
+                @Override public void end(Project project) {
                     // TODO: add AND/OR/XOR
                     if (model.getUniqueness() != null) {
                         Metric uniqueness = model.getUniqueness();

@@ -20,7 +20,7 @@ public class DuplicateMetricCommand extends Command {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Project project = getProject(request);
-		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get("metricsOverlayModel");
+		MetricsOverlayModel model = (MetricsOverlayModel) project.overlayModels.get(MetricsOverlayModel.OVERLAY_NAME);
 		String column = request.getParameter("column");
 		String targetCol = request.getParameter("targetColumn");
 		String metricName = request.getParameter("metricName");
