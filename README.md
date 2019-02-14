@@ -40,6 +40,9 @@ The environment consists of the
 
 Please follow OpenRefine extension install guide for adding MetricDoc to your OpenRefine environment.
 
+Then install bower and run `bower install`
+The extension is available at http://127.0.0.1:3333/extension/metric-doc/?project=_projectId_
+
 Libraries utilized
 
 * DataTables [1.10.7](https://www.datatables.net/download/#DataTables) ([with Bootstrap Theme](https://github.com/DataTables/Plugins/tree/master/integration/bootstrap/3))
