@@ -41,7 +41,7 @@ The environment consists of the
 Please follow OpenRefine extension install guide for adding MetricDoc to your OpenRefine environment.
 
 Then install bower and run `bower install`
-After running the server and adding Metrics to the dataset (dropdown at columns - Add Metrics), the extension is available at http://127.0.0.1:3333/extension/metric-doc/?project= _projectId_
+After running the server and adding Metrics to the dataset (dropdown at columns - Add Metrics), the extension is available at 127.0.0.1:3333/extension/metric-doc/?project=*_projectId_*
 
 Libraries utilized
 
