@@ -9,6 +9,7 @@ import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.grel.ControlFunctionRegistry;
 import com.google.refine.metricsExtension.model.MetricRecommendation;
 import com.google.refine.metricsExtension.model.Recommendation;
+import com.google.refine.metricsExtension.util.RecommendMetricsRowVisitor;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
@@ -31,7 +32,22 @@ public class RecommendMetricsCommand extends Command {
         Engine engine = new Engine(project);
 
         FilteredRows filteredRows = engine.getAllFilteredRows();
-        filteredRows.accept(project, createRowVisitor(bindings, response));
+        filteredRows.accept(project, new RecommendMetricsRowVisitor() {
+
+            @Override public void returnMessage(Map<String, List<MetricRecommendation>> recommendationMap) {
+                try {
+                    respondJSON(response, new Recommendation(recommendationMap));
+                } catch (IOException e1) {
+                    try {
+                        respondException(response, e1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ServletException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.init(project.columnModel.columns));
     }
 
     protected RowVisitor createRowVisitor(Properties bindings, HttpServletResponse response) {
@@ -135,5 +151,6 @@ public class RecommendMetricsCommand extends Command {
             }
         }.init(bindings, response);
     }
+
 
 }

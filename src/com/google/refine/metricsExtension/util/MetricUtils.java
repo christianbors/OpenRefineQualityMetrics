@@ -167,6 +167,8 @@ public class MetricUtils {
 					}
 				}
 				measure = (rowSize - dirtyCount) / rowSize;
+				if (measure > 1)
+					System.out.println("measure is: " + measure);
 			}
 			return measure;
 		} else {

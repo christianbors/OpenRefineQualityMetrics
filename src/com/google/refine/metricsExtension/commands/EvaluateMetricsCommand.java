@@ -58,9 +58,13 @@ public class EvaluateMetricsCommand extends Command {
                         uniqueness.setMeasure(1f - MetricUtils.determineQuality(bindings, uniqueness));
                     }
                     for (String columnName : model.getMetricColumnNames()) {
-                        for (Map.Entry<String, Metric> metricEntry : model.getMetricsForColumn(columnName).entrySet()) {
-                            float q = 1f - MetricUtils.determineQuality(bindings, metricEntry.getValue());
-                            metricEntry.getValue().setMeasure(q);
+                        if(project.columnModel.getColumnByName(columnName) != null) {
+                            for (Map.Entry<String, Metric> metricEntry : model.getMetricsForColumn(columnName).entrySet()) {
+                                float q = 1f - MetricUtils.determineQuality(bindings, metricEntry.getValue());
+                                metricEntry.getValue().setMeasure(q);
+                            }
+                        } else {
+                            logger.info(columnName + " was not evaluated");
                         }
                     }
                     for (SpanningMetric sm : model.getSpanMetricsList()) {

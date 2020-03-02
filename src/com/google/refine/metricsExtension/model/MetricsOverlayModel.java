@@ -165,8 +165,8 @@ public class MetricsOverlayModel implements OverlayModel {
     	if(this.metricsMap.containsKey(columnName)) {
     		this.metricsMap.get(columnName).put(metric.name, metric);
     	} else {
-    		this.metricsMap.put(columnName, new HashMap<String, Metric>()).put(metric.name, metric);
-    		
+    		this.metricsMap.put(columnName, new HashMap<String, Metric>());
+    		this.metricsMap.get(columnName).put(metric.name, metric);
     	}
     }
     

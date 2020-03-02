@@ -114,13 +114,17 @@ public class MetricsExtensionCommand extends Command {
                         metricColumnsMap, spanningMetrics, uniqueness);
                 metricsOverlayModel.setComputeDuplicates(uniqueness != null);
             }
+            project.overlayModels.put(MetricsOverlayModel.OVERLAY_NAME, metricsOverlayModel);
+            logger.info("new provenance instance for project {}", project.id);
 
-			AbstractOperation op = new MetricsExtensionOperation(metricsOverlayModel);
-			Process process = op.createProcess(project, new Properties());
-			
+//			AbstractOperation op = new MetricsExtensionOperation(metricsOverlayModel);
+//			Process process = op.createProcess(project, new Properties());
+            project.getMetadata().setCustomMetadata("metricsProject", true);
+
 			ProjectManager.singleton.ensureProjectSaved(project.id);
-			
-			performProcessAndRespond(request, response, project, process);
+            response.setStatus(HttpServletResponse.SC_OK);
+            respond(response, String.valueOf(project.id));
+//			performProcessAndRespond(request, response, project, process);
 		} catch (Exception e) {
 			respondException(response, e);
 			e.printStackTrace();

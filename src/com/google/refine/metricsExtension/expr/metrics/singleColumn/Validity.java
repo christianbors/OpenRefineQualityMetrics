@@ -1,5 +1,6 @@
 package com.google.refine.metricsExtension.expr.metrics.singleColumn;
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -46,7 +47,7 @@ public class Validity implements SingleColumnMetricFunction {
 	                    || o1 instanceof Double
 	                    || o1 instanceof Float); 
 			} else if (type.toString().equals("date")) {
-				return o1 instanceof Date || o1 instanceof Calendar;
+				return o1 instanceof Date || o1 instanceof Calendar || o1 instanceof OffsetDateTime;
 			} else {
 				return new EvalError("Error at parameter 2: Type string not recognized \"" + type + "\"");
 			}

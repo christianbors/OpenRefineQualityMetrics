@@ -32,11 +32,13 @@ public abstract class EvaluateMetricsRowVisitor implements RowVisitor {
     protected MetricsOverlayModel model;
     private Set<Cell[]> uniquesSet = new LinkedHashSet<Cell[]>();
     private SpanningMetric uniqueness;
+    protected int rowSize;
 
     public EvaluateMetricsRowVisitor init(Properties bindings, HttpServletResponse response, MetricsOverlayModel model) {
         this.bindings = bindings;
         this.response = response;
         this.model = model;
+        this.rowSize = 0;
         return this;
     }
 
@@ -58,13 +60,15 @@ public abstract class EvaluateMetricsRowVisitor implements RowVisitor {
     }
 
     @Override public boolean visit(Project project, int rowIndex, Row row) {
+        ++rowSize;
         // compute duplicates
         if (model.getUniqueness() != null && model.isComputeDuplicates()) {
             Cell[] cells = new Cell[uniqueness.getSpanningColumns().size()];
             for (int i = 0; i < uniqueness.getSpanningColumns().size(); ++i) {
                 String columnName = uniqueness.getSpanningColumns().get(i);
                 WrappedCell wc = (WrappedCell) row.getCellTuple(project).getField(columnName, bindings);
-                cells[i] = wc.cell;
+                if (wc != null)
+                    cells[i] = wc.cell;
             }
             // evaluate here
             boolean foundDuplicate = false;
