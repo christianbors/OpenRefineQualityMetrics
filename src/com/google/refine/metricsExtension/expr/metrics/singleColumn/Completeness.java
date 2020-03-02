@@ -17,7 +17,7 @@ import com.google.refine.grel.Function;
 import com.google.refine.metricsExtension.model.Metric.EvalTuple;
 
 
-public class Completeness implements SingleColumnMetricFunction {
+public class Completeness extends SingleColumnMetricFunction {
 
 	private static final List<String> defaultParams = Arrays.asList(new String[] {});
 	
@@ -50,14 +50,8 @@ public class Completeness implements SingleColumnMetricFunction {
 	}
 
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		
-        writer.object();
-        writer.key("description"); writer.value(getDescription());
-        writer.key("params"); writer.value(getParams());
-        writer.key("returns"); writer.value("boolean");
-        writer.endObject();
+	public String getDefaultParams() {
+		return "value";
 	}
 
 	@Override
@@ -66,7 +60,7 @@ public class Completeness implements SingleColumnMetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable(String[] params) throws ParsingException {
+	public String getEvaluable(String[] params) throws ParsingException {
 		String eval = "completeness(value";
 		Iterator<String> paramIt;
 		if (params != null) {
@@ -78,7 +72,7 @@ public class Completeness implements SingleColumnMetricFunction {
 			eval += ", \"" + paramIt.next() + "\"";
 		}
 		eval += ")";
-		return MetaParser.parse(eval);
+		return eval;
 	}
 
 	@Override

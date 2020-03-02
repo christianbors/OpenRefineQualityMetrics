@@ -12,16 +12,6 @@ import com.google.refine.model.Row;
 public class OffsetRow implements Function {
 
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-		writer.key("description"); writer.value("Offset row by one");
-		writer.key("params"); writer.value("");
-		writer.key("returns"); writer.value("Cell value from next row");
-		writer.endObject();
-	}
-
-	@Override
 	public Object call(Properties bindings, Object[] args) {
 		Project project = (Project) bindings.get("project");
 		
@@ -30,6 +20,16 @@ public class OffsetRow implements Function {
 		Row next = project.rows.get(index+1);
 		
 		return next.getCellValue(project.columnModel.getColumnIndexByName(columnName));
+	}
+
+	@Override
+	public String getDescription() {
+		return "Offset entries by one row";
+	}
+
+	@Override
+	public String getReturns() {
+		return "Cell value from next row";
 	}
 
 }

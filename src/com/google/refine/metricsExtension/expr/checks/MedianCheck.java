@@ -41,17 +41,6 @@ public class MedianCheck implements QualityCheck {
 	}
 
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-		writer.key("description"); writer.value(getDescription());
-		writer.key("params"); writer.value(getParams());
-		writer.key("returns"); writer.value("median in column type format (float, long, double)");
-		writer.key("defaultParams"); writer.value("");
-		writer.endObject();
-	}
-
-	@Override
 	public String getDescription() {
 		return "Returns the median estimation for the provided column";
 	}
@@ -75,6 +64,11 @@ public class MedianCheck implements QualityCheck {
 	@Override
 	public String getParams() {
 		return("columnname");
+	}
+
+	@Override
+	public String getReturns() {
+		return "median in column type format (float, long, double)";
 	}
 
 }

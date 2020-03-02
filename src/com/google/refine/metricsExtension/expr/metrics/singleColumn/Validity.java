@@ -11,26 +11,20 @@ import java.util.Properties;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.google.refine.expr.EvalError;
 import com.google.refine.expr.Evaluable;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
-import com.google.refine.grel.Function;
 
-public class Validity implements SingleColumnMetricFunction {
-	
+import java.time.OffsetDateTime;
+import java.util.*;
+
+public class Validity extends SingleColumnMetricFunction {
+
+	@JsonProperty
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"string"});
-	
-	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-        writer.object();
-        writer.key("description"); writer.value(getDescription());
-        writer.key("params"); writer.value(getParams());
-        writer.key("returns"); writer.value("boolean");
-        writer.key("defaultParams"); writer.value("string");
-        writer.endObject();
-	}
 
 	@Override
 	public Object call(Properties bindings, Object[] args) {
@@ -56,12 +50,17 @@ public class Validity implements SingleColumnMetricFunction {
 	}
 
 	@Override
+	public String getDefaultParams() {
+		return defaultParams.get(0);
+	}
+
+	@Override
 	public String getDescription() {
 		return "Evaluate validity of a value with respect to the column data type";
 	}
 
 	@Override
-	public Evaluable getEvaluable(String[] params) throws ParsingException {
+	public String getEvaluable(String[] params) throws ParsingException {
 		String eval = "validity(value";
 		Iterator<String> paramIt;
 		if (params != null) {
@@ -73,7 +72,7 @@ public class Validity implements SingleColumnMetricFunction {
 			eval += ", \"" + paramIt.next() + "\"";
 		}
 		eval += ")";
-		return MetaParser.parse(eval);
+		return eval;
 	}
 
 	@Override

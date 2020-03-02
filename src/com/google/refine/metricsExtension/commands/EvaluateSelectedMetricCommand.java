@@ -172,7 +172,7 @@ public class EvaluateSelectedMetricCommand extends Command {
 
 			private boolean evaluateTuple(EvalTuple evalTuple, Properties bindings) {
 				boolean evalResult;
-				Object evaluation = evalTuple.eval.evaluate(bindings);
+				Object evaluation = evalTuple.getEvaluable().evaluate(bindings);
 				if (evaluation.getClass() != EvalError.class) {
 					return (Boolean) evaluation;
 				} else {

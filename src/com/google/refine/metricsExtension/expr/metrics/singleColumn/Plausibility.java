@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.json.JSONException;
@@ -21,11 +22,12 @@ import com.google.refine.metricsExtension.util.StatisticsUtils;
 import com.google.refine.model.Column;
 import com.google.refine.model.Project;
 
-public class Plausibility implements SingleColumnMetricFunction {
+public class Plausibility extends SingleColumnMetricFunction {
 
+	@JsonProperty
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"global", "robust"});
-	private String comparisonMode = "global";
-	private String evalMode = "robust";
+	private String comparisonMode = defaultParams.get(0);
+	private String evalMode = defaultParams.get(1);
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -132,16 +134,10 @@ public class Plausibility implements SingleColumnMetricFunction {
 			return new EvalError("Statistics could not be determined");
 		}
 	}
-	
+
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-		writer.key("description"); writer.value(getDescription());
-		writer.key("params"); writer.value(getParams());
-		writer.key("returns"); writer.value("boolean that informs if value is plausible");
-		writer.key("defaultParams"); writer.value("robust");
-		writer.endObject();
+	public String getDefaultParams() {
+		return String.join(",", defaultParams);
 	}
 
 	@Override
@@ -151,7 +147,7 @@ public class Plausibility implements SingleColumnMetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable(String[] params) throws ParsingException {
+	public String getEvaluable(String[] params) throws ParsingException {
 		String eval = "plausibility(value";
 		Iterator<String> paramIt;
 		if (params != null) {
@@ -163,11 +159,16 @@ public class Plausibility implements SingleColumnMetricFunction {
 			eval += ", \"" + paramIt.next() + "\"";
 		}
 		eval += ")";
-		return MetaParser.parse(eval);
+		return eval;
 	}
 
 	@Override
 	public String getParams() {
 		return "value, comparisons mode (optional, default: global), statistics type (optional, default: robust)";
+	}
+
+	@Override
+	public String getReturns() {
+		return "boolean that informs if value is plausible";
 	}
 }

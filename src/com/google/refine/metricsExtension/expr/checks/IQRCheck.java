@@ -1,25 +1,15 @@
 package com.google.refine.metricsExtension.expr.checks;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.stat.descriptive.rank.Median;
-import org.json.JSONException;
-import org.json.JSONWriter;
-
 import com.google.refine.browsing.Engine;
 import com.google.refine.browsing.FilteredRows;
 import com.google.refine.expr.Evaluable;
-import com.google.refine.expr.ExpressionUtils;
 import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.metricsExtension.util.StatisticsUtils;
-import com.google.refine.model.Column;
 import com.google.refine.model.Project;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+import java.util.*;
 
 public class IQRCheck implements QualityCheck {
 
@@ -38,17 +28,6 @@ public class IQRCheck implements QualityCheck {
 			e.printStackTrace();
 		}
 		return stats.getPercentile(75) - stats.getPercentile(25);
-	}
-
-	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-		writer.key("description"); writer.value(getDescription());
-		writer.key("params"); writer.value(getParams());
-		writer.key("returns"); writer.value("Inter-quartile Range (float, long, double)");
-		writer.key("defaultParams"); writer.value("");
-		writer.endObject();
 	}
 
 	@Override
@@ -75,6 +54,11 @@ public class IQRCheck implements QualityCheck {
 	@Override
 	public String getParams() {
 		return("columnname");
+	}
+
+	@Override
+	public String getReturns() {
+		return "Inter-quartile Range (float, long, double)";
 	}
 
 }

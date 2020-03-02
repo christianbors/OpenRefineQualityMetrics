@@ -18,13 +18,6 @@ public class SaveMetricsProjectOperation extends AbstractOperation{
 	}
 	
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	protected HistoryEntry createHistoryEntry(Project project,
 			long historyEntryID) throws Exception {
 		// TODO Auto-generated method stub

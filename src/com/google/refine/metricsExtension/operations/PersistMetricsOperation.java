@@ -27,20 +27,6 @@ public class PersistMetricsOperation extends AbstractOperation {
 	public PersistMetricsOperation(MetricsOverlayModel overlayModel) {
 		metricsOverlayModel = overlayModel;
 	}
-
-	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-		writer.key("op").value(
-				OperationRegistry.s_opClassToName.get(this.getClass()));
-		writer.key("description").value(getBriefDescription(null));
-		if (metricsOverlayModel != null) {
-			writer.key("model");
-			metricsOverlayModel.write(writer, options);
-		}
-		writer.endObject();
-	}
 	
 	@Override
 	protected String getBriefDescription(Project project) {

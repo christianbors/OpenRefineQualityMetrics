@@ -45,7 +45,7 @@ public class GetMetricDocLanguageInfoCommand extends Command {
                 for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
                 	if (entry.getValue() instanceof QualityCheck) {
 	                    writer.key(entry.getKey());
-	                    entry.getValue().write(writer, options);
+	                    entry.setValue(entry.getValue());
                 	}
                 }
             }
@@ -57,7 +57,7 @@ public class GetMetricDocLanguageInfoCommand extends Command {
                 for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
                 	if (entry.getValue() instanceof SingleColumnMetricFunction) {
                 	    writer.key(entry.getKey());
-	                    entry.getValue().write(writer, options);
+                        entry.setValue(entry.getValue());
                 	}
                 }
             }
@@ -69,7 +69,7 @@ public class GetMetricDocLanguageInfoCommand extends Command {
                 for (Entry<String, Function> entry : ControlFunctionRegistry.getFunctionMapping()) {
                 	if (entry.getValue() instanceof SpanningColumnMetricFunction) {
 	                    writer.key(entry.getKey());
-	                    entry.getValue().write(writer, options);
+                        entry.setValue(entry.getValue());
                 	}
                 }
             }

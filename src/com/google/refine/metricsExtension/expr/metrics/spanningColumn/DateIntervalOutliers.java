@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.json.JSONException;
@@ -23,8 +24,9 @@ import com.google.refine.expr.WrappedCell;
 import com.google.refine.metricsExtension.util.StatisticsUtils;
 import com.google.refine.model.Project;
 
-public class DateIntervalOutliers implements SpanningColumnMetricFunction {
+public class DateIntervalOutliers extends SpanningColumnMetricFunction {
 
+	@JsonProperty
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"robust", "seconds"});
 	
 	@SuppressWarnings("unchecked")
@@ -92,14 +94,8 @@ public class DateIntervalOutliers implements SpanningColumnMetricFunction {
 	}
 
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-        writer.key("description"); writer.value(getDescription());
-        writer.key("params"); writer.value(getParams());
-        writer.key("returns"); writer.value("boolean");
-        writer.key("defaultParams"); writer.value(defaultParams.toString());
-        writer.endObject();
+	public String getDefaultParams() {
+		return String.join(",", defaultParams);
 	}
 
 	@Override
@@ -108,7 +104,7 @@ public class DateIntervalOutliers implements SpanningColumnMetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable(String[] columns, String[] params)
+	public String getEvaluable(String[] columns, String[] params)
 			throws ParsingException {
 		String eval = "dateIntervalOutliers(";
 		Iterator<String> it = Arrays.asList(columns).iterator();
@@ -131,7 +127,7 @@ public class DateIntervalOutliers implements SpanningColumnMetricFunction {
 			}
 		}
 		eval += ")";
-		return MetaParser.parse(eval);
+		return eval;
 	}
 
 	@Override

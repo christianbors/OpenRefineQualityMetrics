@@ -51,6 +51,17 @@ public class MetricUtils {
 			public Evaluable evaluable() throws ParsingException {
 				return MetaParser.parse("validity(value, '" + datatype() + "')");
 			}
+		},
+		plausibility("number") {
+			@Override
+			public String description() {
+				return "Perform statistical plausibilization";
+			}
+
+			@Override
+			public Evaluable evaluable() throws ParsingException {
+				return MetaParser.parse("plausibility(value, global, robust)");
+			}
 		};
 		
 		private String datatype;

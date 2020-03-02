@@ -1,18 +1,15 @@
 package com.google.refine.metricsExtension.model;
 
-import com.google.refine.Jsonizable;
-import com.google.refine.grel.ControlFunctionRegistry;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.refine.grel.Function;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONWriter;
 
-import java.util.Properties;
+public class MetricRecommendation {
 
-public class MetricRecommendation implements Jsonizable {
-
+    @JsonProperty("name")
     private String name;
+    @JsonProperty("parameters")
     private String parameters;
+    @JsonProperty("function")
     private Function function;
 
     public MetricRecommendation(String name, String parameters, Function function) {
@@ -21,14 +18,14 @@ public class MetricRecommendation implements Jsonizable {
         this.setFunction(function);
     }
 
-    @Override
-    public void write(JSONWriter writer, Properties options) throws JSONException {
-        writer.object().key("metric");
-        this.getFunction().write(writer, options);
-        writer.key("name").value(getName());
-        writer.key("parameters").value(getParameters());
-        writer.endObject();
-    }
+//    @Override
+//    public void write(JSONWriter writer, Properties options) throws JSONException {
+//        writer.object().key("metric");
+//        this.getFunction().write(writer, options);
+//        writer.key("name").value(getName());
+//        writer.key("parameters").value(getParameters());
+//        writer.endObject();
+//    }
 
     public String getName() {
         return name;

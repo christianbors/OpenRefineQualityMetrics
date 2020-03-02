@@ -1,22 +1,6 @@
 package com.google.refine.metricsExtension.commands;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.json.JSONException;
-import org.json.JSONWriter;
-
-import com.google.refine.Jsonizable;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.refine.browsing.Engine;
 import com.google.refine.browsing.FilteredRows;
 import com.google.refine.browsing.RowVisitor;
@@ -28,6 +12,13 @@ import com.google.refine.expr.functions.ToNumber;
 import com.google.refine.expr.functions.ToString;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
+import org.json.JSONException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.*;
 
 public class EvaluateDataTypesCommand extends Command {
 
@@ -121,9 +112,11 @@ public class EvaluateDataTypesCommand extends Command {
 		}
 	}
 	
-	private class DataTypesDist implements Jsonizable {
-		
+	private class DataTypesDist {
+
+		@JsonProperty("dataTypes")
 		private Map<String, int[]> dataTypes;
+		@JsonProperty("rowCount")
 		private int rowCount;
 		
 		DataTypesDist(int columnSize, int rowCount) {
@@ -135,20 +128,20 @@ public class EvaluateDataTypesCommand extends Command {
 			dataTypes.put("unknown", new int[columnSize]);
 		}
 		
-		@Override
-		public void write(JSONWriter writer, Properties options)
-				throws JSONException {
-			writer.array();
-			for (Map.Entry<String, int[]> entry : dataTypes.entrySet()) {
-				writer.object();
-				writer.key("type").value(entry.getKey());
-				writer.key("val").array();
-				for(int count : entry.getValue()) {
-					writer.value(count);
-				}
-				writer.endArray().endObject();
-			}
-			writer.endArray();
-		}
+//		@Override
+//		public void write(JSONWriter writer, Properties options)
+//				throws JSONException {
+//			writer.array();
+//			for (Map.Entry<String, int[]> entry : dataTypes.entrySet()) {
+//				writer.object();
+//				writer.key("type").value(entry.getKey());
+//				writer.key("val").array();
+//				for(int count : entry.getValue()) {
+//					writer.value(count);
+//				}
+//				writer.endArray().endObject();
+//			}
+//			writer.endArray();
+//		}
 	}
 }

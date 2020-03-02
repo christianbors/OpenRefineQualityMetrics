@@ -5,6 +5,7 @@ import java.io.LineNumberReader;
 import java.io.Writer;
 import java.util.Properties;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -20,6 +21,7 @@ import com.google.refine.util.Pool;
 
 public class MetricsExtensionOperation extends AbstractOperation {
 
+	@JsonProperty("metricsOverlayModel")
 	final protected MetricsOverlayModel metricsOverlayModel;
 
 	static public AbstractOperation reconstruct(Project project,
@@ -29,22 +31,8 @@ public class MetricsExtensionOperation extends AbstractOperation {
 		return new MetricsExtensionOperation(overlayModel);
 	}
 
-	public MetricsExtensionOperation(MetricsOverlayModel model) {
+	public MetricsExtensionOperation(@JsonProperty("metricsOverlayModel") MetricsOverlayModel model) {
 		metricsOverlayModel = model;
-	}
-
-	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-		writer.object();
-		writer.key("op").value(
-				OperationRegistry.s_opClassToName.get(this.getClass()));
-		writer.key("description").value(getBriefDescription(null));
-		if (metricsOverlayModel != null) {
-			writer.key("model");
-			metricsOverlayModel.write(writer, options);
-		}
-		writer.endObject();
 	}
 
 	@Override
@@ -120,13 +108,11 @@ public class MetricsExtensionOperation extends AbstractOperation {
 				if ("oldMetricsOverlayModel".equals(field)
 						&& value.length() > 0) {
 					oldMetricsOverlayModel = MetricsOverlayModel
-							.reconstruct(ParsingUtilities
-									.evaluateJsonStringToObject(value));
+							.reconstruct(value);
 				} else if ("newMetricsOverlayModel".equals(field)
 						&& value.length() > 0) {
 					newMetricsOverlayModel = MetricsOverlayModel
-							.reconstruct(ParsingUtilities
-									.evaluateJsonStringToObject(value));
+							.reconstruct(value);
 				}
 			}
 
@@ -141,11 +127,11 @@ public class MetricsExtensionOperation extends AbstractOperation {
 				MetricsOverlayModel metricsOverlayModel, Writer writer) {
 			if (metricsOverlayModel != null) {
 				JSONWriter jsonWriter = new JSONWriter(writer);
-				try {
-					metricsOverlayModel.write(jsonWriter, new Properties());
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+//				try {
+//					metricsOverlayModel.write(jsonWriter, new Properties());
+//				} catch (JSONException e) {
+//					e.printStackTrace();
+//				}
 			}
 		}
 	}

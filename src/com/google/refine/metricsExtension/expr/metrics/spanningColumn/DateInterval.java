@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.json.JSONException;
 import org.json.JSONWriter;
 
@@ -17,10 +18,10 @@ import com.google.refine.expr.MetaParser;
 import com.google.refine.expr.ParsingException;
 import com.google.refine.expr.WrappedCell;
 
-public class DateInterval implements SpanningColumnMetricFunction {
+public class DateInterval extends SpanningColumnMetricFunction {
 
 	private static final List<String> defaultParams = Arrays.asList(new String[] {"lteq", "0", "seconds"});
-	
+
 	@Override
 	public Object call(Properties bindings, Object[] args) {
 		if (args.length >= 2) {
@@ -98,14 +99,8 @@ public class DateInterval implements SpanningColumnMetricFunction {
 	}
 
 	@Override
-	public void write(JSONWriter writer, Properties options)
-			throws JSONException {
-        writer.object();
-        writer.key("description"); writer.value(getDescription());
-        writer.key("params"); writer.value(getParams());
-        writer.key("returns"); writer.value("boolean");
-        writer.key("defaultParams"); writer.value(defaultParams.toString());
-        writer.endObject();
+	public String getDefaultParams() {
+		return String.join(",", defaultParams);
 	}
 
 	@Override
@@ -114,7 +109,7 @@ public class DateInterval implements SpanningColumnMetricFunction {
 	}
 
 	@Override
-	public Evaluable getEvaluable(String[] columns, String[] params) throws ParsingException {
+	public String getEvaluable(String[] columns, String[] params) throws ParsingException {
 		String eval = "dateInterval(";
 		Iterator<String> it = Arrays.asList(columns).iterator();
 		while(it.hasNext()) {
@@ -136,7 +131,7 @@ public class DateInterval implements SpanningColumnMetricFunction {
 			}
 		}
 		eval += ")";
-		return MetaParser.parse(eval);
+		return eval;
 	}
 
 	@Override

@@ -11,6 +11,8 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.refine.expr.Evaluable;
+import com.google.refine.grel.ControlFunctionRegistry;
 import org.json.JSONException;
 
 import com.google.refine.ProjectManager;
@@ -121,8 +123,7 @@ public abstract class EvaluateMetricsRowVisitor implements RowVisitor {
                         bindings.setProperty("columnName", evalTuple.column);
 
                         boolean evalResult;
-                        Object evaluation = evalTuple.eval
-                            .evaluate(bindings);
+                        Object evaluation = evalTuple.getEvaluable().evaluate(bindings);
                         if (evaluation.getClass() != EvalError.class) {
                             evalResult = (Boolean) evaluation;
                             if (!evalResult) {
@@ -143,7 +144,7 @@ public abstract class EvaluateMetricsRowVisitor implements RowVisitor {
                 boolean entryDirty = false;
 
                 if (sm.getSpanningEvaluable() != null) {
-                    Object spanEvalResult = sm.getSpanningEvaluable().eval.evaluate(bindings);
+                    Object spanEvalResult = sm.getSpanningEvaluable().getEvaluable().evaluate(bindings);
                     if (spanEvalResult.getClass() != EvalError.class) {
                         evalResults.add((Boolean) spanEvalResult);
                         if (!(boolean) spanEvalResult) {
@@ -155,7 +156,7 @@ public abstract class EvaluateMetricsRowVisitor implements RowVisitor {
                     bindings.setProperty("columnName", evalTuple.column);
 
                     boolean evalResult;
-                    Object evaluation = evalTuple.eval.evaluate(bindings);
+                    Object evaluation = evalTuple.getEvaluable().evaluate(bindings);
                     if (evaluation.getClass() != EvalError.class) {
                         evalResult = (Boolean) evaluation;
                         if (!evalResult) {
